@@ -4,11 +4,9 @@
 \alias{annotate_smru_tables}
 \title{annotate SMRU tables with SSM-estimated locations}
 \usage{
-annotate_smru_tables(cids, smru, fit)
+annotate_smru_tables(smru, fit, drop.ids = NULL)
 }
 \arguments{
-\item{cids}{SMRU campaign id(s)}
-
 \item{smru}{SMRU table file - output of \code{pull_smru_tables}}
 
 \item{fit}{final \code{foieGras} fit object}
