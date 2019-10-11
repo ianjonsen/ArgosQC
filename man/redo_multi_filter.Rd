@@ -4,14 +4,18 @@
 \alias{redo_multi_filter}
 \title{redo failed multi-filter cases}
 \usage{
-redo_multi_filter(fit)
+redo_multi_filter(fit, diag_sf, model = "crw", ts = 2, min.dt = 180)
 }
 \arguments{
 \item{fit}{foieGras fit object from first round of filtering}
 
 \item{diag_sf}{\code{sf}-projected diag to be used}
 
-\item{meta}{metadata to split diag by species}
+\item{model}{model argument ("rw" or "crw) for \code{foieGras::fit_ssm}}
+
+\item{ts}{time.step argument for \code{foieGras::fit_ssm}}
+
+\item{min.dt}{min.dt argument for \code{foieGras::fit_ssm}}
 }
 \description{
 re-apply SSM filter to diag data for id's that failed to converge. parallelized

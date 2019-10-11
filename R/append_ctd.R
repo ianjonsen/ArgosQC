@@ -20,7 +20,7 @@ append_ctd <- function(cids, smru, meta) {
     select(ref, end.date) %>%
     mutate(end.date = mdy_hms(end.date, tz = "UTC")) %>%
     group_by(ref) %>%
-    summarise(end = max(end.date))
+    summarise(ctd_end = max(end.date))
 
   meta_ctd <- meta %>%
     left_join(., ctd_end, by = c("device_id" = "ref"))

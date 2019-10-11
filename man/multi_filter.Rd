@@ -4,12 +4,21 @@
 \alias{multi_filter}
 \title{multi-filter}
 \usage{
-multi_filter(diag_sf, meta)
+multi_filter(diag_sf, vmax = 4, ang = c(15, 25), min.dt = 60,
+  model = "crw", ts = 2)
 }
 \arguments{
 \item{diag_sf}{\code{sf}-projected diag to be used}
 
-\item{meta}{metadata to split diag by species}
+\item{vmax}{for prefilter}
+
+\item{ang}{for prefilter}
+
+\item{min.dt}{for prefilter}
+
+\item{model}{\code{foieGras} model ("rw" orr "crw)}
+
+\item{ts}{\code{foieGrsa} time.step}
 }
 \description{
 apply SSM filter to diag data across multiple processors

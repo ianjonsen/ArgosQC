@@ -3,7 +3,11 @@
 ##' @description apply SSM filter to diag data across multiple processors
 ##'
 ##' @param diag_sf \code{sf}-projected diag to be used
-##' @param meta metadata to split diag by species
+##' @param vmax for prefilter
+##' @param ang for prefilter
+##' @param min.dt for prefilter
+##' @param model \code{foieGras} model ("rw" orr "crw)
+##' @param ts \code{foieGrsa} time.step
 ##'
 ##' @examples
 ##'
@@ -15,7 +19,7 @@
 ##' @export
 ##'
 
-multi_filter <- function(diag_sf, meta) {
+multi_filter <- function(diag_sf, vmax = 4, ang = c(15, 25), min.dt = 60, model = "crw", ts = 2) {
 
   ## split data by WESE vs SESE campaigns
   wese.m <- meta %>% filter(common_name == "Weddell seal")
@@ -30,13 +34,13 @@ multi_filter <- function(diag_sf, meta) {
   fit_sese <-
     diag_sese$d_sf %>% future_map(~ try(fit_ssm(
       d = .x,
-      model = "crw",
-      time.step = 2,
+      model = model,
+      time.step = ts,
       verbose = 0,
-      vmax = 10,
-      ang = c(15,25),
-      min.dt = 60
-    )), .progress = TRUE) %>%
+      vmax = vmax,
+      ang = ang,
+      min.dt = min.dt
+    ), silent = TRUE), .progress = TRUE) %>%
     do.call(rbind, .)
 
   ## rw model to WESE
