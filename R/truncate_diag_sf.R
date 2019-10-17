@@ -38,8 +38,17 @@ truncate_diag_sf <- function(diag, meta, crs = "+init=epsg:3395 +units=km") {
         select(-ref)
     ) %>%
     ungroup() %>%
-    mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE))) %>%
-    select(ref, cid, d_sf)
+    mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
+
+  ## add species code
+  msp <- meta %>% select(device_id, species)
+
+  diag_sf <- diag_sf %>%
+    left_join(., msp, by = c("ref" = "device_id")) %>%
+    mutate(species = ifelse(species == "Mirounga leonina", "sese",
+                            ifelse(species == "Leptonychotes weddellii", "wese", NA))) %>%
+    rename(sp = species) %>%
+    select(ref, cid, sp, d_sf)
 
   return(diag_sf)
 }

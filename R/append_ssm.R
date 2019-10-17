@@ -4,17 +4,19 @@
 ##'
 ##' @param smru SMRU table file - output of \code{pull_smru_tables}
 ##' @param fit final \code{foieGras} fit object
+##' @param meta metadata used to truncate start of diag data for each individual
+##' @param drop.ids individual ids to be dropped
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr filter select mutate group_by "%>%" summarise left_join distinct
+##' @importFrom dplyr filter select mutate group_by "%>%" summarise left_join distinct pull
 ##' @importFrom tidyr unnest
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom foieGras grab
 ##'
 ##' @export
 
-annotate_smru_tables <- function(smru, fit, drop.ids = NULL) {
+annotate_smru_tables <- function(smru, fit, meta, drop.ids = NULL) {
 
   ## general approx fun
   approx.fn <- function(x, smru.table, date.var) {
@@ -36,6 +38,18 @@ annotate_smru_tables <- function(smru, fit, drop.ids = NULL) {
     )
   }
 
+  f <- grab(fit, "fitted", as_sf = FALSE) %>%
+    rename(ref = id) %>%
+    filter(!ref %in% drop.ids)
+
+  p <- grab(fit, "predicted", as_sf = FALSE) %>%
+    rename(ref = id) %>%
+    filter(!ref %in% drop.ids)
+
+  deploy_meta <- meta %>%
+    select(device_id, release_date) %>%
+    filter(!device_id %in% drop.ids)
+
   ## ctd table
   ctd <- smru$ctd %>%
     mutate(ref = as.character(ref),
@@ -45,7 +59,7 @@ annotate_smru_tables <- function(smru, fit, drop.ids = NULL) {
   ctd <- p %>%
     group_by(ref) %>%
     do(locs = approx.fn(., smru.table = ctd, date.var = "end.date")) %>%
-    unnest() %>%
+    unnest(cols = c(locs)) %>%
     left_join(ctd, ., by = c("ref", c("end.date" = "date"))) %>%
     distinct()
 
@@ -59,7 +73,7 @@ annotate_smru_tables <- function(smru, fit, drop.ids = NULL) {
   dive <- p %>%
     group_by(ref) %>%
     do(locs = approx.fn(., smru.table = dive, date.var = "de.date")) %>%
-    unnest() %>%
+    unnest(cols = c(locs)) %>%
     left_join(dive, ., by = c("ref", c("de.date" = "date")))
 
 
@@ -72,7 +86,7 @@ annotate_smru_tables <- function(smru, fit, drop.ids = NULL) {
   haulout <- p %>%
     group_by(ref) %>%
     do(locs = approx.fn(., smru.table = haulout, date.var = "s.date")) %>%
-    unnest() %>%
+    unnest(cols = c(locs)) %>%
     left_join(haulout, ., by = c("ref", c("s.date" = "date")))
 
   ## summary table
@@ -84,12 +98,13 @@ annotate_smru_tables <- function(smru, fit, drop.ids = NULL) {
   ssummary <- p %>%
     group_by(ref) %>%
     do(locs = approx.fn(., smru.table = ssummary, date.var = "e.date")) %>%
-    unnest() %>%
+    unnest(cols = c(locs)) %>%
     left_join(ssummary, ., by = c("ref", c("e.date" = "date")))
 
   ## diag table
   diag <- smru$diag %>%
-    mutate(d.date = mdy_hms(d.date, tz = "UTC")) %>%
+    mutate(d.date = mdy_hms(d.date, tz = "UTC"),
+           ref = as.character(ref)) %>%
     left_join(. , deploy_meta, by = c("ref" = "device_id")) %>%
     mutate(release_date = ifelse(is.na(release_date), d.date, release_date)) %>%
     mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
@@ -99,10 +114,9 @@ annotate_smru_tables <- function(smru, fit, drop.ids = NULL) {
 
   diag <- f %>%
     group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = diag, date.var = "d.date")) %>%
-    unnest() %>%
+    unnest(cols = c()) %>%
     left_join(diag, ., by = c("ref", c("d.date" = "date"))) %>%
     distinct()
 
-  list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, summary = summary)
+  list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
 }

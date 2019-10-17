@@ -93,7 +93,7 @@ clean_meta <- function(cids, file = "~/Dropbox/collab/imos/qc/r/meta/IMOS_CTD_me
     )
 
   ## subset to current campaigns
-  ## currently, the metadata are missing 10 individuals - including all of wd11 (8 seals)
+  ## currently, the metadata are missing at least 2 individuals from 2018/19 active campaigns: ct144-184BAT2-14, ct150-440BAT-16
   meta <- meta %>%
     filter(sattag_program %in% cids)
 

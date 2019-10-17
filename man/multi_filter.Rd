@@ -4,11 +4,11 @@
 \alias{multi_filter}
 \title{multi-filter}
 \usage{
-multi_filter(diag_sf, vmax = 4, ang = c(15, 25), min.dt = 60,
+multi_filter(x, vmax = 4, ang = c(15, 25), min.dt = 60,
   model = "crw", ts = 2)
 }
 \arguments{
-\item{diag_sf}{\code{sf}-projected diag to be used}
+\item{x}{\code{sf}-projected diag file of locations to be filtered}
 
 \item{vmax}{for prefilter}
 

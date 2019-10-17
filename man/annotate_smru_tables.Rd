@@ -4,12 +4,16 @@
 \alias{annotate_smru_tables}
 \title{annotate SMRU tables with SSM-estimated locations}
 \usage{
-annotate_smru_tables(smru, fit, drop.ids = NULL)
+annotate_smru_tables(smru, fit, meta, drop.ids = NULL)
 }
 \arguments{
 \item{smru}{SMRU table file - output of \code{pull_smru_tables}}
 
 \item{fit}{final \code{foieGras} fit object}
+
+\item{meta}{metadata used to truncate start of diag data for each individual}
+
+\item{drop.ids}{individual ids to be dropped}
 }
 \description{
 annotate SMRU tables so each event has SSM-derived lon,lat,x,y,x.se,y.se
