@@ -8,6 +8,7 @@
 ##' @param min.dt for prefilter
 ##' @param model \code{foieGras} model ("rw" orr "crw)
 ##' @param ts \code{foieGrsa} time.step
+##' @param map params to fix
 ##'
 ##' @examples
 ##'
@@ -19,7 +20,7 @@
 ##' @export
 ##'
 
-multi_filter <- function(x, vmax = 4, ang = c(15, 25), min.dt = 60, model = "crw", ts = 2) {
+multi_filter <- function(x, vmax = 4, ang = c(15, 25), min.dt = 60, model = "crw", ts = 2, map = NULL) {
 
   plan("multisession")
   fit <-
@@ -30,7 +31,8 @@ multi_filter <- function(x, vmax = 4, ang = c(15, 25), min.dt = 60, model = "crw
       verbose = 0,
       vmax = vmax,
       ang = ang,
-      min.dt = min.dt
+      min.dt = min.dt,
+      map = map
     ), silent = TRUE), .progress = TRUE) %>%
     do.call(rbind, .)
 

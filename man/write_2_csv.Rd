@@ -5,7 +5,7 @@
 \title{reconfigure annotated SMRU tables for AODN}
 \usage{
 write_2_csv(smru_ssm, fit, meta,
-  path = "~/Dropbox/collab/imos/qc/r/output/aodn", drop.ids = NULL)
+  path = "~/Dropbox/collab/imos/imos_qc/aodn", drop.refs = NULL)
 }
 \arguments{
 \item{smru_ssm}{SSM-appended SMRU table file - output of \code{append_ssm}}
@@ -16,7 +16,7 @@ write_2_csv(smru_ssm, fit, meta,
 
 \item{path}{path to write .csv files}
 
-\item{drop.ids}{individual ids to be dropped}
+\item{drop.refs}{individual ids to be dropped}
 }
 \description{
 reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id

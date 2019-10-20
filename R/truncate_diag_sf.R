@@ -18,14 +18,12 @@
 truncate_diag_sf <- function(diag, meta, crs = "+init=epsg:3395 +units=km") {
 
   deploy_meta <- meta %>%
-    select(device_id, release_date)
+    select(device_id, ctd_start, ctd_end)
 
   diag <- diag %>%
     left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
-    mutate(release_date = ifelse(is.na(release_date), date, release_date)) %>%
-    mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
-    filter(date >= release_date) %>%
-    select(-release_date)
+    filter(date >= ctd_start & date <= ctd_end) %>%
+    select(-ctd_start, -ctd_end)
 
   diag_sf <- diag %>%
     mutate(id = ref) %>%

@@ -5,7 +5,7 @@
 \title{multi-filter}
 \usage{
 multi_filter(x, vmax = 4, ang = c(15, 25), min.dt = 60,
-  model = "crw", ts = 2)
+  model = "crw", ts = 2, map = NULL)
 }
 \arguments{
 \item{x}{\code{sf}-projected diag file of locations to be filtered}
@@ -19,6 +19,8 @@ multi_filter(x, vmax = 4, ang = c(15, 25), min.dt = 60,
 \item{model}{\code{foieGras} model ("rw" orr "crw)}
 
 \item{ts}{\code{foieGrsa} time.step}
+
+\item{map}{params to fix}
 }
 \description{
 apply SSM filter to diag data across multiple processors

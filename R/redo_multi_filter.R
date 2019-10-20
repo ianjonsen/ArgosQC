@@ -7,6 +7,7 @@
 ##' @param model model argument ("rw" or "crw) for \code{foieGras::fit_ssm}
 ##' @param ts time.step argument for \code{foieGras::fit_ssm}
 ##' @param min.dt min.dt argument for \code{foieGras::fit_ssm}
+##' @param map params to fix
 ##'
 ##'
 ##' @examples
@@ -20,16 +21,15 @@
 ##' @export
 ##'
 
-redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 2, min.dt = 180) {
+redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, min.dt = 180, map = NULL) {
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
   nc <- which(!fit$converged)
   sprintf("%d failed to converge", length(nc))
 
-  if(length(nc) == 0 & length(oc) == 0) {
-    stop("\n no fit failures")
-  } else {
+  if(length(nc) > 0 | length(oc) > 0) {
+
     d <- sort(unique(c(oc,nc)))
     fit.f <- fit %>% ungroup() %>% slice(d)
     fit.s <- fit %>% ungroup() %>% slice(-d)
@@ -47,7 +47,8 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 2, min.dt = 180)
         min.dt = min.dt,
         vmax = 4,
         ang = c(15, 25),
-        verbose = 0
+        verbose = 0,
+        map = map
       ), silent = TRUE), .progress = TRUE) %>%
       do.call(rbind, .)
 
@@ -58,25 +59,19 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 2, min.dt = 180)
     if(nrow(fit.s) < nrow(fit)) {
       fit.f <- which(!fit_fail$converged)
       if(length(fit.f) > 0){
-        fail_dat <- fail_dat %>% slice(fit.f)
-        fail_dat <- lapply(fail_dat$d_sf, function(x) {
-          left_join(x, ctd_end, by = c("id" = "ref")) %>%
-            filter(date <= ctd_end) %>%
-            select(-ctd_end)
-        }) %>% do.call(rbind, .) %>%
-          mutate(ref = id) %>%
-          nest(-ref, .key = "d_sf") %>%
-          mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
+        fail_dat <- fail_dat %>%
+          slice(fit.f)
 
         fit_fail <- fail_dat$d_sf %>%
           future_map(~ try(fit_ssm(
             d = .x,
             model = model,
-            time.step = ts,
-            min.dt = min.dt,
+            time.step = ifelse(ts==3, ts * 2, ts),
+            min.dt = min.dt * 2,
             vmax = 4,
             ang = c(15, 25),
-            verbose = 0
+            verbose = 0,
+            map = map
           ), silent = TRUE), .progress = TRUE
           ) %>%
           do.call(rbind, .)
@@ -87,6 +82,8 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 2, min.dt = 180)
     sprintf("%d convergence failures remain", sum(!fit_fail$converged))
 
     return(fit.s)
+  } else {
+    return(fit)
   }
 
 

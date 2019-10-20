@@ -6,7 +6,7 @@
 ##' @param fit final \code{foieGras} fit object
 ##' @param meta metadata
 ##' @param path path to write .csv files
-##' @param drop.ids individual ids to be dropped
+##' @param drop.refs individual ids to be dropped
 ##'
 ##' @examples
 ##'
@@ -18,12 +18,12 @@
 ##'
 ##' @export
 
-write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/qc/r/output/aodn", drop.ids = NULL) {
+write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_qc/aodn", drop.refs = NULL) {
 
   ## get predicted locations from fits
   p <- grab(fit, "predicted", as_sf = FALSE) %>%
     rename(ref = id) %>%
-    filter(!ref %in% drop.ids) %>%
+    filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
 
   p.lst <- split(p, p$ref)
@@ -43,37 +43,38 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/qc/r/
     walk( ~ write_csv(.x, path = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], ".csv")))
 
   smru_ssm$diag %>%
-    filter(!ref %in% drop.ids) %>%
+    filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "diag"), "_", .x$cid[1], ".csv")))
 
   smru_ssm$haulout %>%
-    filter(!ref %in% drop.ids) %>%
+    filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "haulout"), "_", .x$cid[1], ".csv")))
 
   smru_ssm$ctd %>%
-    filter(!ref %in% drop.ids) %>%
+    filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "ctd"), "_", .x$cid[1], ".csv")))
 
   smru_ssm$dive %>%
-    filter(!ref %in% drop.ids) %>%
+    filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "dive"), "_", .x$cid[1], ".csv")))
 
   smru_ssm$ssummary %>%
-    filter(!ref %in% drop.ids) %>%
+    filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "summary"), "_", .x$cid[1], ".csv")))
 
   meta %>%
-    filter(!device_id %in% drop.ids) %>%
+    filter(!device_id %in% drop.refs) %>%
+    rename(qc_start_date = ctd_start, qc_end_date = ctd_end) %>%
     split(., .$sattag_program) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "metadata"), "_",
                                                .x$sattag_program[1], ".csv")))

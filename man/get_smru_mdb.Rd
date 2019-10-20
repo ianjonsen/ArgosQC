@@ -4,7 +4,8 @@
 \alias{get_smru_mdb}
 \title{Download .mdb files from the SMRU server}
 \usage{
-get_smru_mdb(cids, dest = "mdb", user = "imos", pwd = "imos")
+get_smru_mdb(cids, dest = "~/Dropbox/collab/imos/imos_qc/mdb",
+  user = "imos", pwd = "imos")
 }
 \arguments{
 \item{cids}{SMRU campaign ids to be downloaded from SMRU data server}

@@ -2,9 +2,9 @@
 % Please edit documentation in R/push_2_aodn.R
 \name{push_2_aodn}
 \alias{push_2_aodn}
-\title{zip files and push to AODN}
+\title{push to AODN}
 \usage{
-push_2_aodn(cids, path = "~/Dropbox/collab/imos/qc/r/output/aodn")
+push_2_aodn(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn")
 }
 \arguments{
 \item{cids}{campaign ids to zip and push}

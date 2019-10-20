@@ -4,10 +4,12 @@
 \alias{clean_diag}
 \title{clean diag files}
 \usage{
-clean_diag(smru)
+clean_diag(smru, drop.refs = NULL)
 }
 \arguments{
 \item{smru}{list of SMRU tables}
+
+\item{drop.refs}{SMRU refs to be dropped (eg. tags were turned on but not deployed)}
 }
 \description{
 restructures diag files, formats dates & lc's in preparation for SSM-filtering

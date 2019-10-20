@@ -1,4 +1,4 @@
-##' @title zip files and push to AODN
+##' @title push to AODN
 ##'
 ##' @description zip .csv files by campaign id & push to AODN incoming server
 ##'
@@ -15,7 +15,7 @@
 ##'
 ##' @export
 
-push_2_aodn <- function(cids, path = "~/Dropbox/collab/imos/qc/r/output/aodn") {
+push_2_aodn <- function(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn") {
 
   ## zip files by cid
   cids %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), ".zip ",

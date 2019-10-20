@@ -3,6 +3,8 @@
 ##' @description restructures metadata, formats dates, standardizes variable names, subsets to specified campaign ids
 ##'
 ##' @param cids SMRU campaign ids
+##' @param smru SMRU table
+##' @param drop.refs SMRU refs to be dropped
 ##' @param file path to metadata .csv file
 ##'
 ##' @examples
@@ -15,7 +17,7 @@
 ##' @export
 ##'
 
-clean_meta <- function(cids, file = "~/Dropbox/collab/imos/qc/r/meta/IMOS_CTD_metadata_11042019.csv") {
+clean_meta <- function(cids, smru, drop.refs = NULL, file = "~/Dropbox/collab/imos/qc/r/meta/IMOS_CTD_metadata_11042019.csv") {
 
   meta <- suppressWarnings(read_csv(file)) %>%
     select(
@@ -92,10 +94,21 @@ clean_meta <- function(cids, file = "~/Dropbox/collab/imos/qc/r/meta/IMOS_CTD_me
       actual_mass
     )
 
-  ## subset to current campaigns
-  ## currently, the metadata are missing at least 2 individuals from 2018/19 active campaigns: ct144-184BAT2-14, ct150-440BAT-16
+  ## subset to current campaigns & apply drop.refs
   meta <- meta %>%
-    filter(sattag_program %in% cids)
+    filter(sattag_program %in% cids) %>%
+    filter(!device_id %in% drop.refs)
+
+  ## append CTD start and end dates for track truncation
+  ctd_se <- smru$ctd %>%
+    mutate(ref = as.character(ref)) %>%
+    select(ref, end.date) %>%
+    mutate(end.date = mdy_hms(end.date, tz = "UTC")) %>%
+    group_by(ref) %>%
+    summarise(ctd_start = min(end.date, na.rm = TRUE), ctd_end = max(end.date, na.rm = TRUE))
+
+  meta <- meta %>%
+    left_join(., ctd_se, by = c("device_id" = "ref"))
 
   return(meta)
 }

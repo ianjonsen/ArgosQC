@@ -5,7 +5,7 @@
 ##' @param smru SMRU table file - output of \code{pull_smru_tables}
 ##' @param fit final \code{foieGras} fit object
 ##' @param meta metadata used to truncate start of diag data for each individual
-##' @param drop.ids individual ids to be dropped
+##' @param drop.refs SMRU refs to be dropped
 ##'
 ##' @examples
 ##'
@@ -16,7 +16,7 @@
 ##'
 ##' @export
 
-annotate_smru_tables <- function(smru, fit, meta, drop.ids = NULL) {
+annotate_smru_tables <- function(smru, fit, meta, drop.refs = NULL) {
 
   ## general approx fun
   approx.fn <- function(x, smru.table, date.var) {
@@ -40,21 +40,21 @@ annotate_smru_tables <- function(smru, fit, meta, drop.ids = NULL) {
 
   f <- grab(fit, "fitted", as_sf = FALSE) %>%
     rename(ref = id) %>%
-    filter(!ref %in% drop.ids)
+    filter(!ref %in% drop.refs)
 
   p <- grab(fit, "predicted", as_sf = FALSE) %>%
     rename(ref = id) %>%
-    filter(!ref %in% drop.ids)
+    filter(!ref %in% drop.refs)
 
   deploy_meta <- meta %>%
     select(device_id, release_date) %>%
-    filter(!device_id %in% drop.ids)
+    filter(!device_id %in% drop.refs)
 
   ## ctd table
   ctd <- smru$ctd %>%
     mutate(ref = as.character(ref),
            end.date = mdy_hms(end.date, tz = "UTC")) %>%
-    filter(!ref %in% drop.ids)  #c("ct150-440BAT-16", "ct144-184BAT2-14")
+    filter(!ref %in% drop.refs)  #c("ct150-440BAT-16", "ct144-184BAT2-14")
 
   ctd <- p %>%
     group_by(ref) %>%
@@ -68,7 +68,7 @@ annotate_smru_tables <- function(smru, fit, meta, drop.ids = NULL) {
   dive <- smru$dive %>%
     mutate(ref = as.character(ref),
            de.date = mdy_hms(de.date, tz = "UTC")) %>%
-    filter(!ref %in% drop.ids)
+    filter(!ref %in% drop.refs)
 
   dive <- p %>%
     group_by(ref) %>%
@@ -81,7 +81,7 @@ annotate_smru_tables <- function(smru, fit, meta, drop.ids = NULL) {
   haulout <- smru$haulout %>%
     mutate(ref = as.character(ref),
            s.date = mdy_hms(s.date, tz = "UTC")) %>%
-    filter(!ref %in% drop.ids)
+    filter(!ref %in% drop.refs)
 
   haulout <- p %>%
     group_by(ref) %>%
@@ -93,7 +93,7 @@ annotate_smru_tables <- function(smru, fit, meta, drop.ids = NULL) {
   ssummary <- smru$summary %>%
     mutate(ref = as.character(ref),
            e.date = mdy_hms(e.date, tz = "UTC")) %>%
-    filter(!ref %in% drop.ids)
+    filter(!ref %in% drop.refs)
 
   ssummary <- p %>%
     group_by(ref) %>%
@@ -110,7 +110,7 @@ annotate_smru_tables <- function(smru, fit, meta, drop.ids = NULL) {
     mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
     filter(d.date >= release_date) %>%
     select(-release_date) %>%
-    filter(!ref %in% drop.ids)
+    filter(!ref %in% drop.refs)
 
   diag <- f %>%
     group_by(ref) %>%
