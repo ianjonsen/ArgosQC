@@ -3,6 +3,7 @@
 ##' @description produces a map of all QC''d tracks and generates diagnostic tables to assess QC run
 ##'
 ##' @param fit the final foieGras fit object from QC process
+##' @param fit1 the initial foieGras fit object from QC process
 ##' @param diag the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)
 ##' @param meta metadata
 ##' @param mpath path to write map file
