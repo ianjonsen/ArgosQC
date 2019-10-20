@@ -20,11 +20,12 @@
 ##' @export
 
 diagnostics <-
-  function(fit, diag, meta,
+  function(fit, fit1, diag, meta,
            mpath = "~/Dropbox/collab/imos/imos_qc/maps",
            tpath = "~/Dropbox/collab/imos/imos_qc/diag") {
 
     ## generate map of predicted locations, subsampled to 6-h resolution
+    ## ------------------------------------------------------------------------
     p <- grab(fit, "predicted", as_sf = FALSE) %>%
       rename(ref = id) %>%
       mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
@@ -98,6 +99,7 @@ diagnostics <-
     meta <- left_join(meta, dd, by = "device_id")
 
   ## coverage of standardized diag locations
+  ## ------------------------------------------------------------------------
     ggplot(diag) +
       geom_point(aes(date, lat), col = "blue") +
       geom_point(data = p_out,
@@ -187,5 +189,43 @@ diagnostics <-
     units = "in",
     dpi = 150
   )
+
+  ## generate fit report summary tables
+  ## ------------------------------------------------------------------------
+
+  ## summary number of individuals passed by SSM filter stage
+  tmp1 <- fit1 %>%
+    summarise(nc = sum(converged), nf = sum(!converged))
+  tmp <- fit %>%
+    summarise(nc = sum(converged), nf = sum(!converged))
+
+  bind_rows(tmp1, tmp) %>%
+    mutate(N = rep(length(unique(diag$device_id)), 2)) %>%
+    mutate(attempts = c("first","second")) %>%
+    select(N, attempts, nc, nf) %>%
+    kableExtra::kable("html") %>%
+    kableExtra::kable_styling(bootstrap_options = c("striped","hover")) %>%
+    cat(., file = "~/Dropbox/collab/imos/imos_qc/diag/n_converged.html")
+
+  ## summary number of individuals by output file
+  ndiag <- diag %>% pull(ref) %>% unique() %>% length()
+  nctd <- ctd %>% pull(ref) %>% unique() %>% length()
+  ndive <- dive %>% pull(ref) %>% unique() %>% length()
+  nhaul <- haulout %>% pull(ref) %>% unique() %>% length()
+  nsum <- ssummary %>% pull(ref) %>% unique() %>% length()
+  nssm <- p_out %>% pull(ref) %>% unique() %>% length()
+
+  data.frame(ndiag, nctd, ndive, nhaul, nsum, nssm) %>%
+    rename(
+      diag = ndiag,
+      ctd = nctd,
+      dive = ndive,
+      haulout = nhaul,
+      summary = nsum,
+      ssm = nssm
+    ) %>%
+    kableExtra::kable("html") %>%
+    kableExtra::kable_styling(bootstrap_options = c("striped", "hover")) %>%
+    cat(., file = "~/Dropbox/collab/imos/imos_qc/diag/n_ind.html")
   }
 
