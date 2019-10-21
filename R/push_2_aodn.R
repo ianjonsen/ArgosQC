@@ -15,7 +15,7 @@
 ##'
 ##' @export
 
-push_2_aodn <- function(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn") {
+push_2_aodn <- function(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn", user = "ijonsen", pwd = "9S0ccer!") {
 
   ## zip files by cid
   cids %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), ".zip ",

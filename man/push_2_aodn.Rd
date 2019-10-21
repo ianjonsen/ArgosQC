@@ -4,7 +4,8 @@
 \alias{push_2_aodn}
 \title{push to AODN}
 \usage{
-push_2_aodn(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn")
+push_2_aodn(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn",
+  user = "ijonsen", pwd = "9S0ccer!")
 }
 \arguments{
 \item{cids}{campaign ids to zip and push}
