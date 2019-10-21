@@ -4,7 +4,7 @@
 \alias{diagnostics}
 \title{run QC diagnostics}
 \usage{
-diagnostics(fit, fit1, diag, meta,
+diagnostics(fit, fit1, diag, smru_ssm, meta,
   mpath = "~/Dropbox/collab/imos/imos_qc/maps",
   tpath = "~/Dropbox/collab/imos/imos_qc/diag")
 }
@@ -14,6 +14,8 @@ diagnostics(fit, fit1, diag, meta,
 \item{fit1}{the initial foieGras fit object from QC process}
 
 \item{diag}{the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)}
+
+\item{smru_ssm}{the ssm-annotated SMRU tables}
 
 \item{meta}{metadata}
 

@@ -5,6 +5,7 @@
 ##' @param fit the final foieGras fit object from QC process
 ##' @param fit1 the initial foieGras fit object from QC process
 ##' @param diag the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)
+##' @param smru_ssm the ssm-annotated SMRU tables
 ##' @param meta metadata
 ##' @param mpath path to write map file
 ##' @param tpath path to write diagnostic table files
@@ -14,14 +15,15 @@
 ##' @importFrom dplyr "%>%" group_by summarise
 ##' @importFrom sf st_as_sf st_transform st_cast st_bbox
 ##' @importFrom rnaturalearth ne_countries
-##' @importFrom ggplot2 ggplot geom_sf theme_minimal xlim ylim ggsave
+##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes theme_minimal xlim ylim ggsave
 ##' @importFrom lubridate decimal_date
 ##' @importFrom foieGras grab
+##' @importFrom kableExtra kable kable_styling
 ##'
 ##' @export
 
 diagnostics <-
-  function(fit, fit1, diag, meta,
+  function(fit, fit1, diag, smru_ssm, meta,
            mpath = "~/Dropbox/collab/imos/imos_qc/maps",
            tpath = "~/Dropbox/collab/imos/imos_qc/diag") {
 
@@ -89,7 +91,7 @@ diagnostics <-
       units = "in",
       dpi = 300
     )
-    browser()
+
     diag <- diag %>% rename(device_id = ref)
     p_out <- p_out %>% rename(device_id = ref)
     dd <-
@@ -208,17 +210,17 @@ diagnostics <-
     mutate(N = rep(length(unique(diag$device_id)), 2)) %>%
     mutate(attempts = c("first","second")) %>%
     select(N, attempts, nc, nf) %>%
-    kableExtra::kable("html") %>%
-    kableExtra::kable_styling(bootstrap_options = c("striped","hover")) %>%
+    kable("html") %>%
+    kable_styling(bootstrap_options = c("striped","hover")) %>%
     cat(., file = "~/Dropbox/collab/imos/imos_qc/diag/n_converged.html")
 
   ## summary number of individuals by output file
-  ndiag <- diag %>% pull(ref) %>% unique() %>% length()
-  nctd <- ctd %>% pull(ref) %>% unique() %>% length()
-  ndive <- dive %>% pull(ref) %>% unique() %>% length()
-  nhaul <- haulout %>% pull(ref) %>% unique() %>% length()
-  nsum <- ssummary %>% pull(ref) %>% unique() %>% length()
-  nssm <- p_out %>% pull(ref) %>% unique() %>% length()
+  ndiag <- smru_ssm$diag %>% pull(ref) %>% unique() %>% length()
+  nctd <- smru_ssm$ctd %>% pull(ref) %>% unique() %>% length()
+  ndive <- smru_ssm$dive %>% pull(ref) %>% unique() %>% length()
+  nhaul <- smru_ssm$haulout %>% pull(ref) %>% unique() %>% length()
+  nsum <- smru_ssm$ssummary %>% pull(ref) %>% unique() %>% length()
+  nssm <- smru_ssm$p_out %>% pull(ref) %>% unique() %>% length()
 
   data.frame(ndiag, nctd, ndive, nhaul, nsum, nssm) %>%
     rename(
@@ -229,8 +231,8 @@ diagnostics <-
       summary = nsum,
       ssm = nssm
     ) %>%
-    kableExtra::kable("html") %>%
-    kableExtra::kable_styling(bootstrap_options = c("striped", "hover")) %>%
+    kable("html") %>%
+    kable_styling(bootstrap_options = c("striped", "hover")) %>%
     cat(., file = "~/Dropbox/collab/imos/imos_qc/diag/n_ind.html")
-  }
+   }
 
