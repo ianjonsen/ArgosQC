@@ -220,7 +220,7 @@ diagnostics <-
   ndive <- smru_ssm$dive %>% pull(ref) %>% unique() %>% length()
   nhaul <- smru_ssm$haulout %>% pull(ref) %>% unique() %>% length()
   nsum <- smru_ssm$ssummary %>% pull(ref) %>% unique() %>% length()
-  nssm <- smru_ssm$p_out %>% pull(ref) %>% unique() %>% length()
+  nssm <- p_out %>% pull(device_id) %>% unique() %>% length()
 
   data.frame(ndiag, nctd, ndive, nhaul, nsum, nssm) %>%
     rename(
