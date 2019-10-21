@@ -94,14 +94,14 @@ diagnostics <-
     p_out <- p_out %>% rename(device_id = ref)
     dd <-
       diag %>% group_by(device_id) %>% summarise(
-        start_date = min(date) - min(date) * 0.025,
-        end_date = max(date) + max(date) * 0.025
+        start_date = min(date),
+        end_date = max(date)
       )
     meta <- left_join(meta, dd, by = "device_id")
-
+browser()
   ## coverage of standardized diag locations
   ## ------------------------------------------------------------------------
-    ggplot(diag) +
+    p1 <- ggplot(diag) +
       geom_point(aes(date, lat), col = "blue") +
       geom_point(data = p_out,
                  aes(date, lat),
@@ -137,6 +137,8 @@ diagnostics <-
         ncol = 6,
         nrow = ceiling(length(unique(diag$device_id)) / 6)
       )
+
+  p1
   ggsave(
     file.path(tpath,
               "lat_coverage.jpg"),
@@ -146,7 +148,7 @@ diagnostics <-
     dpi = 150
     )
 
-  ggplot(diag) +
+  p2 <- ggplot(diag) +
     geom_point(aes(date, lon), col = "blue") +
     geom_point(data = p_out,
                aes(date, lon),
@@ -182,6 +184,8 @@ diagnostics <-
       ncol = 6,
       nrow = ceiling(length(unique(diag$device_id)) / 6)
     )
+
+  p2
   ggsave(
     file.path(tpath,
               "lon_coverage.jpg"),

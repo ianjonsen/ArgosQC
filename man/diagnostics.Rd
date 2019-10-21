@@ -4,12 +4,14 @@
 \alias{diagnostics}
 \title{run QC diagnostics}
 \usage{
-diagnostics(fit, diag, meta,
+diagnostics(fit, fit1, diag, meta,
   mpath = "~/Dropbox/collab/imos/imos_qc/maps",
   tpath = "~/Dropbox/collab/imos/imos_qc/diag")
 }
 \arguments{
 \item{fit}{the final foieGras fit object from QC process}
+
+\item{fit1}{the initial foieGras fit object from QC process}
 
 \item{diag}{the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)}
 
