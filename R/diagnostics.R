@@ -89,7 +89,7 @@ diagnostics <-
       units = "in",
       dpi = 300
     )
-
+    browser()
     diag <- diag %>% rename(device_id = ref)
     p_out <- p_out %>% rename(device_id = ref)
     dd <-
@@ -98,7 +98,7 @@ diagnostics <-
         end_date = max(date)
       )
     meta <- left_join(meta, dd, by = "device_id")
-browser()
+
   ## coverage of standardized diag locations
   ## ------------------------------------------------------------------------
     p1 <- ggplot(diag) +
