@@ -17,7 +17,7 @@
 ##' @export
 ##'
 
-clean_meta <- function(cids, smru, drop.refs = NULL, file = "~/Dropbox/collab/imos/qc/r/meta/IMOS_CTD_metadata_11042019.csv") {
+clean_meta <- function(cids, smru, drop.refs = NULL, file = "~/Dropbox/collab/imos/metadata/IMOS_CTD_metadata_11042019.csv") {
 
   meta <- suppressWarnings(read_csv(file)) %>%
     select(

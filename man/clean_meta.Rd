@@ -5,7 +5,7 @@
 \title{clean metadata}
 \usage{
 clean_meta(cids, smru, drop.refs = NULL,
-  file = "~/Dropbox/collab/imos/qc/r/meta/IMOS_CTD_metadata_11042019.csv")
+  file = "~/Dropbox/collab/imos/metadata/IMOS_CTD_metadata_11042019.csv")
 }
 \arguments{
 \item{cids}{SMRU campaign ids}
