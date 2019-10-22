@@ -10,7 +10,6 @@
 ##'
 ##' @importFrom dplyr select mutate "%>%"
 ##' @importFrom future plan
-##' @importFrom assertthat assert_that
 ##' @importFrom Hmisc mdb.get
 ##' @importFrom furrr future_map
 ##' @importFrom purrr pmap

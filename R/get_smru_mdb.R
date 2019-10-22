@@ -4,8 +4,8 @@
 ##'
 ##' @param cids SMRU campaign ids to be downloaded from SMRU data server
 ##' @param dest destination path for saving .mdb files
-##' @param user SMRU data server username
-##' @param pwd  SMRU data server password
+##' @param user SMRU data server username as a string
+##' @param pwd  SMRU data server password as a string
 ##'
 ##' @examples
 ##'
@@ -20,11 +20,14 @@
 
 get_smru_mdb <-
   function(cids,
-           dest = "~/Dropbox/collab/imos/imos_qc/mdb",
-           user = "imos",
-           pwd = "imos")
+           dest = NULL,
+           user = NULL,
+           pwd = NULL)
   {
+    assert_that(!is.null(dest))
     assert_that(dir.exists(dest))
+    assert_that(!is.null(user))
+    assert_that(!is.null(pwd))
 
     ## define download fn
     fn <- function(cid,

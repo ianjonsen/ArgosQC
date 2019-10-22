@@ -13,11 +13,14 @@
 ##' @importFrom readr read_csv
 ##' @importFrom stringr str_to_lower str_replace_all str_extract regex
 ##' @importFrom lubridate mdy_hms
+##' @importFrom assertthat assert_that
 ##'
 ##' @export
 ##'
 
-clean_meta <- function(cids, smru, drop.refs = NULL, file = "~/Dropbox/collab/imos/metadata/IMOS_CTD_metadata_11042019.csv") {
+clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
+
+  assert_that(!is.null(file))
 
   meta <- suppressWarnings(read_csv(file)) %>%
     select(

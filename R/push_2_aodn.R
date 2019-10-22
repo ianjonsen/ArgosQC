@@ -4,18 +4,23 @@
 ##'
 ##' @param cids campaign ids to zip and push
 ##' @param path path to write .csv files
-##' @param user AODN incoming server username
-##' @param pwd AODN incoming server pwd
+##' @param user AODN incoming server username as a string
+##' @param pwd AODN incoming server pwd as a string
 ##'
 ##' @examples
 ##'
 ##' @importFrom dplyr "%>%"
 ##' @importFrom RCurl ftpUpload
 ##' @importFrom purrr walk
+##' @importFrom assertthat assert_that
 ##'
 ##' @export
 
-push_2_aodn <- function(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn", user = "ijonsen", pwd = "9S0ccer!") {
+push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL) {
+
+  assert_that(!is.null(path))
+  assert_that(!is.null(user))
+  assert_that(!is.null(pwd))
 
   ## zip files by cid
   cids %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), ".zip ",

@@ -19,13 +19,17 @@
 ##' @importFrom lubridate decimal_date
 ##' @importFrom foieGras grab
 ##' @importFrom kableExtra kable kable_styling
+##' @importFrom assertthat assert_that
 ##'
 ##' @export
 
 diagnostics <-
   function(fit, fit1, diag, smru_ssm, meta,
-           mpath = "~/Dropbox/collab/imos/imos_qc/maps",
-           tpath = "~/Dropbox/collab/imos/imos_qc/diag") {
+           mpath = NULL,
+           tpath = NULL) {
+
+    assert_that(!is.null(mpath))
+    assert_that(!is.null(tpath))
 
     ## generate map of predicted locations, subsampled to 6-h resolution
     ## ------------------------------------------------------------------------
