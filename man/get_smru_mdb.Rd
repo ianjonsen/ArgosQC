@@ -4,17 +4,16 @@
 \alias{get_smru_mdb}
 \title{Download .mdb files from the SMRU server}
 \usage{
-get_smru_mdb(cids, dest = "~/Dropbox/collab/imos/imos_qc/mdb",
-  user = "imos", pwd = "imos")
+get_smru_mdb(cids, dest = NULL, user = NULL, pwd = NULL)
 }
 \arguments{
 \item{cids}{SMRU campaign ids to be downloaded from SMRU data server}
 
 \item{dest}{destination path for saving .mdb files}
 
-\item{user}{SMRU data server username}
+\item{user}{SMRU data server username as a string}
 
-\item{pwd}{SMRU data server password}
+\item{pwd}{SMRU data server password as a string}
 }
 \description{
 fetches .mdb files from SMRU server and saves to a \code{dest}-ination directory

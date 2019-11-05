@@ -4,9 +4,8 @@
 \alias{diagnostics}
 \title{run QC diagnostics}
 \usage{
-diagnostics(fit, fit1, diag, smru_ssm, meta,
-  mpath = "~/Dropbox/collab/imos/imos_qc/maps",
-  tpath = "~/Dropbox/collab/imos/imos_qc/diag")
+diagnostics(fit, fit1, diag, smru_ssm, meta, mpath = NULL,
+  tpath = NULL)
 }
 \arguments{
 \item{fit}{the final foieGras fit object from QC process}

@@ -4,17 +4,16 @@
 \alias{push_2_aodn}
 \title{push to AODN}
 \usage{
-push_2_aodn(cids, path = "~/Dropbox/collab/imos/imos_qc/aodn",
-  user = "ijonsen", pwd = "9S0ccer!")
+push_2_aodn(cids, path = NULL, user = NULL, pwd = NULL)
 }
 \arguments{
 \item{cids}{campaign ids to zip and push}
 
 \item{path}{path to write .csv files}
 
-\item{user}{AODN incoming server username}
+\item{user}{AODN incoming server username as a string}
 
-\item{pwd}{AODN incoming server pwd}
+\item{pwd}{AODN incoming server pwd as a string}
 }
 \description{
 zip .csv files by campaign id & push to AODN incoming server
