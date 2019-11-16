@@ -52,7 +52,7 @@ get_smru_mdb <-
         mode = "w"
       )
 
-      try(unzip(file.path(dest, paste0(cid, ".zip")), exdir = file.path(dest, ".")), silent = TRUE)
+      suppressWarnings(unzip(file.path(dest, paste0(cid, ".zip")), exdir = file.path(dest, ".")))
       system(paste0("rm ", file.path(dest, paste0(cid, ".zip"))))
     }
 
