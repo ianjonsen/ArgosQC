@@ -216,7 +216,7 @@ diagnostics <-
     select(N, attempts, nc, nf) %>%
     kable("html") %>%
     kable_styling(bootstrap_options = c("striped","hover")) %>%
-    cat(., file = "~/Dropbox/collab/imos/imos_qc/diag/n_converged.html")
+    cat(., file = file.path(tpath, "n_converged.html"))
 
   ## summary number of individuals by output file
   ndiag <- smru_ssm$diag %>% pull(ref) %>% unique() %>% length()
@@ -237,6 +237,6 @@ diagnostics <-
     ) %>%
     kable("html") %>%
     kable_styling(bootstrap_options = c("striped", "hover")) %>%
-    cat(., file = "~/Dropbox/collab/imos/imos_qc/diag/n_ind.html")
+    cat(., file = file.path(tpath, "n_ind.html"))
    }
 
