@@ -32,7 +32,7 @@ truncate_diag_sf <- function(diag, meta, crs = "+init=epsg:3395 +units=km") {
     do(
       d_sf =
         sf::st_as_sf(., coords = c("lon", "lat"), crs = 4326) %>%
-        sf::st_transform(., crs = "+init=epsg:3395 +units=km") %>%
+        sf::st_transform(., crs = crs) %>%
         select(-ref)
     ) %>%
     ungroup() %>%
