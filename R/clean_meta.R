@@ -102,6 +102,16 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
     filter(sattag_program %in% cids) %>%
     filter(!device_id %in% drop.refs)
 
+  ## append dive start and end dates for (alternate) track truncation
+  ##  to be used as alternate on final, delayed-mode (manual) QC
+  dive_se <- smru$dive %>%
+    mutate(ref = as.character(ref)) %>%
+    select(ref, end.date) %>%
+    mutate(end.date = mdy_hms(end.date, tz = "UTC")) %>%
+    group_by(ref) %>%
+    summarise(dive_start = min(end.date, na.rm = TRUE), dive_end = max(end.date, na.rm = TRUE))
+
+
   ## append CTD start and end dates for track truncation
   ctd_se <- smru$ctd %>%
     mutate(ref = as.character(ref)) %>%
@@ -111,6 +121,7 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
     summarise(ctd_start = min(end.date, na.rm = TRUE), ctd_end = max(end.date, na.rm = TRUE))
 
   meta <- meta %>%
+    left_join(., dive_se, by = c("device_id" = "ref")) %>%
     left_join(., ctd_se, by = c("device_id" = "ref"))
 
   return(meta)
