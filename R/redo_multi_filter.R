@@ -21,7 +21,7 @@
 ##' @export
 ##'
 
-redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, min.dt = 180, map = NULL) {
+redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 4, ang = c(15,25), min.dt = 180, map = NULL) {
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
@@ -45,8 +45,8 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, min.dt = 180,
         model = model,
         time.step = ts,
         min.dt = min.dt,
-        vmax = 4,
-        ang = c(15, 25),
+        vmax = vmax,
+        ang = ang,
         verbose = 0,
         map = map
       ), silent = TRUE), .progress = TRUE) %>%
@@ -68,8 +68,8 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, min.dt = 180,
             model = model,
             time.step = ifelse(ts==3, ts * 2, ts),
             min.dt = min.dt * 2,
-            vmax = 4,
-            ang = c(15, 25),
+            vmax = vmax,
+            ang = ang,
             verbose = 0,
             map = map
           ), silent = TRUE), .progress = TRUE
