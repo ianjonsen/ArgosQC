@@ -106,10 +106,10 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
   ##  to be used as alternate on final, delayed-mode (manual) QC
   dive_se <- smru$dive %>%
     mutate(ref = as.character(ref)) %>%
-    select(ref, end.date) %>%
-    mutate(end.date = mdy_hms(end.date, tz = "UTC")) %>%
+    select(ref, de.date) %>%
+    mutate(de.date = mdy_hms(de.date, tz = "UTC")) %>%
     group_by(ref) %>%
-    summarise(dive_start = min(end.date, na.rm = TRUE), dive_end = max(end.date, na.rm = TRUE))
+    summarise(dive_start = min(de.date, na.rm = TRUE), dive_end = max(de.date, na.rm = TRUE))
 
 
   ## append CTD start and end dates for track truncation
