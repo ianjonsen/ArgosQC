@@ -73,6 +73,8 @@ diagnostics <-
     bounds[c("ymin", "ymax")] <-
       extendrange(bounds[c("ymin", "ymax")], f = 0.2)
 
+    browser()
+
     mp <- ggplot(data = p_sf) +
       geom_sf(data = coast,
               lwd = 0) +
@@ -95,7 +97,7 @@ diagnostics <-
       units = "in",
       dpi = 300
     )
-browser()
+
     diag <- diag %>% rename(device_id = ref)
     p_out <- p_out %>% rename(device_id = ref)
     dd <-
