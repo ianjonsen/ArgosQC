@@ -39,6 +39,8 @@ diagnostics <-
 
     p.lst <- split(p, p$ref)
 
+    browser()
+
     ## subsample predicted locs to 6-h resolution
     p_out <- lapply(p.lst, function(x) {
       ts <- subset(fit, id == x$ref[1])$ssm[[1]]$ts
@@ -72,8 +74,6 @@ diagnostics <-
       extendrange(bounds[c("xmin", "xmax")], f = 0.2)
     bounds[c("ymin", "ymax")] <-
       extendrange(bounds[c("ymin", "ymax")], f = 0.2)
-
-    browser()
 
     mp <- ggplot(data = p_sf) +
       geom_sf(data = coast,
