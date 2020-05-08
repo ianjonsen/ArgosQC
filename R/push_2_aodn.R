@@ -6,6 +6,7 @@
 ##' @param path path to write .csv files
 ##' @param user AODN incoming server username as a string
 ##' @param pwd AODN incoming server pwd as a string
+##' @param nopush zip files but don't push to AODN incoming server (for testing)
 ##'
 ##' @examples
 ##'
@@ -16,7 +17,7 @@
 ##'
 ##' @export
 
-push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL) {
+push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRUE) {
 
   assert_that(!is.null(path))
   assert_that(!is.null(user))
@@ -29,6 +30,7 @@ push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL) {
 
   ## push zipfiles
 
+  if(!nopush) {
   AODNfiles <- system(paste0("ls ", file.path(path, "*.zip | xargs -n 1 basename")), intern = TRUE)
 
   AODNfiles %>%
@@ -37,4 +39,5 @@ push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL) {
                                   .x)))
   ## clean up
   system(paste0("rm ", file.path(path, "*"), ".csv"))
+  }
 }
