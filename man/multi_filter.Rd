@@ -4,8 +4,15 @@
 \alias{multi_filter}
 \title{multi-filter}
 \usage{
-multi_filter(x, vmax = 4, ang = c(15, 25), min.dt = 60,
-  model = "crw", ts = 2, map = NULL)
+multi_filter(
+  x,
+  vmax = 4,
+  ang = c(15, 25),
+  min.dt = 60,
+  model = "crw",
+  ts = 2,
+  map = NULL
+)
 }
 \arguments{
 \item{x}{\code{sf}-projected diag file of locations to be filtered}

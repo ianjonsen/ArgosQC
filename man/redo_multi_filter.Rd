@@ -4,8 +4,16 @@
 \alias{redo_multi_filter}
 \title{redo failed multi-filter cases}
 \usage{
-redo_multi_filter(fit, diag_sf, model = "crw", ts = 3, min.dt = 180,
-  map = NULL)
+redo_multi_filter(
+  fit,
+  diag_sf,
+  model = "crw",
+  ts = 3,
+  vmax = 4,
+  ang = c(15, 25),
+  min.dt = 180,
+  map = NULL
+)
 }
 \arguments{
 \item{fit}{foieGras fit object from first round of filtering}

@@ -95,7 +95,7 @@ diagnostics <-
       units = "in",
       dpi = 300
     )
-
+browser()
     diag <- diag %>% rename(device_id = ref)
     p_out <- p_out %>% rename(device_id = ref)
     dd <-

@@ -4,8 +4,13 @@
 \alias{write_2_csv}
 \title{reconfigure annotated SMRU tables for AODN}
 \usage{
-write_2_csv(smru_ssm, fit, meta,
-  path = "~/Dropbox/collab/imos/imos_qc/aodn", drop.refs = NULL)
+write_2_csv(
+  smru_ssm,
+  fit,
+  meta,
+  path = "~/Dropbox/collab/imos/imos_qc/aodn",
+  drop.refs = NULL
+)
 }
 \arguments{
 \item{smru_ssm}{SSM-appended SMRU table file - output of \code{append_ssm}}
