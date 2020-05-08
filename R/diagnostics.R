@@ -39,8 +39,6 @@ diagnostics <-
 
     p.lst <- split(p, p$ref)
 
-    browser()
-
     ## subsample predicted locs to 6-h resolution
     p_out <- lapply(p.lst, function(x) {
       ts <- subset(fit, id == x$ref[1])$ssm[[1]]$ts
