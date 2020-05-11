@@ -4,7 +4,7 @@
 \alias{push_2_aodn}
 \title{push to AODN}
 \usage{
-push_2_aodn(cids, path = NULL, user = NULL, pwd = NULL)
+push_2_aodn(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRUE)
 }
 \arguments{
 \item{cids}{campaign ids to zip and push}
@@ -14,6 +14,8 @@ push_2_aodn(cids, path = NULL, user = NULL, pwd = NULL)
 \item{user}{AODN incoming server username as a string}
 
 \item{pwd}{AODN incoming server pwd as a string}
+
+\item{nopush}{zip files but don't push to AODN incoming server (for testing)}
 }
 \description{
 zip .csv files by campaign id & push to AODN incoming server

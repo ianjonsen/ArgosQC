@@ -19,6 +19,7 @@
 pull_smru_tables <- function(cids, path2mdb, tables = c("diag","haulout","ctd","dive","summary")) {
 
   plan("multisession")
+
   smru_t <- cids %>%
     future_map( ~ try(Hmisc::mdb.get(paste0(file.path(path2mdb, .x), ".mdb"),
                                             tables = tables,
