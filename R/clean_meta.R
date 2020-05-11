@@ -110,7 +110,6 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
     mutate(de.date = mdy_hms(de.date, tz = "UTC")) %>%
     group_by(ref) %>%
     summarise(dive_start = min(de.date, na.rm = TRUE), dive_end = max(de.date, na.rm = TRUE))
-browser()
 
   ## append CTD start and end dates for track truncation
   ctd_se <- smru$ctd %>%
