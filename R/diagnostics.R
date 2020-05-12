@@ -211,7 +211,7 @@ diagnostics <-
 
   ## generate fit report summary tables
   ## ------------------------------------------------------------------------
-
+browser()
   ## summary number of individuals passed by SSM filter stage
   tmp1 <- fit1 %>%
     summarise(nc = sum(converged), nf = sum(!converged))
