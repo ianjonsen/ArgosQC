@@ -38,7 +38,7 @@ diagnostics <-
       mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
 
     p.lst <- split(p, p$ref)
-browser()
+
     ## subsample predicted locs to 6-h resolution
     p_out <- lapply(p.lst, function(x) {
       ts <- subset(fit, id == x$ref[1])$ssm[[1]]$ts
@@ -95,7 +95,6 @@ browser()
       units = "in",
       dpi = 300
     )
-
     diag <- diag %>% rename(device_id = ref)
     p_out <- p_out %>% rename(device_id = ref)
     dd <-
@@ -104,6 +103,13 @@ browser()
         end_date = max(date)
       )
     meta <- left_join(meta, dd, by = "device_id")
+    ## Any device_id's in metadata but not in diag?
+    meta_miss <- meta %>% filter(is.na(start_date) & is.na(end_date))
+    meta <- meta %>% filter(!is.na(start_date) & !is.na(end_date))
+
+    meta <- meta %>%
+      mutate(ctd_start = ifelse(is.na(ctd_start), start_date, ctd_start)) %>%
+      mutate(ctd_end = ifelse(is.na(ctd_end), end_date, ctd_end))
 
   ## coverage of standardized diag locations
   ## ------------------------------------------------------------------------
