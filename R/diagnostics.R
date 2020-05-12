@@ -240,7 +240,10 @@ diagnostics <-
   diag_not_in_meta <- diag_id[!diag_id %in% meta_id]
   meta_not_in_diag <- meta_id[!meta_id %in% diag_id]
 
-  data.frame(ndiag, nctd, ndive, nhaul, nsum, nssm) %>%
+  ndnim <- length(diag_not_in_meta)
+  nmnid <- length(meta_not_in_diag)
+
+  data.frame(ndiag, nctd, ndive, nhaul, nsum, nssm, ndnim, nmnid) %>%
     rename(
       diag = ndiag,
       ctd = nctd,
@@ -248,8 +251,8 @@ diagnostics <-
       haulout = nhaul,
       summary = nsum,
       ssm = nssm,
-      in_meta_not_in_SMRU = length(meta_not_in_diag),
-      in_SMRU_not_in_meta = length(diag_not_in_meta)
+      in_meta_not_in_SMRU = nmnid,
+      in_SMRU_not_in_meta = ndnim
     ) %>%
     kable("html") %>%
     kable_styling(bootstrap_options = c("striped", "hover")) %>%
