@@ -37,7 +37,9 @@ push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRU
     walk( ~ ftpUpload(what = file.path(path, .x),
                       to = paste0("ftp://", user, ":", pwd, "@incoming.aodn.org.au/AATAMS_SATTAG_DM/",
                                   .x)))
+  }
+
   ## clean up
   system(paste0("rm ", file.path(path, "*"), "_nrt.csv"))
-  }
+
 }
