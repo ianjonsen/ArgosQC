@@ -20,6 +20,7 @@
 ##' @importFrom foieGras grab
 ##' @importFrom kableExtra kable kable_styling
 ##' @importFrom assertthat assert_that
+##' @importFrom readr write_csv
 ##'
 ##' @export
 
@@ -232,11 +233,12 @@ diagnostics <-
   nhaul <- smru_ssm$haulout %>% pull(ref) %>% unique() %>% length()
   nsum <- smru_ssm$ssummary %>% pull(ref) %>% unique() %>% length()
   nssm <- p_out %>% pull(device_id) %>% unique() %>% length()
-  nmetam <- meta_miss %>% pull(device_id) %>% length()
-  browser()
+
   diag_id <- smru_ssm$diag %>% pull(ref) %>% unique()
   meta_id <- bind_rows(meta, meta_miss) %>% pull(device_id)
 
+  diag_not_in_meta <- diag_id[!diag_id %in% meta_id]
+  meta_not_in_diag <- meta_id[!meta_id %in% diag_id]
 
   data.frame(ndiag, nctd, ndive, nhaul, nsum, nssm) %>%
     rename(
@@ -246,11 +248,14 @@ diagnostics <-
       haulout = nhaul,
       summary = nsum,
       ssm = nssm,
-      in_meta_not_in_SMRU = nmetam,
-      in_SMRU_not_in_meta =
+      in_meta_not_in_SMRU = length(meta_not_in_diag),
+      in_SMRU_not_in_meta = length(diag_not_in_meta)
     ) %>%
     kable("html") %>%
     kable_styling(bootstrap_options = c("striped", "hover")) %>%
     cat(., file = file.path(tpath, "n_ind.html"))
-   }
+
+  write_csv(diag_not_in_meta, path = file.path(tpath, "diag_not_in_meta"))
+  write_csv(meta_not_in_diag, path = file.path(tpath, "meta_not_in_diag"))
+  }
 
