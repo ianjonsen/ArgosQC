@@ -232,6 +232,11 @@ diagnostics <-
   nhaul <- smru_ssm$haulout %>% pull(ref) %>% unique() %>% length()
   nsum <- smru_ssm$ssummary %>% pull(ref) %>% unique() %>% length()
   nssm <- p_out %>% pull(device_id) %>% unique() %>% length()
+  nmetam <- meta_miss %>% pull(device_id) %>% length()
+  browser()
+  diag_id <- smru_ssm$diag %>% pull(ref) %>% unique()
+  meta_id <- bind_rows(meta, meta_miss) %>% pull(device_id)
+
 
   data.frame(ndiag, nctd, ndive, nhaul, nsum, nssm) %>%
     rename(
@@ -240,7 +245,9 @@ diagnostics <-
       dive = ndive,
       haulout = nhaul,
       summary = nsum,
-      ssm = nssm
+      ssm = nssm,
+      in_meta_not_in_SMRU = nmetam,
+      in_SMRU_not_in_meta =
     ) %>%
     kable("html") %>%
     kable_styling(bootstrap_options = c("striped", "hover")) %>%
