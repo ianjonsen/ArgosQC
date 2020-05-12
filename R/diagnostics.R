@@ -258,7 +258,7 @@ diagnostics <-
     kable_styling(bootstrap_options = c("striped", "hover")) %>%
     cat(., file = file.path(tpath, "n_ind.html"))
 
-  write_csv(diag_not_in_meta, path = file.path(tpath, "diag_not_in_meta"))
-  write_csv(meta_not_in_diag, path = file.path(tpath, "meta_not_in_diag"))
+  write(diag_not_in_meta, file = file.path(tpath, "diag_not_in_meta"))
+  write(meta_not_in_diag, file = file.path(tpath, "meta_not_in_diag"))
   }
 
