@@ -106,7 +106,7 @@ diagnostics <-
     ## Any device_id's in metadata but not in diag?
     meta_miss <- meta %>% filter(is.na(start_date) & is.na(end_date))
     meta <- meta %>% filter(!is.na(start_date) & !is.na(end_date))
-
+browser()
     meta <- meta %>%
       mutate(ctd_start = ifelse(is.na(ctd_start), start_date, ctd_start)) %>%
       mutate(ctd_end = ifelse(is.na(ctd_end), end_date, ctd_end))
