@@ -5,6 +5,7 @@
 ##' @param diag diag to use
 ##' @param meta metadata used to truncate start of diag data for each individual
 ##' @param crs a proj4string or EPSG code to re-project diag locations from longlat
+##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm), in latter case diag is not right-truncated
 ##'
 ##' @examples
 ##'
@@ -15,15 +16,24 @@
 ##' @export
 ##'
 
-truncate_diag_sf <- function(diag, meta, crs = "+init=epsg:3395 +units=km") {
+truncate_diag_sf <- function(diag, meta, crs = "+init=epsg:3395 +units=km", QCmode = "nrt") {
 
   deploy_meta <- meta %>%
     select(device_id, ctd_start, ctd_end)
 
-  diag <- diag %>%
-    left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
-    filter(date >= ctd_start & date <= ctd_end) %>%
-    select(-ctd_start, -ctd_end)
+  if(QCmode == "nrt") {
+    ## left- and right-truncate tracks
+    diag <- diag %>%
+      left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
+      filter(date >= ctd_start & date <= ctd_end) %>%
+      select(-ctd_start, -ctd_end)
+  } else {
+    ## only left-truncate tracks
+    diag <- diag %>%
+      left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
+      filter(date >= ctd_start) %>%
+      select(-ctd_start, -ctd_end)
+  }
 
   diag_sf <- diag %>%
     mutate(id = ref) %>%

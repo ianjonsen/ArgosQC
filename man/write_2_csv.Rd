@@ -9,7 +9,8 @@ write_2_csv(
   fit,
   meta,
   path = "~/Dropbox/collab/imos/imos_qc/aodn",
-  drop.refs = NULL
+  drop.refs = NULL,
+  suffix = "_nrt"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ write_2_csv(
 \item{path}{path to write .csv files}
 
 \item{drop.refs}{individual ids to be dropped}
+
+\item{suffix}{suffix to add to .csv files (_nrt or _dm)}
 }
 \description{
 reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id
