@@ -7,6 +7,7 @@
 ##' @param user AODN incoming server username as a string
 ##' @param pwd AODN incoming server pwd as a string
 ##' @param nopush zip files but don't push to AODN incoming server (for testing)
+##' @param suffix suffix to add to zip files (_nrt or _dm)
 ##'
 ##' @examples
 ##'
@@ -17,15 +18,15 @@
 ##'
 ##' @export
 
-push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRUE) {
+push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRUE, suffix = "_nrt") {
 
   assert_that(!is.null(path))
   assert_that(!is.null(user))
   assert_that(!is.null(pwd))
 
   ## zip files by cid
-  cids %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), "_nrt.zip ",
-                               file.path(path, "*_"), .x, "_nrt.csv")))
+  cids %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), suffix, ".zip ",
+                               file.path(path, "*_"), .x, suffix, ".csv")))
 
 
   ## push zipfiles
@@ -40,6 +41,6 @@ push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRU
   }
 
   ## clean up
-  system(paste0("rm ", file.path(path, "*"), "_nrt.csv"))
+  system(paste0("rm ", file.path(path, "*"), suffix, ".csv"))
 
 }
