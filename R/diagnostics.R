@@ -51,7 +51,8 @@ diagnostics <-
       do.call(rbind, .)
 
     p_sf <- p_out %>%
-      st_as_sf(., coords = c("lon","lat"), crs = 4326) %>%
+      st_as_sf(., coords = c("lon","lat"),
+               crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") %>%
       st_transform(., crs = "+init=epsg:3032") %>%
       group_by(ref)
 
@@ -66,7 +67,7 @@ diagnostics <-
 
     coast <-
       rnaturalearth::ne_countries(scale = 50, returnclass = "sf") %>%
-      sf::st_transform(., crs = "+init=epsg:3032")
+      sf::st_transform(., crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +datum=WGS84 +units=km +no_defs")
 
     bounds <- sf::st_bbox(p_sf)
     bounds[c("xmin", "xmax")] <-

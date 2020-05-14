@@ -4,7 +4,7 @@
 ##'
 ##' @param diag diag to use
 ##' @param meta metadata used to truncate start of diag data for each individual
-##' @param crs a proj4string or EPSG code to re-project diag locations from longlat
+##' @param crs a proj4string to re-project diag locations from longlat
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm), in latter case diag is not right-truncated
 ##'
 ##' @examples
@@ -16,7 +16,9 @@
 ##' @export
 ##'
 
-truncate_diag_sf <- function(diag, meta, crs = "+init=epsg:3395 +units=km", QCmode = "nrt") {
+truncate_diag_sf <- function(diag, meta,
+                             crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +datum=WGS84 +units=km +no_defs",
+                             QCmode = "nrt") {
 
   deploy_meta <- meta %>%
     select(device_id, ctd_start, ctd_end)
@@ -41,7 +43,8 @@ truncate_diag_sf <- function(diag, meta, crs = "+init=epsg:3395 +units=km", QCmo
     group_by(ref) %>%
     do(
       d_sf =
-        sf::st_as_sf(., coords = c("lon", "lat"), crs = 4326) %>%
+        sf::st_as_sf(., coords = c("lon", "lat"),
+                     crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") %>%
         sf::st_transform(., crs = crs) %>%
         select(-ref)
     ) %>%
