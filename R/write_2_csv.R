@@ -43,8 +43,6 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     group_by(ref) %>%
     summarise(qc_start_date = min(date), qc_end_date = max(date))
 
-  browser()
-
   ## split by campaign id & write .csv files
   p_out %>%
     split(., .$cid) %>%
@@ -82,7 +80,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
 
   meta %>%
     filter(!device_id %in% drop.refs) %>%
-    #rename(qc_start_date = ctd_start, qc_end_date = ctd_end) %>%
+    left_join(., qc_se, by = c("device_id" = "ref")) %>%
     select(-dive_start, -dive_end, -ctd_start, -ctd_end) %>%
     split(., .$sattag_program) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "metadata"), "_",
