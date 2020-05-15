@@ -13,7 +13,7 @@
 ##' @export
 ##'
 
-truncate_smru_ssm <- function(smru_ssm, fit, meta, refs) {
+truncate_smru_ssm <- function(smru_ssm, meta, refs) {
 
   deploy_meta <- meta %>%
     select(device_id, ctd_end)
