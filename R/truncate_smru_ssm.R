@@ -18,8 +18,6 @@ truncate_smru_ssm <- function(smru_ssm, meta, refs) {
   deploy_meta <- meta %>%
     select(device_id, ctd_end)
 
-
-
   ## right-truncate SSM-appended SMRU tables
   tsmru_diag <- smru_ssm$diag %>%
     left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
