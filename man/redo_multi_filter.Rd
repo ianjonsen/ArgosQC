@@ -9,7 +9,7 @@ redo_multi_filter(
   diag_sf,
   model = "crw",
   ts = 3,
-  vmax = 4,
+  vmax = 2,
   ang = c(15, 25),
   min.dt = 180,
   map = NULL

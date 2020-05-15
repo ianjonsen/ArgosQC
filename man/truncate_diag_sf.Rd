@@ -4,14 +4,22 @@
 \alias{truncate_diag_sf}
 \title{truncate diag data and convert to sf tibble}
 \usage{
-truncate_diag_sf(diag, meta, crs = "+init=epsg:3395 +units=km")
+truncate_diag_sf(
+  diag,
+  meta,
+ 
+    crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +datum=WGS84 +units=km +no_defs",
+  QCmode = "nrt"
+)
 }
 \arguments{
 \item{diag}{diag to use}
 
 \item{meta}{metadata used to truncate start of diag data for each individual}
 
-\item{crs}{a proj4string or EPSG code to re-project diag locations from longlat}
+\item{crs}{a proj4string to re-project diag locations from longlat}
+
+\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm), in latter case diag is not right-truncated}
 }
 \description{
 truncate start of diag data for each individual, using deployment date-time from metadata
