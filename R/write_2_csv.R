@@ -38,6 +38,13 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
       stop("time step is > 6 h, can't subsample to 6 h")
   }) %>% do.call(rbind, .)
 
+  ## calc QC start and end dates for each deployment - to be appended to metadata
+  qc_se <- p_out %>%
+    group_by(ref) %>%
+    summarise(qc_start_date = min(date), qc_end_date = max(date))
+
+  browser()
+
   ## split by campaign id & write .csv files
   p_out %>%
     split(., .$cid) %>%
@@ -75,7 +82,8 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
 
   meta %>%
     filter(!device_id %in% drop.refs) %>%
-    rename(qc_start_date = ctd_start, qc_end_date = ctd_end) %>%
+    #rename(qc_start_date = ctd_start, qc_end_date = ctd_end) %>%
+    select(-dive_start, -dive_end, -ctd_start, -ctd_end) %>%
     split(., .$sattag_program) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "metadata"), "_",
                                                .x$sattag_program[1], suffix, ".csv")))
