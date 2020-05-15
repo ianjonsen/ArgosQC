@@ -4,7 +4,7 @@
 \alias{truncate_smru_ssm}
 \title{right-truncate all SSM-appended SMRU tables using CTD end date for given individuals}
 \usage{
-truncate_smru_ssm(smru_ssm, fit, meta, refs)
+truncate_smru_ssm(smru_ssm, meta, refs)
 }
 \arguments{
 \item{smru_ssm}{SSM-appended SMRU file to use}
