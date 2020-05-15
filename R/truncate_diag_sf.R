@@ -21,7 +21,7 @@ truncate_diag_sf <- function(diag, meta,
                              QCmode = "nrt") {
 
   deploy_meta <- meta %>%
-    select(device_id, ctd_start, ctd_end, dive_start, dive_end)
+    select(device_id, ctd_start, ctd_end)
 
   if(QCmode == "nrt") {
     ## left- and right-truncate tracks
@@ -33,8 +33,8 @@ truncate_diag_sf <- function(diag, meta,
     ## only left-truncate tracks
     diag <- diag %>%
       left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
-      filter(date >= ctd_start & date <= dive_end) %>%
-      select(-ctd_start, -ctd_end, -dive_start, -dive_end)
+      filter(date >= ctd_start) %>%
+      select(-ctd_start, -ctd_end)
   }
 
   diag_sf <- diag %>%
