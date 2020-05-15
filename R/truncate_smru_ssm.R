@@ -18,34 +18,35 @@ truncate_smru_ssm <- function(smru_ssm, meta, refs) {
   deploy_meta <- meta %>%
     select(device_id, ctd_end)
 
-  trunc_smru_ssm <- smru_ssm %>%
-    filter(ref %in% refs)
+
 
   ## right-truncate SSM-appended SMRU tables
-  trunc_smru_ssm$diag <- trunc_smru_ssm$diag %>%
+  tsmru_diag <- smru_ssm$diag %>%
     left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
     filter(date <= ctd_end) %>%
     select(-ctd_end)
 
-  trunc_smru_ssm$dive <- trunc_smru_ssm$dive %>%
+  tsmru_dive <- smru_ssm$dive %>%
     left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
     filter(date <= ctd_end) %>%
     select(-ctd_end)
 
-  trunc_smru_ssm$haulout <- trunc_smru_ssm$haulout %>%
+  tsmru_haulout <- smru_ssm$haulout %>%
     left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
     filter(date <= ctd_end) %>%
     select(-ctd_end)
 
-  trunc_smru_ssm$summary <- trunc_smru_ssm$summary %>%
+  tsmru_summary <- trunc_smru_ssm$summary %>%
     left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
     filter(date <= ctd_end) %>%
     select(-ctd_end)
 
-  trunc_smru_ssm$ctd <- trunc_smru_ssm$ctd %>%
+  tsmru_ctd <- trunc_smru_ssm$ctd %>%
     left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
     filter(date <= ctd_end) %>%
     select(-ctd_end)
 
-  return(trunc_smru_ssm)
+  tsmru_ssm <- list(diag = tsmru_diag, ctd = tsmru_ctd, dive = tsmru_dive, haulout = tsmru_haulout, summary = tsmru_summary)
+
+  return(tsmru_ssm)
 }
