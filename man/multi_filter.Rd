@@ -8,6 +8,7 @@ multi_filter(
   x,
   vmax = 4,
   ang = c(15, 25),
+  distlim = c(2500, 5000),
   min.dt = 60,
   model = "crw",
   ts = 2,
@@ -20,6 +21,8 @@ multi_filter(
 \item{vmax}{for prefilter}
 
 \item{ang}{for prefilter}
+
+\item{distlim}{for prefilter}
 
 \item{min.dt}{for prefilter}
 
