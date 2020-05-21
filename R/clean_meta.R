@@ -89,7 +89,7 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
       release_longitude,
       release_latitude,
       release_site,
-      state_country,
+      #state_country,
       release_date,
       recovery_date,
       age_class,
