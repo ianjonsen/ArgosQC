@@ -6,6 +6,9 @@
 ##' @param diag_sf \code{sf}-projected diag to be used
 ##' @param model model argument ("rw" or "crw) for \code{foieGras::fit_ssm}
 ##' @param ts time.step argument for \code{foieGras::fit_ssm}
+##' @param vmax threshold travel speed (m/s) to apply during track pre-filtering
+##' @param ang sdafilter argument
+##' @param distlim sdafilter argument
 ##' @param min.dt min.dt argument for \code{foieGras::fit_ssm}
 ##' @param map params to fix
 ##'
@@ -21,7 +24,7 @@
 ##' @export
 ##'
 
-redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang = c(15,25), min.dt = 180, map = NULL) {
+redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang = c(15,25), distlim = c(1500, 5000), min.dt = 180, map = NULL) {
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
@@ -47,6 +50,7 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang
         min.dt = min.dt,
         vmax = vmax,
         ang = ang,
+        distlim = distlim,
         verbose = 0,
         map = map
       ), silent = TRUE), .progress = TRUE) %>%
@@ -70,6 +74,7 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang
             min.dt = min.dt * 2,
             vmax = vmax,
             ang = ang,
+            distlim = distlim,
             verbose = 0,
             map = map
           ), silent = TRUE), .progress = TRUE

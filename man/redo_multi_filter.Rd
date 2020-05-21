@@ -11,6 +11,7 @@ redo_multi_filter(
   ts = 3,
   vmax = 2,
   ang = c(15, 25),
+  distlim = c(1500, 5000),
   min.dt = 180,
   map = NULL
 )
@@ -23,6 +24,12 @@ redo_multi_filter(
 \item{model}{model argument ("rw" or "crw) for \code{foieGras::fit_ssm}}
 
 \item{ts}{time.step argument for \code{foieGras::fit_ssm}}
+
+\item{vmax}{threshold travel speed (m/s) to apply during track pre-filtering}
+
+\item{ang}{sdafilter argument}
+
+\item{distlim}{sdafilter argument}
 
 \item{min.dt}{min.dt argument for \code{foieGras::fit_ssm}}
 
