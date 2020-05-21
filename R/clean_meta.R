@@ -70,7 +70,9 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
       length = std_l,
       estimated_mass = m_est,
       actual_mass = mass
-    ) %>%
+    )
+
+  meta <- meta %>%
     mutate(release_date = lubridate::ymd(paste(year, month, day, sep = "-"), tz = "UTC")) %>%
     mutate(sattag_program = str_extract(device_id, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE))) %>%
     mutate(recovery_date = NA) %>%
@@ -87,7 +89,7 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
       release_longitude,
       release_latitude,
       release_site,
-      #    state_country,
+      state_country,
       release_date,
       recovery_date,
       age_class,
