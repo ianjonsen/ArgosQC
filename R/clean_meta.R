@@ -71,7 +71,7 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
       estimated_mass = m_est,
       actual_mass = mass
     )
-browser()
+
   meta <- meta %>%
     mutate(release_date = lubridate::ymd(paste(year, month, day, sep = "-"), tz = "UTC")) %>%
     mutate(sattag_program = str_extract(device_id, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE))) %>%
