@@ -78,13 +78,18 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     split(., .$cid) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "summary"), "_", .x$cid[1], suffix, ".csv")))
 
+  ## remove dive, ctd start/end dates columns, add 'state_country' for AODN (based on deployment location)
   meta %>%
     filter(!device_id %in% drop.refs) %>%
     left_join(., qc_se, by = c("device_id" = "ref")) %>%
     select(-dive_start, -dive_end, -ctd_start, -ctd_end) %>%
+    mutate(state_country = ifelse(release_site == "Dumont d'Urville", "French Antarctic Territory", NA)) %>%
+    mutate(state_country = ifelse(release_site == "Iles Kerguelen", "French Overseas Territory", state_country)) %>%
+    mutate(state_country = ifelse(release_site == "Scott Base", "New Zealand Antarctic Territory", state_country)) %>%
     split(., .$sattag_program) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "metadata"), "_",
                                                .x$sattag_program[1], suffix, ".csv")))
+
 
   cat("\nwrite to `*.csv` completed")
 
