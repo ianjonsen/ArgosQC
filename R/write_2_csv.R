@@ -86,6 +86,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     mutate(state_country = ifelse(release_site == "Dumont d'Urville", "French Antarctic Territory", NA)) %>%
     mutate(state_country = ifelse(release_site == "Iles Kerguelen", "French Overseas Territory", state_country)) %>%
     mutate(state_country = ifelse(release_site == "Scott Base", "New Zealand Antarctic Territory", state_country)) %>%
+    select(1:18, state_country, qc_start_date, qc_end_date) %>%
     split(., .$sattag_program) %>%
     walk( ~ write_csv(.x, path = paste0(file.path(path, "metadata"), "_",
                                                .x$sattag_program[1], suffix, ".csv")))
