@@ -91,7 +91,6 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     walk( ~ write_csv(.x, path = paste0(file.path(path, "metadata"), "_",
                                                .x$sattag_program[1], suffix, ".csv")))
 
-
   cat("\nwrite to `*.csv` completed")
 
 }
