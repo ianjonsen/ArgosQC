@@ -59,7 +59,8 @@ truncate_diag_sf <- function(diag, meta,
     mutate(species = ifelse(species == "Mirounga leonina", "sese",
                             ifelse(species == "Leptonychotes weddellii", "wese",
                                    ifelse(species == "Arctocephalus forsteri", "nzfs",
-                                          ifelse(species == "Arctocephalus pusillus", "aufs", NA))))) %>%
+                                          ifelse(species == "Arctocephalus pusillus", "aufs",
+                                                 ifelse(species == "Neophoca cinerea", "ausl", NA)))))) %>%
     rename(sp = species) %>%
     select(ref, cid, sp, d_sf)
 
