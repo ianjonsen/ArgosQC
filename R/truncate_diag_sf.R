@@ -57,7 +57,9 @@ truncate_diag_sf <- function(diag, meta,
   diag_sf <- diag_sf %>%
     left_join(., msp, by = c("ref" = "device_id")) %>%
     mutate(species = ifelse(species == "Mirounga leonina", "sese",
-                            ifelse(species == "Leptonychotes weddellii", "wese", NA))) %>%
+                            ifelse(species == "Leptonychotes weddellii", "wese",
+                                   ifelse(species == "Arctocephalus forsteri", "nzfs",
+                                          ifelse(species == "Arctocephalus pusillus", "aufs", NA))))) %>%
     rename(sp = species) %>%
     select(ref, cid, sp, d_sf)
 
