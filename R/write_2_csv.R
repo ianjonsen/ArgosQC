@@ -7,7 +7,7 @@
 ##' @param meta metadata
 ##' @param path path to write .csv files
 ##' @param drop.refs individual ids to be dropped
-##' @param suffix suffix to add to .csv files (_nrt or _dm)
+##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##' @examples
 ##'

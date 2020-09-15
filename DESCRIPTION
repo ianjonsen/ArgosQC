@@ -1,14 +1,14 @@
 Package: imosQCdev
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Animal-borne Telemetry Data
-Version: 0.1.0-24
+Version: 0.1.0-25
 Author: Ian Jonsen
 Maintainer: Ian Jonsen <ian.jonsen@mq.edu.au>
 Description: packaged & updated version of IMOS ATF location QC process
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Imports: 
     furrr,
     future,

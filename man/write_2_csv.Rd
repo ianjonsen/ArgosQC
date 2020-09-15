@@ -24,7 +24,7 @@ write_2_csv(
 
 \item{drop.refs}{individual ids to be dropped}
 
-\item{suffix}{suffix to add to .csv files (_nrt or _dm)}
+\item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 }
 \description{
 reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id

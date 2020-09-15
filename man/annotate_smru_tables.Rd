@@ -4,7 +4,14 @@
 \alias{annotate_smru_tables}
 \title{annotate SMRU tables with SSM-estimated locations}
 \usage{
-annotate_smru_tables(smru, fit, meta, drop.refs = NULL)
+annotate_smru_tables(
+  smru,
+  fit,
+  meta,
+  drop.refs = NULL,
+ 
+    crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs"
+)
 }
 \arguments{
 \item{smru}{SMRU table file - output of \code{pull_smru_tables}}
@@ -14,9 +21,11 @@ annotate_smru_tables(smru, fit, meta, drop.refs = NULL)
 \item{meta}{metadata used to truncate start of diag data for each individual}
 
 \item{drop.refs}{SMRU refs to be dropped}
+
+\item{crs}{CRS to be applied when interpolating SSM-estimated locations and re-projecting back from Cartesian coords to longlat}
 }
 \description{
-annotate SMRU tables so each event has SSM-derived lon,lat,x,y,x.se,y.se
+annotate SMRU tables so each event has SSM-derived lon, lat, x, y, x.se, y.se.
 }
 \examples{
 
