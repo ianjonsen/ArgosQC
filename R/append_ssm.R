@@ -14,7 +14,7 @@
 ##' @importFrom tidyr unnest
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom foieGras grab
-##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry
+##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry<-
 ##'
 ##' @export
 
