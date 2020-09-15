@@ -2,7 +2,7 @@
 % Please edit documentation in R/push_2_aodn.R
 \name{push_2_aodn}
 \alias{push_2_aodn}
-\title{push to AODN}
+\title{sync to AODN}
 \usage{
 push_2_aodn(
   cids,
@@ -14,7 +14,7 @@ push_2_aodn(
 )
 }
 \arguments{
-\item{cids}{campaign ids to zip and push}
+\item{cids}{campaign ids to zip and sync}
 
 \item{path}{path to write .csv files}
 
@@ -27,7 +27,7 @@ push_2_aodn(
 \item{suffix}{suffix to add to zip files (_nrt or _dm)}
 }
 \description{
-zip .csv files by campaign id & push to AODN incoming server
+zip .csv files by campaign id & sync with AODN incoming server via rsync
 }
 \examples{
 

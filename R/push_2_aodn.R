@@ -1,8 +1,8 @@
-##' @title push to AODN
+##' @title sync to AODN
 ##'
-##' @description zip .csv files by campaign id & push to AODN incoming server
+##' @description zip .csv files by campaign id & sync with AODN incoming server via rsync
 ##'
-##' @param cids campaign ids to zip and push
+##' @param cids campaign ids to zip and sync
 ##' @param path path to write .csv files
 ##' @param user AODN incoming server username as a string
 ##' @param pwd AODN incoming server pwd as a string
@@ -12,7 +12,6 @@
 ##' @examples
 ##'
 ##' @importFrom dplyr "%>%"
-##' @importFrom RCurl ftpUpload
 ##' @importFrom purrr walk
 ##' @importFrom assertthat assert_that
 ##'
@@ -23,6 +22,12 @@ push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRU
   assert_that(!is.null(path))
   assert_that(!is.null(user))
   assert_that(!is.null(pwd))
+
+  write(pwd, file=paste0(path, "/pwd.txt"))
+
+  rsync.fn <- function(user, host, dest, file, pwd_file) {
+    system(paste0("rsync -auv --password-file=", pwd_file, " ", file, user, "@", host, "::", dest))
+  }
 
   ## zip files by cid
   cids %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), suffix, ".zip ",
@@ -35,9 +40,7 @@ push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRU
   AODNfiles <- system(paste0("ls ", file.path(path, "*.zip | xargs -n 1 basename")), intern = TRUE)
 
   AODNfiles %>%
-    walk( ~ ftpUpload(what = file.path(path, .x),
-                      to = paste0("ftp://", user, ":", pwd, "@incoming.aodn.org.au/AATAMS_SATTAG_DM/",
-                                  .x)))
+    walk( ~ rsync.fn(user = user, host = host, dest = dest, file = .x, pwd_file = paste0(path, "/", pwd.txt)))
   }
 
   ## clean up
