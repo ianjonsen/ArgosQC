@@ -17,13 +17,14 @@
 ##'
 ##' @export
 
-push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRUE, suffix = "_nrt") {
+push_2_aodn <- function(cids, path = NULL, user = NULL, host = NULL, dest = NULL, pwd = NULL, nopush = TRUE, suffix = "_nrt") {
 
   assert_that(!is.null(path))
   assert_that(!is.null(user))
   assert_that(!is.null(pwd))
 
-  write(pwd, file=paste0(path, "/pwd.txt"))
+  write(pwd, file=paste0(path, "/rsync_pass"))
+  system(paste0("chmod 600 ", path, "/rsync_pass"))
 
   rsync.fn <- function(user, host, dest, file, pwd_file) {
     system(paste0("rsync -auv --password-file=", pwd_file, " ", file, user, "@", host, "::", dest))
@@ -37,6 +38,7 @@ push_2_aodn <- function(cids, path = NULL, user = NULL, pwd = NULL, nopush = TRU
   ## push zipfiles
 
   if(!nopush) {
+    stop("rsync not currently supported within this function")
   AODNfiles <- system(paste0("ls ", file.path(path, "*.zip | xargs -n 1 basename")), intern = TRUE)
 
   AODNfiles %>%

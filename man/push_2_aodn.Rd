@@ -8,6 +8,8 @@ push_2_aodn(
   cids,
   path = NULL,
   user = NULL,
+  host = NULL,
+  dest = NULL,
   pwd = NULL,
   nopush = TRUE,
   suffix = "_nrt"
