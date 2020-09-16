@@ -17,7 +17,7 @@
 ##'
 
 truncate_diag_sf <- function(diag, meta,
-                             crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +datum=WGS84 +units=km +no_defs",
+                             crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
                              QCmode = "nrt") {
 
   deploy_meta <- meta %>%
