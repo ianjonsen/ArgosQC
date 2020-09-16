@@ -20,7 +20,7 @@
 push_2_aodn <- function(cids, path = NULL, user = NULL, host = NULL, dest = NULL, pwd = NULL, nopush = TRUE, suffix = "_nrt") {
 
   assert_that(!is.null(path))
-  assert_that(!is.null(user))
+##  assert_that(!is.null(user))
   assert_that(!is.null(pwd))
 
   write(pwd, file=paste0(path, "/rsync_pass"))
