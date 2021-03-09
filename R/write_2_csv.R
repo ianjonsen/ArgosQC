@@ -46,37 +46,37 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
   ## split by campaign id & write .csv files
   p_out %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, path = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv")))
 
   smru_ssm$diag %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, path = paste0(file.path(path, "diag"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ write_csv(.x, file = paste0(file.path(path, "diag"), "_", .x$cid[1], suffix, ".csv")))
 
   smru_ssm$haulout %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, path = paste0(file.path(path, "haulout"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ write_csv(.x, file = paste0(file.path(path, "haulout"), "_", .x$cid[1], suffix, ".csv")))
 
   smru_ssm$ctd %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, path = paste0(file.path(path, "ctd"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ write_csv(.x, file = paste0(file.path(path, "ctd"), "_", .x$cid[1], suffix, ".csv")))
 
   smru_ssm$dive %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, path = paste0(file.path(path, "dive"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ write_csv(.x, file = paste0(file.path(path, "dive"), "_", .x$cid[1], suffix, ".csv")))
 
   smru_ssm$ssummary %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, path = paste0(file.path(path, "summary"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ write_csv(.x, file = paste0(file.path(path, "summary"), "_", .x$cid[1], suffix, ".csv")))
 
   ## remove dive, ctd start/end dates columns, add 'state_country' for AODN (based on deployment location)
   meta %>%
@@ -88,7 +88,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     mutate(state_country = ifelse(release_site == "Scott Base", "New Zealand Antarctic Territory", state_country)) %>%
     select(1:18, state_country, qc_start_date, qc_end_date) %>%
     split(., .$sattag_program) %>%
-    walk( ~ write_csv(.x, path = paste0(file.path(path, "metadata"), "_",
+    walk( ~ write_csv(.x, file = paste0(file.path(path, "metadata"), "_",
                                                .x$sattag_program[1], suffix, ".csv")))
 
   cat("\nwrite to `*.csv` completed")
