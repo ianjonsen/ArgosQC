@@ -18,7 +18,7 @@
 ##' @importFrom dplyr filter "%>%" bind_rows slice ungroup left_join select mutate
 ##' @importFrom tidyr nest
 ##' @importFrom future plan
-##' @importFrom furrr future_map
+##' @importFrom furrr future_map furrr_options
 ##' @importFrom foieGras fit_ssm
 ##'
 ##' @export
@@ -53,7 +53,10 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang
         distlim = distlim,
         verbose = 0,
         map = map
-      ), silent = TRUE), .progress = TRUE) %>%
+      ), silent = TRUE),
+      .progress = TRUE,
+      .options = furrr_options(seed = TRUE)
+      ) %>%
       do.call(rbind, .)
 
     ## add successes onto original successful fits
@@ -77,7 +80,9 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang
             distlim = distlim,
             verbose = 0,
             map = map
-          ), silent = TRUE), .progress = TRUE
+          ), silent = TRUE),
+          .progress = TRUE,
+          .options = furrr_options(seed = TRUE)
           ) %>%
           do.call(rbind, .)
 

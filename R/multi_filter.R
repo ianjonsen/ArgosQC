@@ -15,7 +15,7 @@
 ##'
 ##' @importFrom dplyr filter "%>%" bind_rows
 ##' @importFrom future plan
-##' @importFrom furrr future_map
+##' @importFrom furrr future_map furrr_options
 ##' @importFrom foieGras fit_ssm
 ##'
 ##' @export
@@ -35,7 +35,10 @@ multi_filter <- function(x, vmax = 4, ang = c(15, 25), distlim = c(2500,5000), m
       distlim = distlim,
       min.dt = min.dt,
       map = map
-    ), silent = TRUE), .progress = TRUE) %>%
+    ), silent = TRUE),
+    .progress = TRUE,
+    .options = furrr_options(seed = TRUE)
+    ) %>%
     do.call(rbind, .)
 
   return(fit)
