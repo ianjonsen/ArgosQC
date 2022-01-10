@@ -18,13 +18,23 @@
 ##' @importFrom dplyr filter "%>%" bind_rows slice ungroup left_join select mutate
 ##' @importFrom tidyr nest
 ##' @importFrom future plan
-##' @importFrom furrr future_map
-##' @importFrom foieGras fit_ssm
+##' @importFrom furrr future_map furrr_options
+##' @importFrom foieGras fit_ssm ssm_control
 ##'
 ##' @export
 ##'
 
-redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang = c(15,25), distlim = c(1500, 5000), min.dt = 180, map = NULL) {
+redo_multi_filter <-
+  function(fit,
+           diag_sf,
+           model = "crw",
+           ts = 3,
+           vmax = 2,
+           ang = c(15, 25),
+           distlim = c(1500, 5000),
+           min.dt = 180,
+           map = NULL) {
+
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
@@ -44,16 +54,19 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang
     ## Refit Stage 1 - refit with a bigger min.dt
     fit_fail <- fail_dat$d_sf %>%
       future_map( ~ try(fit_ssm(
-        d = .x,
+        x = .x,
         model = model,
         time.step = ts,
         min.dt = min.dt,
         vmax = vmax,
         ang = ang,
         distlim = distlim,
-        verbose = 0,
-        map = map
-      ), silent = TRUE), .progress = TRUE) %>%
+        map = map,
+        control = ssm_control(verbose = 0)
+      ), silent = TRUE),
+      .progress = TRUE,
+      .options = furrr_options(seed = TRUE)
+      ) %>%
       do.call(rbind, .)
 
     ## add successes onto original successful fits
@@ -68,16 +81,18 @@ redo_multi_filter <- function(fit, diag_sf, model = "crw", ts = 3, vmax = 2, ang
 
         fit_fail <- fail_dat$d_sf %>%
           future_map(~ try(fit_ssm(
-            d = .x,
+            x = .x,
             model = model,
             time.step = ifelse(ts==3, ts * 2, ts),
             min.dt = min.dt * 2,
             vmax = vmax,
             ang = ang,
             distlim = distlim,
-            verbose = 0,
-            map = map
-          ), silent = TRUE), .progress = TRUE
+            map = map,
+            control = ssm_control(verbose = 0)
+          ), silent = TRUE),
+          .progress = TRUE,
+          .options = furrr_options(seed = TRUE)
           ) %>%
           do.call(rbind, .)
 

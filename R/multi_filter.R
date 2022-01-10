@@ -15,27 +15,38 @@
 ##'
 ##' @importFrom dplyr filter "%>%" bind_rows
 ##' @importFrom future plan
-##' @importFrom furrr future_map
-##' @importFrom foieGras fit_ssm
+##' @importFrom furrr future_map furrr_options
+##' @importFrom foieGras fit_ssm ssm_control
 ##'
 ##' @export
 ##'
 
-multi_filter <- function(x, vmax = 4, ang = c(15, 25), distlim = c(2500,5000), min.dt = 60, model = "crw", ts = 2, map = NULL) {
+multi_filter <- function(x,
+                         vmax = 4,
+                         ang = c(15, 25),
+                         distlim = c(2500, 5000),
+                         min.dt = 60,
+                         model = "crw",
+                         ts = 2,
+                         map = NULL) {
+
 
   plan("multisession")
   fit <-
     x$d_sf %>% future_map(~ try(fit_ssm(
-      d = .x,
+      x = .x,
       model = model,
       time.step = ts,
-      verbose = 0,
       vmax = vmax,
       ang = ang,
       distlim = distlim,
       min.dt = min.dt,
-      map = map
-    ), silent = TRUE), .progress = TRUE) %>%
+      map = map,
+      control = ssm_control(verbose = 0)
+    ), silent = TRUE),
+    .progress = TRUE,
+    .options = furrr_options(seed = TRUE)
+    ) %>%
     do.call(rbind, .)
 
   return(fit)
