@@ -10,6 +10,7 @@
 ##' @param model \code{foieGras} model ("rw" orr "crw)
 ##' @param ts \code{foieGrsa} time.step
 ##' @param map params to fix
+##' @param verbose turn on/off furrr::future_map progress indicator
 ##'
 ##' @examples
 ##'
@@ -28,7 +29,8 @@ multi_filter <- function(x,
                          min.dt = 60,
                          model = "crw",
                          ts = 2,
-                         map = NULL) {
+                         map = NULL,
+                         verbose = TRUE) {
 
 
   plan("multisession")
@@ -44,7 +46,7 @@ multi_filter <- function(x,
       map = map,
       control = ssm_control(verbose = 0)
     ), silent = TRUE),
-    .progress = TRUE,
+    .progress = verbose,
     .options = furrr_options(seed = TRUE)
     ) %>%
     do.call(rbind, .)

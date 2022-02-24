@@ -11,6 +11,7 @@
 ##' @param distlim sdafilter argument
 ##' @param min.dt min.dt argument for \code{foieGras::fit_ssm}
 ##' @param map params to fix
+##' @param verbose turn on/off furrr::future_map progress indicator
 ##'
 ##'
 ##' @examples
@@ -33,7 +34,8 @@ redo_multi_filter <-
            ang = c(15, 25),
            distlim = c(1500, 5000),
            min.dt = 180,
-           map = NULL) {
+           map = NULL,
+           verbose = TRUE) {
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
@@ -63,7 +65,7 @@ redo_multi_filter <-
         map = map,
         control = ssm_control(verbose = 0)
       ), silent = TRUE),
-      .progress = TRUE,
+      .progress = verbose,
       .options = furrr_options(seed = TRUE)
       ) %>%
       do.call(rbind, .)
@@ -90,7 +92,7 @@ redo_multi_filter <-
             map = map,
             control = ssm_control(verbose = 0)
           ), silent = TRUE),
-          .progress = TRUE,
+          .progress = verbose,
           .options = furrr_options(seed = TRUE)
           ) %>%
           do.call(rbind, .)

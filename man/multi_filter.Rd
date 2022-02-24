@@ -12,7 +12,8 @@ multi_filter(
   min.dt = 60,
   model = "crw",
   ts = 2,
-  map = NULL
+  map = NULL,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ multi_filter(
 \item{ts}{\code{foieGrsa} time.step}
 
 \item{map}{params to fix}
+
+\item{verbose}{turn on/off furrr::future_map progress indicator}
 }
 \description{
 apply SSM filter to diag data across multiple processors

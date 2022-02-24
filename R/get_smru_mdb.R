@@ -8,6 +8,7 @@
 ##' @param pwd  SMRU data server password as a string
 ##' @param timeout timeout duration in s (default 120 s); sets
 ##' options(timeout = timeout) to avoid mdb.zip download error from SMRU server
+##' @param verbose turn on/off progress indicator
 ##'
 ##' @examples
 ##'
@@ -25,7 +26,8 @@ get_smru_mdb <-
            dest = NULL,
            user = NULL,
            pwd = NULL,
-           timeout = 120)
+           timeout = 120,
+           verbose = FALSE)
   {
     assert_that(!is.null(dest))
     assert_that(dir.exists(dest))
@@ -53,7 +55,7 @@ get_smru_mdb <-
         ),
         destfile = file.path(dest, paste0(cid, ".zip")),
         method = "libcurl",
-        quiet = FALSE,
+        quiet = !verbose,
         mode = "w",
         cacheOK = FALSE
       )
@@ -64,11 +66,11 @@ get_smru_mdb <-
 
     options(timeout = 60)
 
-        cids %>% walk(~ fn(
+        cids %>% suppressMessages(walk(~ fn(
           .x,
           dest = dest,
           user = user,
           pwd = pwd
-        ))
+        )))
 
   }

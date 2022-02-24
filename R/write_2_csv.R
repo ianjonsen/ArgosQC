@@ -67,7 +67,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
            s = round(s,6),
            s_se = round(s_se,6)) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv"))))
 
   diag <- smru_ssm$diag %>%
     filter(!ref %in% drop.refs) %>%
@@ -176,7 +176,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
   }
    diag <- diag %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, file = paste0(file.path(path, "diag"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "diag"), "_", .x$cid[1], suffix, ".csv"))))
 
   smru_ssm$haulout <- smru_ssm$haulout %>%
     filter(!ref %in% drop.refs) %>%
@@ -252,7 +252,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
 
   smru_ssm$haulout <- smru_ssm$haulout %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, file = paste0(file.path(path, "haulout"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "haulout"), "_", .x$cid[1], suffix, ".csv"))))
 
   smru_ssm$ctd <- smru_ssm$ctd %>%
     filter(!ref %in% drop.refs) %>%
@@ -386,19 +386,19 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
 
   smru_ssm$ctd <- smru_ssm$ctd %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, file = paste0(file.path(path, "ctd"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ctd"), "_", .x$cid[1], suffix, ".csv"))))
 
   smru_ssm$dive %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, file = paste0(file.path(path, "dive"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "dive"), "_", .x$cid[1], suffix, ".csv"))))
 
   smru_ssm$ssummary %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
     split(., .$cid) %>%
-    walk( ~ write_csv(.x, file = paste0(file.path(path, "summary"), "_", .x$cid[1], suffix, ".csv")))
+    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "summary"), "_", .x$cid[1], suffix, ".csv"))))
 
   ## remove dive, ctd start/end dates columns, add 'state_country' for AODN (based on deployment location)
   meta <- meta %>%
@@ -474,8 +474,8 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
   meta %>%
     mutate(age_class = ifelse(age_class == "juvenile", "juvenille", age_class)) %>%
     split(., .$sattag_program) %>%
-    walk( ~ write_csv(.x, file = paste0(file.path(path, "metadata"), "_",
-                                               .x$sattag_program[1], suffix, ".csv")))
+    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "metadata"), "_",
+                                               .x$sattag_program[1], suffix, ".csv"))))
 
   cat("\nwrite to `*.csv` completed")
 

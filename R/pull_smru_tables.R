@@ -8,6 +8,7 @@
 ##' @param p2mdbtools path to mdbtools binaries. Specifying the path can avoid
 ##' an error when calling from within RStudio, eg. on MacBook Pro M1 Pro with
 ##' homebrew-installed mdbtools @ /opt/homebrew/Cellar/mdbtools/1.0.0/bin/
+##' @param verbose turn on/off progress indicator
 ##'
 ##' @examples
 ##'
@@ -22,7 +23,8 @@
 pull_smru_tables <- function(cids,
                              path2mdb,
                              tables = c("diag", "haulout", "ctd", "dive", "summary"),
-                             p2mdbtools = NULL
+                             p2mdbtools = NULL,
+                             verbose = TRUE
 ) {
 
   ## path for MacBook Pro M1 Pro
@@ -53,7 +55,7 @@ pull_smru_tables <- function(cids,
     smru_t <- cids %>%
       future_map( ~ try(get.fn(paste0(file.path(path2mdb, .x), ".mdb"),
                                        tab = tables),
-                        silent = TRUE), .progress = TRUE
+                        silent = TRUE), .progress = verbose
       )
 
   smru <- smru_t %>% pmap(., rbind)
