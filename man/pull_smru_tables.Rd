@@ -7,7 +7,8 @@
 pull_smru_tables(
   cids,
   path2mdb,
-  tables = c("diag", "haulout", "ctd", "dive", "summary")
+  tables = c("diag", "haulout", "ctd", "dive", "summary"),
+  p2mdbtools = NULL
 )
 }
 \arguments{
@@ -16,6 +17,10 @@ pull_smru_tables(
 \item{path2mdb}{path to SMRU .mdb file(s)}
 
 \item{tables}{specify which tables to extract, default is to extract all tables}
+
+\item{p2mdbtools}{path to mdbtools binaries. Specifying the path can avoid
+an error when calling from within RStudio, eg. on MacBook Pro M1 Pro with
+homebrew-installed mdbtools @ /opt/homebrew/Cellar/mdbtools/1.0.0/bin/}
 }
 \description{
 extracts specified tables from SMRU .mdb files, using Hmisc::mdb.get

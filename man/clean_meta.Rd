@@ -16,7 +16,11 @@ clean_meta(cids, smru, drop.refs = NULL, file = NULL)
 \item{file}{path to metadata .csv file}
 }
 \description{
-restructures metadata, formats dates, standardizes variable names, subsets to specified campaign ids
+restructures metadata, formats dates,
+standardizes variable names, subsets to specified campaign ids, appends
+dive start and end datetimes (for QC), & fills in missing
+release_longitude/latitude's with the first best quality (lc 3,2, or 1)
+Argos location after release_datetime
 }
 \examples{
 

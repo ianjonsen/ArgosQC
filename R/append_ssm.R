@@ -15,10 +15,14 @@
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom foieGras grab
 ##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry<-
+##' @importFrom snakecase to_snake_case
 ##'
 ##' @export
 
-annotate_smru_tables <- function(smru, fit, meta, drop.refs = NULL,
+annotate_smru_tables <- function(smru,
+                                 fit,
+                                 meta,
+                                 drop.refs = NULL,
                                  crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs") {
 
   ## general approx fun
@@ -28,16 +32,16 @@ annotate_smru_tables <- function(smru, fit, meta, drop.refs = NULL,
     lat1 <- approx(x = cbind(x$date, x$lat), xout = dt)$y
     x1 <- approx(x = cbind(x$date, x$x), xout = dt)$y
     y1 <- approx(x = cbind(x$date, x$y), xout = dt)$y
-    x.se1 <- approx(x = cbind(x$date, x$x.se), xout = dt)$y
-    y.se1 <- approx(x = cbind(x$date, x$y.se), xout = dt)$y
+    x_se1 <- approx(x = cbind(x$date, x$x_se), xout = dt)$y
+    y_se1 <- approx(x = cbind(x$date, x$y_se), xout = dt)$y
   data.frame(
       date = dt,
-      ssm_lon = lon1,
-      ssm_lat = lat1,
-      ssm_x = x1,
-      ssm_y = y1,
-      ssm_x.se = x.se1,
-      ssm_y.se = y.se1
+      ssm_lon = round(lon1,6),
+      ssm_lat = round(lat1,6),
+      ssm_x = round(x1,6),
+      ssm_y = round(y1,6),
+      ssm_x_se = round(x_se1,6),
+      ssm_y_se = round(y_se1,6)
     )
   }
 
@@ -45,24 +49,26 @@ annotate_smru_tables <- function(smru, fit, meta, drop.refs = NULL,
     dt <- smru.table %>% filter(ref == x$ref[1]) %>% pull(date.var)
     x1 <- approx(x = cbind(x$date, x$x), xout = dt)$y
     y1 <- approx(x = cbind(x$date, x$y), xout = dt)$y
-    x.se1 <- approx(x = cbind(x$date, x$x.se), xout = dt)$y
-    y.se1 <- approx(x = cbind(x$date, x$y.se), xout = dt)$y
+    x_se1 <- approx(x = cbind(x$date, x$x_se), xout = dt)$y
+    y_se1 <- approx(x = cbind(x$date, x$y_se), xout = dt)$y
     data.frame(
       date = dt,
-      ssm_x = x1,
-      ssm_y = y1,
-      ssm_x.se = x.se1,
-      ssm_y.se = y.se1
+      ssm_x = round(x1,6),
+      ssm_y = round(y1,6),
+      ssm_x_se = round(x_se1,6),
+      ssm_y_se = round(y_se1,6)
     )
   }
 
   f <- grab(fit, "fitted", as_sf = FALSE) %>%
     rename(ref = id) %>%
     filter(!ref %in% drop.refs)
+  names(f) <- to_snake_case(names(f))
 
   p <- grab(fit, "predicted", as_sf = FALSE) %>%
     rename(ref = id) %>%
     filter(!ref %in% drop.refs)
+  names(p) <- to_snake_case(names(p))
 
   deploy_meta <- meta %>%
     select(device_id, release_date) %>%
@@ -70,18 +76,17 @@ annotate_smru_tables <- function(smru, fit, meta, drop.refs = NULL,
 
   ## ctd table
   ctd <- smru$ctd %>%
-    mutate(ref = as.character(ref),
-           end.date = mdy_hms(end.date, tz = "UTC")) %>%
+    mutate(ref = as.character(ref)) %>%
     filter(!ref %in% drop.refs) %>%
     group_by(ref) %>%
-    arrange(end.date, .by_group = TRUE) %>%
+    arrange(end_date, .by_group = TRUE) %>%
     ungroup()
 
   ctd <- p %>%
     group_by(ref) %>%
-    do(locs = approx.ctd.fn(., smru.table = ctd, date.var = "end.date")) %>%
+    do(locs = approx.ctd.fn(., smru.table = ctd, date.var = "end_date")) %>%
     unnest(cols = c(locs)) %>%
-    left_join(ctd, ., by = c("ref", c("end.date" = "date"))) %>%
+    left_join(ctd, ., by = c("ref", c("end_date" = "date"))) %>%
     distinct()
 
   ## re-project ctd interpolated ssm_x,y locs back to longlat
@@ -95,61 +100,84 @@ annotate_smru_tables <- function(smru, fit, meta, drop.refs = NULL,
   names(ssm_xy) <- c("ssm_x", "ssm_y")
   st_geometry(ssm_sf) <- NULL
   ctd <- cbind(ssm_sf, ssm_ll, ssm_xy) %>%
-    select(1:29, lat, lon, ssm_lon, ssm_lat, ssm_x, ssm_y, ssm_x.se, ssm_y.se)
+    select(1:29, lat, lon, ssm_lon, ssm_lat, ssm_x, ssm_y, ssm_x_se, ssm_y_se)
 
   ## dive table
   dive <- smru$dive %>%
-    mutate(ref = as.character(ref),
-           de.date = mdy_hms(de.date, tz = "UTC")) %>%
-    filter(!ref %in% drop.refs)
+    mutate(ref = as.character(ref)) %>%
+    filter(!ref %in% drop.refs) %>%
+    mutate(lon = round(lon,6),
+           lat = round(lat,6))
 
   dive <- p %>%
     group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = dive, date.var = "de.date")) %>%
+    do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) %>%
     unnest(cols = c(locs)) %>%
-    left_join(dive, ., by = c("ref", c("de.date" = "date")))
+    left_join(dive, ., by = c("ref", c("de_date" = "date")))
 
 
   ## haulout table
   haulout <- smru$haulout %>%
-    mutate(ref = as.character(ref),
-           s.date = mdy_hms(s.date, tz = "UTC")) %>%
-    filter(!ref %in% drop.refs)
+    mutate(ref = as.character(ref)) %>%
+    filter(!ref %in% drop.refs) %>%
+    mutate(lon = round(lon,6),
+           lat = round(lat,6))
 
   haulout <- p %>%
     group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = haulout, date.var = "s.date")) %>%
+    do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) %>%
     unnest(cols = c(locs)) %>%
-    left_join(haulout, ., by = c("ref", c("s.date" = "date")))
+    left_join(haulout, ., by = c("ref", c("s_date" = "date")))
 
   ## summary table
   ssummary <- smru$summary %>%
-    mutate(ref = as.character(ref),
-           e.date = mdy_hms(e.date, tz = "UTC")) %>%
+    mutate(ref = as.character(ref)) %>%
     filter(!ref %in% drop.refs)
 
   ssummary <- p %>%
     group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = ssummary, date.var = "e.date")) %>%
+    do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) %>%
     unnest(cols = c(locs)) %>%
-    left_join(ssummary, ., by = c("ref", c("e.date" = "date")))
+    left_join(ssummary, ., by = c("ref", c("e_date" = "date")))
 
   ## diag table
   diag <- smru$diag %>%
-    mutate(d.date = mdy_hms(d.date, tz = "UTC"),
-           ref = as.character(ref)) %>%
+    mutate(ref = as.character(ref)) %>%
     left_join(. , deploy_meta, by = c("ref" = "device_id")) %>%
-    mutate(release_date = ifelse(is.na(release_date), d.date, release_date)) %>%
+    mutate(release_date = ifelse(is.na(release_date), d_date, release_date)) %>%
     mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
-    filter(d.date >= release_date) %>%
+    filter(d_date >= release_date) %>%
     select(-release_date) %>%
     filter(!ref %in% drop.refs)
 
   diag <- f %>%
     group_by(ref) %>%
     unnest(cols = c()) %>%
-    left_join(diag, ., by = c("ref", c("d.date" = "date"))) %>%
-    distinct()
+    left_join(diag, ., by = c("ref", c("d_date" = "date"))) %>%
+    distinct() %>%
+    rename(
+      lat = lat.x,
+      lon = lon.x,
+      ssm_lon = lon.y,
+      ssm_lat = lat.y,
+      ssm_x = x,
+      ssm_y = y,
+      ssm_x_se = x_se,
+      ssm_y_se = y_se
+    ) %>%
+    mutate(ssm_lon = round(ssm_lon,6),
+           ssm_lat = round(ssm_lat,6),
+           ssm_x = round(ssm_x,6),
+           ssm_y = round(ssm_y,6),
+           ssm_x_se = round(ssm_x_se,6),
+           ssm_y_se = round(ssm_y_se,6)
+    )
+  ## remove CRW-specific model params from diag files
+  ##  these only need to appear in ssmoutputs files
+  if(all(c("u","u_se","v","v_se","s","s_se") %in% names(diag))) {
+    diag <- diag %>%
+      select(-c("u","u_se","v","v_se","s","s_se"))
+  }
 
   list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
 }

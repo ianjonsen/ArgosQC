@@ -1,6 +1,10 @@
 ##' @title clean metadata
 ##'
-##' @description restructures metadata, formats dates, standardizes variable names, subsets to specified campaign ids
+##' @description restructures metadata, formats dates,
+##' standardizes variable names, subsets to specified campaign ids, appends
+##' dive start and end datetimes (for QC), & fills in missing
+##' release_longitude/latitude's with the first best quality (lc 3,2, or 1)
+##' Argos location after release_datetime
 ##'
 ##' @param cids SMRU campaign ids
 ##' @param smru SMRU table
@@ -9,7 +13,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr select rename mutate filter "%>%"
+##' @importFrom dplyr select rename mutate filter "%>%" bind_rows
 ##' @importFrom readr read_csv
 ##' @importFrom stringr str_to_lower str_replace_all str_extract regex
 ##' @importFrom lubridate mdy_hms
@@ -97,7 +101,11 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
       length,
       estimated_mass,
       actual_mass
-    )
+    ) %>%
+    mutate(ptt = as.integer(ptt)) %>%
+    mutate(body = as.integer(body))
+
+  meta <- suppressWarnings(meta %>% mutate(estimated_mass = as.integer(estimated_mass)))
 
   ## subset to current campaigns & apply drop.refs
   meta <- meta %>%
@@ -108,22 +116,43 @@ clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
   ##  to be used as alternate on final, delayed-mode (manual) QC
   dive_se <- smru$dive %>%
     mutate(ref = as.character(ref)) %>%
-    select(ref, de.date) %>%
-    mutate(de.date = mdy_hms(de.date, tz = "UTC")) %>%
+    select(ref, de_date) %>%
     group_by(ref) %>%
-    summarise(dive_start = min(de.date, na.rm = TRUE), dive_end = max(de.date, na.rm = TRUE))
+    summarise(dive_start = min(de_date, na.rm = TRUE), dive_end = max(de_date, na.rm = TRUE))
 
   ## append CTD start and end dates for track truncation
   ctd_se <- smru$ctd %>%
     mutate(ref = as.character(ref)) %>%
-    select(ref, end.date) %>%
-    mutate(end.date = mdy_hms(end.date, tz = "UTC")) %>%
+    select(ref, end_date) %>%
     group_by(ref) %>%
-    summarise(ctd_start = min(end.date, na.rm = TRUE), ctd_end = max(end.date, na.rm = TRUE))
+    summarise(ctd_start = min(end_date, na.rm = TRUE),
+              ctd_end = max(end_date, na.rm = TRUE))
 
   meta <- meta %>%
     left_join(., dive_se, by = c("device_id" = "ref")) %>%
     left_join(., ctd_se, by = c("device_id" = "ref"))
+
+  ## if absent, fill in missing release_longitude/latitude's with the
+  ##   most recent lc = 3 | 2 Argos location (after or on release_date)0
+  if(any(is.na(meta$release_longitude), is.na(meta$release_longitude))) {
+    tmp <- meta %>% select(device_id, release_date)
+    tmp1 <- left_join(smru$diag, tmp, by = c("ref" = "device_id")) %>%
+      select(device_id = ref, lq, d_date, release_date, lon, lat) %>%
+      filter(lq > 1 & d_date >= release_date) %>%
+      split(., .$device_id) %>%
+      lapply(., function(x) x[1,]) %>%
+      bind_rows() %>%
+      select(device_id, lon, lat)
+    meta <- left_join(meta, tmp1, by = "device_id") %>%
+      mutate(release_latitude = ifelse(is.na(release_latitude),
+                                       lat,
+                                       release_latitude),
+             release_longitude = ifelse(is.na(release_longitude),
+                                        lon,
+                                        release_longitude)
+             ) %>%
+      select(-lon, -lat)
+  }
 
   return(meta)
 }

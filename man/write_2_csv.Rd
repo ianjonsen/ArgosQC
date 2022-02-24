@@ -2,7 +2,7 @@
 % Please edit documentation in R/write_2_csv.R
 \name{write_2_csv}
 \alias{write_2_csv}
-\title{reconfigure annotated SMRU tables for AODN}
+\title{reconfigure annotated SMRU tables, test for expected data schema for AODN}
 \usage{
 write_2_csv(
   smru_ssm,

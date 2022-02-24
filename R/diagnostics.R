@@ -9,6 +9,7 @@
 ##' @param meta metadata
 ##' @param mpath path to write map file
 ##' @param tpath path to write diagnostic table files
+##' @param ... extra arguments for foieGras::fmap - used to generate maps
 ##'
 ##' @examples
 ##'
@@ -17,7 +18,7 @@
 ##' @importFrom rnaturalearth ne_countries
 ##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes theme_minimal xlim ylim ggsave
 ##' @importFrom lubridate decimal_date
-##' @importFrom foieGras grab
+##' @importFrom foieGras grab fmap
 ##' @importFrom kableExtra kable kable_styling
 ##' @importFrom assertthat assert_that
 ##' @importFrom readr write_csv
@@ -25,9 +26,14 @@
 ##' @export
 
 diagnostics <-
-  function(fit, fit1, diag, smru_ssm, meta,
+  function(fit,
+           fit1,
+           diag,
+           smru_ssm,
+           meta,
            mpath = NULL,
-           tpath = NULL) {
+           tpath = NULL,
+           ...) {
 
     assert_that(!is.null(mpath))
     assert_that(!is.null(tpath))
@@ -50,57 +56,30 @@ diagnostics <-
     }) %>%
       do.call(rbind, .)
 
-    p_sf <- p_out %>%
-      st_as_sf(., coords = c("lon","lat"),
-               crs = 4326) %>%
-      st_transform(., crs = 3032) %>%
-      group_by(ref)
+    fmap(fit,
+         what = "predicted",
+         conf = FALSE,
+         by.id = FALSE,
+         last_loc = "firebrick",
+         ...) +
+      theme_minimal() +
+      theme(legend.position = "none")
 
-    p_latest_sf <- p_sf %>%
-      filter(date == max(date)) %>%
-      summarise(do_union = FALSE) %>%
-      st_cast("MULTIPOINT")
-
-    p_sf <- p_sf %>%
-      summarise(do_union = FALSE) %>%
-      st_cast("MULTIPOINT")
-
-    coast <-
-      rnaturalearth::ne_countries(scale = 50, returnclass = "sf") %>%
-      sf::st_transform(., crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs")
-
-    bounds <- sf::st_bbox(p_sf)
-    bounds[c("xmin", "xmax")] <-
-      extendrange(bounds[c("xmin", "xmax")], f = 0.2)
-    bounds[c("ymin", "ymax")] <-
-      extendrange(bounds[c("ymin", "ymax")], f = 0.2)
-
-    mp <- ggplot(data = p_sf) +
-      geom_sf(data = coast,
-              lwd = 0) +
-      xlim(bounds[c("xmin", "xmax")]) +
-      ylim(bounds[c("ymin", "ymax")])
-
-    mp <- mp + geom_sf(size = 0.05,
-                       colour = "dodgerblue",
-                       alpha = 0.2) +
-      geom_sf(data = p_latest_sf,
-              size = 1,
-              colour = "firebrick") +
-      theme_minimal()
-    mp
     ggsave(
         file.path(mpath,
-                  paste0("map_", Sys.Date(),".jpg")),
+                  paste0("map_", Sys.Date(), ".png")),
       width = 8,
       height = 10,
       units = "in",
-      dpi = 300
+      dpi = 300,
+      bg = "white"
     )
+
     diag <- diag %>% rename(device_id = ref)
     p_out <- p_out %>% rename(device_id = ref)
     dd <-
-      diag %>% group_by(device_id) %>% summarise(
+      diag %>% group_by(device_id) %>%
+      summarise(
         start_date = min(date),
         end_date = max(date)
       )
@@ -157,7 +136,7 @@ diagnostics <-
   p1
   ggsave(
     file.path(tpath,
-              "lat_coverage.jpg"),
+              paste0("lat_coverage", ".jpg")),
     width = 15,
     height = 20,
     units = "in",
@@ -204,7 +183,7 @@ diagnostics <-
   p2
   ggsave(
     file.path(tpath,
-              "lon_coverage.jpg"),
+              paste0("lon_coverage", ".jpg")),
     width = 15,
     height = 20,
     units = "in",
@@ -225,7 +204,7 @@ diagnostics <-
     select(N, attempts, nc, nf) %>%
     kable("html") %>%
     kable_styling(bootstrap_options = c("striped","hover")) %>%
-    cat(., file = file.path(tpath, "n_converged.html"))
+    cat(., file = file.path(tpath, paste0("n_converged", ".html")))
 
   ## summary number of individuals by output file
   ndiag <- smru_ssm$diag %>% pull(ref) %>% unique() %>% length()
@@ -257,9 +236,9 @@ diagnostics <-
     ) %>%
     kable("html") %>%
     kable_styling(bootstrap_options = c("striped", "hover")) %>%
-    cat(., file = file.path(tpath, "n_ind.html"))
+    cat(., file = file.path(tpath, paste0("n_ind", ".html")))
 
-  write(diag_not_in_meta, file = file.path(tpath, "diag_not_in_meta.txt"))
-  write(meta_not_in_diag, file = file.path(tpath, "meta_not_in_diag.txt"))
+  write(diag_not_in_meta, file = file.path(tpath, paste0("diag_not_in_meta", ".txt")))
+  write(meta_not_in_diag, file = file.path(tpath, paste0("meta_not_in_diag", ".txt")))
   }
 

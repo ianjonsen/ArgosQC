@@ -35,7 +35,6 @@ redo_multi_filter <-
            min.dt = 180,
            map = NULL) {
 
-
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
   nc <- which(!fit$converged)

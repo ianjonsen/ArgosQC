@@ -4,7 +4,7 @@
 \alias{get_smru_mdb}
 \title{Download .mdb files from the SMRU server}
 \usage{
-get_smru_mdb(cids, dest = NULL, user = NULL, pwd = NULL)
+get_smru_mdb(cids, dest = NULL, user = NULL, pwd = NULL, timeout = 120)
 }
 \arguments{
 \item{cids}{SMRU campaign ids to be downloaded from SMRU data server}
@@ -14,6 +14,9 @@ get_smru_mdb(cids, dest = NULL, user = NULL, pwd = NULL)
 \item{user}{SMRU data server username as a string}
 
 \item{pwd}{SMRU data server password as a string}
+
+\item{timeout}{timeout duration in s (default 120 s); sets
+options(timeout = timeout) to avoid mdb.zip download error from SMRU server}
 }
 \description{
 fetches .mdb files from SMRU server and saves to a \code{dest}-ination directory
