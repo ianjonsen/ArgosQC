@@ -477,6 +477,6 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "metadata"), "_",
                                                .x$sattag_program[1], suffix, ".csv"))))
 
-  cat("\nwrite to `*.csv` completed")
+  cat("\nwrite to `*.csv` completed\n")
 
 }
