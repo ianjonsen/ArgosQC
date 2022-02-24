@@ -25,6 +25,7 @@ Imports:
     foieGras (>= 1.0.0),
     kableExtra,
     ggplot2,
-    rnaturalearth
+    rnaturalearth,
+    snakecase
 Remotes: 
     ianjonsen/foieGras@dev
