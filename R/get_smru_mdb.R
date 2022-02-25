@@ -66,11 +66,11 @@ get_smru_mdb <-
 
     options(timeout = 60)
 
-        cids %>% suppressMessages(walk(~ fn(
+        cids %>% walk(~ fn(
           .x,
           dest = dest,
           user = user,
           pwd = pwd
-        )))
+        ))
 
   }
