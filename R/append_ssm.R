@@ -105,6 +105,7 @@ annotate_smru_tables <- function(smru,
   ## dive table
   dive <- smru$dive %>%
     mutate(ref = as.character(ref)) %>%
+    mutate(ds_date = mdy_hms(ds_date, tz = "UTC")) %>%
     filter(!ref %in% drop.refs) %>%
     mutate(lon = round(lon,6),
            lat = round(lat,6))
