@@ -64,13 +64,15 @@ get_smru_mdb <-
       system(paste0("rm ", file.path(dest, paste0(cid, ".zip"))))
     }
 
-    options(timeout = 60)
-
-        cids %>% walk(~ fn(
+      out <- cids %>% walk(~ fn(
           .x,
           dest = dest,
           user = user,
           pwd = pwd
         ))
+
+      options(timeout = 60)
+
+      return(out)
 
   }
