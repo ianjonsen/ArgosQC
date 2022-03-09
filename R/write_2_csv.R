@@ -96,9 +96,9 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
                  "deleted",
                  "actual_ptt",
                  "error_radius",
-                 "smaj",
-                 "smin",
-                 "eor",
+                 "semi_major_axis",
+                 "semi_minor_axis",
+                 "ellipse_orientation",
                  "hdop",
                  "satellite",
                  "diag_id",
@@ -147,14 +147,14 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
                         if("error_radius" %in% names(diag)) {
                           all(any(is.integer(error_radius), is.na(error_radius)), (error_radius >= 0 | is.na(error_radius)))
                           },
-                        if("smaj" %in% names(diag)) {
-                          all(any(is.integer(smaj), is.na(smaj)), (smaj >= 0 | is.na(smaj)))
+                        if("semi_major_axis" %in% names(diag)) {
+                          all(any(is.integer(semi_major_axis), is.na(semi_major_axis)), (semi_major_axis >= 0 | is.na(semi_major_axis)))
                         },
-                        if("smin" %in% names(diag)) {
-                          all(any(is.integer(smin), is.na(smin)), (smin >= 0 | is.na(smin)))
+                        if("semi_minor_axis" %in% names(diag)) {
+                          all(any(is.integer(semi_minor_axis), is.na(semi_minor_axis)), (semi_minor_axis >= 0 | is.na(semi_minor_axis)))
                         },
-                        if("eor" %in% names(diag)) {
-                          all(any(is.integer(eor), is.na(eor)), ((eor >= 0 & eor <= 180) | is.na(eor)))
+                        if("ellipse_orientation" %in% names(diag)) {
+                          all(any(is.integer(ellipse_orientation), is.na(ellipse_orientation)), ((ellipse_orientation >= 0 & ellipse_orientation <= 180) | is.na(ellipse_orientation)))
                         },
                         if("hdop" %in% names(diag)) {
                           any(is.integer(hdop), is.na(hdop))
@@ -168,12 +168,6 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
   fails <- names(diag)[which(!tests)]
   if(length(fails) > 0) stop(paste0("non-compliant diag records found in: ", fails, "\n"))
 
-  if("smaj" %in% names(diag)) {
-    diag <- diag %>%
-      rename(semi_major_axis = smaj,
-             semi_minor_axis = smin,
-             ellipse_orientation = eor)
-  }
    diag <- diag %>%
     split(., .$cid) %>%
     walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "diag"), "_", .x$cid[1], suffix, ".csv"))))
