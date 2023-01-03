@@ -2,14 +2,14 @@
 ##'
 ##' @description re-apply SSM filter to diag data for id's that failed to converge. parallelized
 ##'
-##' @param fit foieGras fit object from first round of filtering
+##' @param fit aniMotum fit object from first round of filtering
 ##' @param diag_sf \code{sf}-projected diag to be used
-##' @param model model argument ("rw" or "crw) for \code{foieGras::fit_ssm}
-##' @param ts time.step argument for \code{foieGras::fit_ssm}
+##' @param model model argument ("rw" or "crw) for \code{aniMotum::fit_ssm}
+##' @param ts time.step argument for \code{aniMotum::fit_ssm}
 ##' @param vmax threshold travel speed (m/s) to apply during track pre-filtering
 ##' @param ang sdafilter argument
 ##' @param distlim sdafilter argument
-##' @param min.dt min.dt argument for \code{foieGras::fit_ssm}
+##' @param min.dt min.dt argument for \code{aniMotum::fit_ssm}
 ##' @param map params to fix
 ##' @param verbose turn on/off furrr::future_map progress indicator
 ##'
@@ -20,7 +20,7 @@
 ##' @importFrom tidyr nest
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options
-##' @importFrom foieGras fit_ssm ssm_control
+##' @importFrom aniMotum fit_ssm ssm_control
 ##'
 ##' @export
 ##'

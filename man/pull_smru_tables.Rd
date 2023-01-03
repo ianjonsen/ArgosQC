@@ -28,6 +28,3 @@ homebrew-installed mdbtools @ /opt/homebrew/Cellar/mdbtools/1.0.0/bin/}
 \description{
 extracts specified tables from SMRU .mdb files, using Hmisc::mdb.get
 }
-\examples{
-
-}

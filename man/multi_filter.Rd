@@ -27,7 +27,7 @@ multi_filter(
 
 \item{min.dt}{for prefilter}
 
-\item{model}{\code{foieGras} model ("rw" orr "crw)}
+\item{model}{\code{aniMotum} model ("rw" orr "crw)}
 
 \item{ts}{\code{foieGrsa} time.step}
 
@@ -37,7 +37,4 @@ multi_filter(
 }
 \description{
 apply SSM filter to diag data across multiple processors
-}
-\examples{
-
 }

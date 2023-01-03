@@ -8,8 +8,8 @@ prep_diag(
   smru,
   meta,
   drop.refs = NULL,
- 
-    crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
+  crs =
+    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
   QCmode = "nrt"
 )
 }
@@ -29,7 +29,4 @@ restructures diag files, formats dates & lc's; truncates start
 (and end for "nrt") of individual deployments using ctd dates; converts to
 sf geometry - all in preparation for SSM-filtering. Splits resulting truncated
 diag files by species.
-}
-\examples{
-
 }

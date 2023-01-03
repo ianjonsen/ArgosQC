@@ -7,9 +7,9 @@
 diagnostics(fit, fit1, diag, smru_ssm, meta, mpath = NULL, tpath = NULL, ...)
 }
 \arguments{
-\item{fit}{the final foieGras fit object from QC process}
+\item{fit}{the final aniMotum fit object from QC process}
 
-\item{fit1}{the initial foieGras fit object from QC process}
+\item{fit1}{the initial aniMotum fit object from QC process}
 
 \item{diag}{the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)}
 
@@ -21,11 +21,8 @@ diagnostics(fit, fit1, diag, smru_ssm, meta, mpath = NULL, tpath = NULL, ...)
 
 \item{tpath}{path to write diagnostic table files}
 
-\item{...}{extra arguments for foieGras::fmap - used to generate maps}
+\item{...}{extra arguments for aniMotum::fmap - used to generate maps}
 }
 \description{
 produces a map of all QC''d tracks and generates diagnostic tables to assess QC run
-}
-\examples{
-
 }

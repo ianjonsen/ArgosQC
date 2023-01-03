@@ -13,7 +13,7 @@
 ##' @importFrom dplyr filter select mutate group_by "%>%" summarise left_join distinct pull arrange ungroup
 ##' @importFrom tidyr unnest
 ##' @importFrom lubridate mdy_hms
-##' @importFrom foieGras grab
+##' @importFrom aniMotum grab
 ##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry<-
 ##' @importFrom snakecase to_snake_case
 ##'

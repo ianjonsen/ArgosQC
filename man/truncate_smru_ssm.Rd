@@ -16,6 +16,3 @@ truncate_smru_ssm(smru_ssm, meta, refs)
 \description{
 right-truncate all SSM-appended SMRU tables using CTD end date for given individuals, using CTD date-times from metadata
 }
-\examples{
-
-}

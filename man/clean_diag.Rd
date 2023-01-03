@@ -14,6 +14,3 @@ clean_diag(smru, drop.refs = NULL)
 \description{
 restructures diag files, formats dates & lc's in preparation for SSM-filtering
 }
-\examples{
-
-}

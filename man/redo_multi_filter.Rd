@@ -18,13 +18,13 @@ redo_multi_filter(
 )
 }
 \arguments{
-\item{fit}{foieGras fit object from first round of filtering}
+\item{fit}{aniMotum fit object from first round of filtering}
 
 \item{diag_sf}{\code{sf}-projected diag to be used}
 
-\item{model}{model argument ("rw" or "crw) for \code{foieGras::fit_ssm}}
+\item{model}{model argument ("rw" or "crw) for \code{aniMotum::fit_ssm}}
 
-\item{ts}{time.step argument for \code{foieGras::fit_ssm}}
+\item{ts}{time.step argument for \code{aniMotum::fit_ssm}}
 
 \item{vmax}{threshold travel speed (m/s) to apply during track pre-filtering}
 
@@ -32,7 +32,7 @@ redo_multi_filter(
 
 \item{distlim}{sdafilter argument}
 
-\item{min.dt}{min.dt argument for \code{foieGras::fit_ssm}}
+\item{min.dt}{min.dt argument for \code{aniMotum::fit_ssm}}
 
 \item{map}{params to fix}
 
@@ -40,7 +40,4 @@ redo_multi_filter(
 }
 \description{
 re-apply SSM filter to diag data for id's that failed to converge. parallelized
-}
-\examples{
-
 }

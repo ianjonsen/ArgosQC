@@ -9,8 +9,8 @@ annotate_smru_tables(
   fit,
   meta,
   drop.refs = NULL,
- 
-    crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs"
+  crs =
+    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs"
 )
 }
 \arguments{
@@ -26,7 +26,4 @@ annotate_smru_tables(
 }
 \description{
 annotate SMRU tables so each event has SSM-derived lon, lat, x, y, x.se, y.se.
-}
-\examples{
-
 }

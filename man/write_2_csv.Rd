@@ -16,7 +16,7 @@ write_2_csv(
 \arguments{
 \item{smru_ssm}{SSM-appended SMRU table file - output of \code{append_ssm}}
 
-\item{fit}{final \code{foieGras} fit object}
+\item{fit}{final \code{aniMotum} fit object}
 
 \item{meta}{metadata}
 
@@ -28,7 +28,4 @@ write_2_csv(
 }
 \description{
 reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id
-}
-\examples{
-
 }

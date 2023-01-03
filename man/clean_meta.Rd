@@ -22,6 +22,3 @@ dive start and end datetimes (for QC), & fills in missing
 release_longitude/latitude's with the first best quality (lc 3,2, or 1)
 Argos location after release_datetime
 }
-\examples{
-
-}

@@ -2,14 +2,14 @@
 ##'
 ##' @description produces a map of all QC''d tracks and generates diagnostic tables to assess QC run
 ##'
-##' @param fit the final foieGras fit object from QC process
-##' @param fit1 the initial foieGras fit object from QC process
+##' @param fit the final aniMotum fit object from QC process
+##' @param fit1 the initial aniMotum fit object from QC process
 ##' @param diag the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)
 ##' @param smru_ssm the ssm-annotated SMRU tables
 ##' @param meta metadata
 ##' @param mpath path to write map file
 ##' @param tpath path to write diagnostic table files
-##' @param ... extra arguments for foieGras::fmap - used to generate maps
+##' @param ... extra arguments for aniMotum::fmap - used to generate maps
 ##'
 ##' @examples
 ##'
@@ -18,7 +18,7 @@
 ##' @importFrom rnaturalearth ne_countries
 ##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes theme_minimal xlim ylim ggsave
 ##' @importFrom lubridate decimal_date
-##' @importFrom foieGras grab fmap
+##' @importFrom aniMotum grab map
 ##' @importFrom kableExtra kable kable_styling
 ##' @importFrom assertthat assert_that
 ##' @importFrom readr write_csv
@@ -56,7 +56,7 @@ diagnostics <-
     }) %>%
       do.call(rbind, .)
 
-    fmap(fit,
+    map(fit,
          what = "predicted",
          conf = FALSE,
          by.id = FALSE,

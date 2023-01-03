@@ -3,7 +3,7 @@
 ##' @description reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
-##' @param fit final \code{foieGras} fit object
+##' @param fit final \code{aniMotum} fit object
 ##' @param meta metadata
 ##' @param path path to write .csv files
 ##' @param drop.refs individual ids to be dropped
@@ -16,7 +16,7 @@
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom readr write_csv
 ##' @importFrom purrr walk
-##' @importFrom foieGras grab
+##' @importFrom aniMotum grab
 ##' @importFrom snakecase to_snake_case
 ##'
 ##' @export

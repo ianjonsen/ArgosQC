@@ -7,7 +7,7 @@
 ##' @param ang for prefilter
 ##' @param distlim for prefilter
 ##' @param min.dt for prefilter
-##' @param model \code{foieGras} model ("rw" orr "crw)
+##' @param model \code{aniMotum} model ("rw" orr "crw)
 ##' @param ts \code{foieGrsa} time.step
 ##' @param map params to fix
 ##' @param verbose turn on/off furrr::future_map progress indicator
@@ -17,7 +17,7 @@
 ##' @importFrom dplyr filter "%>%" bind_rows
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options
-##' @importFrom foieGras fit_ssm ssm_control
+##' @importFrom aniMotum fit_ssm ssm_control
 ##'
 ##' @export
 ##'
