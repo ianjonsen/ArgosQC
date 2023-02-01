@@ -56,13 +56,21 @@ diagnostics <-
     }) %>%
       do.call(rbind, .)
 
+    my.aes <- aes_lst(conf = FALSE)
+    my.aes$df$size[1] <- 0.1
+    last.locs <- grab(fit, "p") %>%
+      split(., .$id) %>%
+      lapply(., function(x) x[nrow(x), ]) %>%
+      bind_rows(.)
+
     map(fit,
          what = "predicted",
-         aes = aes_lst(conf = FALSE),
+         aes = my.aes,
          by.id = FALSE,
          ...) +
       theme_minimal() +
-      theme(legend.position = "none")
+      theme(legend.position = "none") +
+      geom_point(data = last.locs, aes(x, y), size = 0.5, colour = "red")
 
     ggsave(
         file.path(mpath,
