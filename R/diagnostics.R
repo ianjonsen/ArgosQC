@@ -18,7 +18,7 @@
 ##' @importFrom rnaturalearth ne_countries
 ##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes theme_minimal xlim ylim ggsave
 ##' @importFrom lubridate decimal_date
-##' @importFrom aniMotum grab map
+##' @importFrom aniMotum grab map aes_lst
 ##' @importFrom kableExtra kable kable_styling
 ##' @importFrom assertthat assert_that
 ##' @importFrom readr write_csv
@@ -58,9 +58,8 @@ diagnostics <-
 
     map(fit,
          what = "predicted",
-         conf = FALSE,
+         aes = aes_lst(conf = FALSE),
          by.id = FALSE,
-         last_loc = "firebrick",
          ...) +
       theme_minimal() +
       theme(legend.position = "none")
