@@ -18,7 +18,7 @@
 ##' @importFrom rnaturalearth ne_countries
 ##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes theme_minimal xlim ylim ggsave
 ##' @importFrom lubridate decimal_date
-##' @importFrom aniMotum grab map aes_lst
+##' @importFrom aniMotum aes_lst
 ##' @importFrom kableExtra kable kable_styling
 ##' @importFrom assertthat assert_that
 ##' @importFrom readr write_csv
@@ -40,7 +40,7 @@ diagnostics <-
 
     ## generate map of predicted locations, subsampled to 6-h resolution
     ## ------------------------------------------------------------------------
-    p <- grab(fit, "predicted", as_sf = FALSE) %>%
+    p <- grab_QC(fit, "predicted", as_sf = FALSE, cut = TRUE) %>%
       rename(ref = id) %>%
       mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
 
@@ -58,15 +58,16 @@ diagnostics <-
 
     my.aes <- aes_lst(conf = FALSE)
     my.aes$df$size[1] <- 0.1
-    last.locs <- grab(fit, "p") %>%
+    last.locs <- grab_QC(fit, "p", cut = TRUE) %>%
       split(., .$id) %>%
       lapply(., function(x) x[nrow(x), ]) %>%
       bind_rows(.)
 
-    map(fit,
+    map_QC(fit,
          what = "predicted",
          aes = my.aes,
          by.id = FALSE,
+         cut = TRUE,
          ...) +
       theme_minimal() +
       theme(legend.position = "none") +

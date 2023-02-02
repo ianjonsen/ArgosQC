@@ -57,7 +57,7 @@ will be re-projected to that \code{crs}.
 }
 \examples{
 ## generate an ssm fit object
-xs <- fit_ssm(ellie, spdf=FALSE, model = "rw", time.step=24, control = ssm_control(verbose = 0))
+xs <- aniMotum::fit_ssm(ellie, spdf=FALSE, model = "rw", time.step=24, control = ssm_control(verbose = 0))
 
 ## grab predicted values as an un-projected tibble
 preds <- grab_QC(xs, what = "predicted", cut = TRUE)
