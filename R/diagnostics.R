@@ -4,6 +4,7 @@
 ##'
 ##' @param fit the final aniMotum fit object from QC process
 ##' @param fit1 the initial aniMotum fit object from QC process
+##' @param cut logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap
 ##' @param diag the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)
 ##' @param smru_ssm the ssm-annotated SMRU tables
 ##' @param meta metadata
@@ -28,6 +29,7 @@
 diagnostics <-
   function(fit,
            fit1,
+           cut,
            diag,
            smru_ssm,
            meta,
@@ -40,7 +42,7 @@ diagnostics <-
 
     ## generate map of predicted locations, subsampled to 6-h resolution
     ## ------------------------------------------------------------------------
-    p <- grab_QC(fit, "predicted", as_sf = FALSE, cut = TRUE) %>%
+    p <- grab_QC(fit, "predicted", as_sf = FALSE, cut = cut) %>%
       rename(ref = id) %>%
       mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
 
@@ -58,7 +60,7 @@ diagnostics <-
 
     my.aes <- aes_lst(conf = FALSE)
     my.aes$df$size[1] <- 0.1
-    last.locs <- grab_QC(fit, "p", cut = TRUE) %>%
+    last.locs <- grab_QC(fit, "p", cut = cut) %>%
       split(., .$id) %>%
       lapply(., function(x) x[nrow(x), ]) %>%
       bind_rows(.)
@@ -67,7 +69,7 @@ diagnostics <-
          what = "predicted",
          aes = my.aes,
          by.id = FALSE,
-         cut = TRUE,
+         cut = cut,
          ...) +
       theme_minimal() +
       theme(legend.position = "none") +

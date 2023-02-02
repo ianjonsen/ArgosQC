@@ -4,12 +4,24 @@
 \alias{diagnostics}
 \title{run QC diagnostics}
 \usage{
-diagnostics(fit, fit1, diag, smru_ssm, meta, mpath = NULL, tpath = NULL, ...)
+diagnostics(
+  fit,
+  fit1,
+  cut,
+  diag,
+  smru_ssm,
+  meta,
+  mpath = NULL,
+  tpath = NULL,
+  ...
+)
 }
 \arguments{
 \item{fit}{the final aniMotum fit object from QC process}
 
 \item{fit1}{the initial aniMotum fit object from QC process}
+
+\item{cut}{logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap}
 
 \item{diag}{the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)}
 
