@@ -16,7 +16,6 @@
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom readr write_csv
 ##' @importFrom purrr walk
-##' @importFrom aniMotum grab
 ##' @importFrom snakecase to_snake_case
 ##'
 ##' @export
@@ -24,7 +23,8 @@
 write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_qc/aodn", drop.refs = NULL, suffix = "_nrt") {
 
   ## get predicted locations from fits
-  p <- grab(fit, "predicted", as_sf = FALSE) %>%
+  ## can't cut using keep here as it messes up track subsampling
+  p <- grab_QC(fit, "predicted", cut = FALSE, as_sf = FALSE) %>%
     rename(ref = id) %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
@@ -33,7 +33,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
   if(all(!c("u","v","u_se","v_se","s","s_se") %in% names(p))) {
     p <- p %>%
       mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) %>%
-      select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, cid)
+      select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, keep, cid)
   }
 
   p.lst <- split(p, p$ref)
@@ -52,7 +52,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     group_by(ref) %>%
     summarise(qc_start_date = min(date), qc_end_date = max(date))
 
-  ## split by campaign id & write .csv files
+  ## cut predicted locs from large data gaps, split by campaign id & write .csv files
   p_out %>%
     mutate(lon = round(lon,6),
            lat = round(lat,6),
@@ -66,6 +66,8 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
            v_se = round(v_se,6),
            s = round(s,6),
            s_se = round(s_se,6)) %>%
+    filter(keep) %>%
+    select(-keep) %>%
     split(., .$cid) %>%
     walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv"))))
 
