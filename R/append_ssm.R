@@ -5,6 +5,7 @@
 ##' @param smru SMRU table file - output of \code{pull_smru_tables}
 ##' @param fit final \code{foieGras} fit object
 ##' @param meta metadata used to truncate start of diag data for each individual
+##' @param cut drop predicted locations if keep = FALSE, ie. locations in a large data gap
 ##' @param drop.refs SMRU refs to be dropped
 ##' @param crs CRS to be applied when interpolating SSM-estimated locations and re-projecting back from Cartesian coords to longlat
 ##'
@@ -13,7 +14,6 @@
 ##' @importFrom dplyr filter select mutate group_by "%>%" summarise left_join distinct pull arrange ungroup
 ##' @importFrom tidyr unnest
 ##' @importFrom lubridate mdy_hms
-##' @importFrom aniMotum grab
 ##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry<-
 ##' @importFrom snakecase to_snake_case
 ##'
@@ -22,6 +22,7 @@
 annotate_smru_tables <- function(smru,
                                  fit,
                                  meta,
+                                 cut = FALSE,
                                  drop.refs = NULL,
                                  crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs") {
 
@@ -60,12 +61,12 @@ annotate_smru_tables <- function(smru,
     )
   }
 
-  f <- grab(fit, "fitted", as_sf = FALSE) %>%
+  f <- grab_QC(fit, "fitted", as_sf = FALSE) %>%
     rename(ref = id) %>%
     filter(!ref %in% drop.refs)
   names(f) <- to_snake_case(names(f))
 
-  p <- grab(fit, "predicted", as_sf = FALSE) %>%
+  p <- grab_QC(fit, "predicted", cut = cut, as_sf = FALSE) %>%
     rename(ref = id) %>%
     filter(!ref %in% drop.refs)
   names(p) <- to_snake_case(names(p))

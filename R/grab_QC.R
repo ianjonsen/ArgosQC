@@ -278,7 +278,7 @@ grab_QC <- function(x, what = "fitted", cut = FALSE, as_sf = FALSE, normalise = 
                  })
 
                out <- as_tibble(out)
-               if(cut) out <- out %>% filter(keep)
+               if(cut & what != "data") out <- out %>% filter(keep)
 
              } else if (what == "rerouted") {
                if("g" %in% names(out)) {
@@ -306,7 +306,7 @@ grab_QC <- function(x, what = "fitted", cut = FALSE, as_sf = FALSE, normalise = 
                  }
                }
                out <- as_tibble(out)
-               if(cut) out <- out %>% filter(keep)
+               if(cut & what != "data") out <- out %>% filter(keep)
              } else if (what == "data") {
                out <- out[, c("id", "date", "lc", "lon", "lat",
                               "smaj", "smin", "eor", "obs.type", "keep",
@@ -316,10 +316,11 @@ grab_QC <- function(x, what = "fitted", cut = FALSE, as_sf = FALSE, normalise = 
 
            if(!inherits(out, "sf")) {
              out <- as_tibble(out)
-             if(cut) out <- out %>% filter(keep)
+             if(cut & what != "data") out <- out %>% filter(keep)
            }
            else {
              ## coerce from tibble to data.frame so row.names can be set to 1:nrow(out)
+             if(cut & what != "data") out <- out %>% filter(keep)
              class(out) <- c("sf", "data.frame")
              row.names(out) <- 1:nrow(out)
              class(out) <- c("sf", "tbl_df", "tbl", "data.frame")

@@ -8,6 +8,7 @@ annotate_smru_tables(
   smru,
   fit,
   meta,
+  cut = FALSE,
   drop.refs = NULL,
   crs =
     "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs"
@@ -19,6 +20,8 @@ annotate_smru_tables(
 \item{fit}{final \code{foieGras} fit object}
 
 \item{meta}{metadata used to truncate start of diag data for each individual}
+
+\item{cut}{drop predicted locations if keep = FALSE, ie. locations in a large data gap}
 
 \item{drop.refs}{SMRU refs to be dropped}
 
