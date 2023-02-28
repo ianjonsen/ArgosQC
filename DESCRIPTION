@@ -1,8 +1,8 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.3-6
-Date: 2023-02-02
+Version: 0.3-07
+Date: 2023-02-28
 Author: Ian Jonsen
 Maintainer: Ian Jonsen <ian.jonsen@mq.edu.au>
 Description: An automated Argos location quality control process for IMOS ATF Argos location data from SMRU CTD-SRDL tags. Functions automatically download and collate campaign-specific .mdb files from the SMRU server; matches deployments with user-supplied deployment metadata; projects location data to an Antarctic Stereographic projection; fits specified SSM's in 2 passes; collates results by species & campaign; generates diagnostic plots & maps; appends predicted locations to SMRU activity files (CTD, dive, haulout, summary, diag) at tag-measured event times; saves activity files as .csv in IMOS ATF schema; pushes QC'd files to AODN incoming server.

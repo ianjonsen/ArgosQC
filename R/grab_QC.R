@@ -278,6 +278,7 @@ grab_QC <- function(x, what = "fitted", cut = FALSE, as_sf = FALSE, normalise = 
                  })
 
                out <- as_tibble(out)
+               browser()
                if(cut & what != "data") out <- out %>% filter(keep)
 
              } else if (what == "rerouted") {
