@@ -60,6 +60,9 @@ diagnostics <-
 
     my.aes <- aes_lst(conf = FALSE)
     my.aes$df$size[1] <- 0.1
+    my.aes$df$col[4] <- "orangered"
+    my.aes$df$shape[4] <- 19
+
     last.locs <- grab_QC(fit, "p", cut = cut) %>%
       split(., .$id) %>%
       lapply(., function(x) x[nrow(x), ]) %>%

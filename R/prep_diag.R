@@ -80,20 +80,20 @@ prep_diag <- function(smru,
 
   ## truncate & convert to sf geometry steps
   deploy_meta <- meta %>%
-    select(device_id, ctd_start, ctd_end, track_end)
+    select(device_id, ctd_start, ctd_end, dive_end)
 
   if(QCmode == "nrt") {
     ## left- and right-truncate tracks
     diag <- diag %>%
       left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
       filter(date >= ctd_start & date <= ctd_end) %>%
-      select(-ctd_start, -ctd_end, -track_end)
+      select(-ctd_start, -ctd_end, -dive_end)
   } else {
     ## only left-truncate tracks with date of first ctd profile,
     diag <- diag %>%
       left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
-      filter(date >= ctd_start & date <= track_end) %>%
-      select(-ctd_start, -ctd_end, -track_end)
+      filter(date >= ctd_start & date <= dive_end) %>%
+      select(-ctd_start, -ctd_end, -dive_end)
   }
 
   diag_sf <- diag %>%
