@@ -52,6 +52,7 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     group_by(ref) %>%
     summarise(qc_start_date = min(date), qc_end_date = max(date))
 
+  if(suffix != "_nrt") {
   ## cut predicted locs from large data gaps, split by campaign id & write .csv files
   p_out %>%
     mutate(lon = round(lon,6),
@@ -70,7 +71,23 @@ write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_
     select(-keep) %>%
     split(., .$cid) %>%
     walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv"))))
-
+  } else {
+    p_out %>%
+      mutate(lon = round(lon,6),
+             lat = round(lat,6),
+             x = round(x,6),
+             y = round(y,6),
+             x_se = round(x_se,6),
+             y_se = round(y_se,6),
+             u = round(u,6),
+             v = round(v,6),
+             u_se = round(u_se,6),
+             v_se = round(v_se,6),
+             s = round(s,6),
+             s_se = round(s_se,6)) %>%
+      split(., .$cid) %>%
+      walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv"))))
+    }
   diag <- smru_ssm$diag %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}"))
