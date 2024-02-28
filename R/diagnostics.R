@@ -14,7 +14,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr "%>%" group_by summarise pull
+##' @importFrom dplyr %>% group_by summarise pull
 ##' @importFrom sf st_as_sf st_transform st_cast st_bbox
 ##' @importFrom rnaturalearth ne_countries
 ##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes theme_minimal xlim ylim ggsave

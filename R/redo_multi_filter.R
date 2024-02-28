@@ -16,7 +16,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr filter "%>%" bind_rows slice ungroup left_join select mutate
+##' @importFrom dplyr filter %>% bind_rows slice ungroup left_join select mutate
 ##' @importFrom tidyr nest
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options

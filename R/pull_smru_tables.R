@@ -12,7 +12,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr select mutate "%>%"
+##' @importFrom dplyr select mutate %>%
 ##' @importFrom future plan
 ##' @importFrom furrr future_map
 ##' @importFrom purrr pmap

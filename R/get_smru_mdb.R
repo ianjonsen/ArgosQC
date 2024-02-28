@@ -12,7 +12,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr "%>%" pull
+##' @importFrom dplyr %>% pull
 ##' @importFrom stringr str_split
 ##' @importFrom tibble as_tibble
 ##' @importFrom utils download.file unzip

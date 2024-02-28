@@ -8,7 +8,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr select filter left_join "%>%"
+##' @importFrom dplyr select filter left_join %>%
 ##'
 ##' @export
 ##'

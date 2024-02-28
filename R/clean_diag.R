@@ -7,7 +7,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr select rename mutate filter "%>%"
+##' @importFrom dplyr select rename mutate filter %>%
 ##' @importFrom assertthat assert_that
 ##'
 ##' @export

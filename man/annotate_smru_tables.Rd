@@ -7,6 +7,7 @@
 annotate_smru_tables(
   smru,
   fit,
+  what = "p",
   meta,
   cut = FALSE,
   drop.refs = NULL,
@@ -18,6 +19,8 @@ annotate_smru_tables(
 \item{smru}{SMRU table file - output of \code{pull_smru_tables}}
 
 \item{fit}{final \code{foieGras} fit object}
+
+\item{what}{choose which locations to use for annotating SMRU tables (default = "predicted")}
 
 \item{meta}{metadata used to truncate start of diag data for each individual}
 

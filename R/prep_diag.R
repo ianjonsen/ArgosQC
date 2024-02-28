@@ -14,7 +14,7 @@
 ##' @examples
 ##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
-##' @importFrom dplyr "%>%" ungroup rename
+##' @importFrom dplyr %>% ungroup rename
 ##' @importFrom assertthat assert_that
 ##' @importFrom sf st_as_sf st_transform
 ##' @importFrom stringr str_extract

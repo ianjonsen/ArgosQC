@@ -11,7 +11,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr "%>%"
+##' @importFrom dplyr %>%
 ##' @importFrom purrr walk
 ##' @importFrom assertthat assert_that
 ##'

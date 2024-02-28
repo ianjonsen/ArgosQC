@@ -13,7 +13,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr select rename mutate filter "%>%" bind_rows
+##' @importFrom dplyr select rename mutate filter %>% bind_rows
 ##' @importFrom readr read_csv
 ##' @importFrom stringr str_to_lower str_replace_all str_extract regex
 ##' @importFrom lubridate mdy_hms

@@ -34,7 +34,7 @@
 ##' @return a `tibble` with all individual `tibble`'s appended
 ##'
 ##' @importFrom sf st_crs st_coordinates st_transform st_geometry st_as_sf st_set_crs
-##' @importFrom dplyr group_by mutate ungroup "%>%" bind_rows filter
+##' @importFrom dplyr group_by mutate ungroup %>% bind_rows filter
 ##' @importFrom tibble as_tibble
 ##'
 ##' @examples

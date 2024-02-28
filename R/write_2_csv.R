@@ -11,7 +11,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr filter rename mutate "%>%" select any_of
+##' @importFrom dplyr filter rename mutate %>% select any_of
 ##' @importFrom stringr str_extract regex
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom readr write_csv

@@ -14,7 +14,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr filter "%>%" bind_rows
+##' @importFrom dplyr filter %>% bind_rows
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options
 ##' @importFrom aniMotum fit_ssm ssm_control
