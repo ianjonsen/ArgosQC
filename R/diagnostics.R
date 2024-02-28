@@ -4,6 +4,7 @@
 ##'
 ##' @param fit the final aniMotum fit object from QC process
 ##' @param fit1 the initial aniMotum fit object from QC process
+##' @param what specify which locations are to be mapped: fitted, predicted, or rerouted
 ##' @param cut logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap
 ##' @param diag the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)
 ##' @param smru_ssm the ssm-annotated SMRU tables
@@ -29,6 +30,7 @@
 diagnostics <-
   function(fit,
            fit1,
+           what = "predicted",
            cut,
            diag,
            smru_ssm,
@@ -69,7 +71,7 @@ diagnostics <-
       bind_rows(.)
 
     map_QC(fit,
-         what = "predicted",
+         what = what,
          aes = my.aes,
          by.id = FALSE,
          cut = cut,
