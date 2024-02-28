@@ -7,7 +7,6 @@
 diagnostics(
   fit,
   fit1,
-  what = "predicted",
   cut,
   diag,
   smru_ssm,
@@ -22,8 +21,6 @@ diagnostics(
 
 \item{fit1}{the initial aniMotum fit object from QC process}
 
-\item{what}{specify which locations are to be mapped: fitted, predicted, or rerouted}
-
 \item{cut}{logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap}
 
 \item{diag}{the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)}
@@ -36,7 +33,7 @@ diagnostics(
 
 \item{tpath}{path to write diagnostic table files}
 
-\item{...}{extra arguments for aniMotum::fmap - used to generate maps}
+\item{...}{extra arguments for aniMotum::map - used to generate maps}
 }
 \description{
 produces a map of all QC''d tracks and generates diagnostic tables to assess QC run
