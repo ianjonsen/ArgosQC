@@ -4,6 +4,7 @@
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param fit final \code{aniMotum} fit object
+##' @param what specify whether predicted or rerouted locations are to be used
 ##' @param meta metadata
 ##' @param path path to write .csv files
 ##' @param drop.refs individual ids to be dropped
@@ -20,11 +21,11 @@
 ##'
 ##' @export
 
-write_2_csv <- function(smru_ssm, fit, meta, path = "~/Dropbox/collab/imos/imos_qc/aodn", drop.refs = NULL, suffix = "_nrt") {
+write_2_csv <- function(smru_ssm, fit, what, meta, path = "~/Dropbox/collab/imos/imos_qc/aodn", drop.refs = NULL, suffix = "_nrt") {
 
   ## get predicted locations from fits
   ## can't cut using keep here as it messes up track subsampling
-  p <- grab_QC(fit, "predicted", cut = FALSE, as_sf = FALSE) %>%
+  p <- grab_QC(fit, what = what, cut = FALSE, as_sf = FALSE) %>%
     rename(ref = id) %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))

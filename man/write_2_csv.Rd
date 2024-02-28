@@ -7,6 +7,7 @@
 write_2_csv(
   smru_ssm,
   fit,
+  what,
   meta,
   path = "~/Dropbox/collab/imos/imos_qc/aodn",
   drop.refs = NULL,
@@ -17,6 +18,8 @@ write_2_csv(
 \item{smru_ssm}{SSM-appended SMRU table file - output of \code{append_ssm}}
 
 \item{fit}{final \code{aniMotum} fit object}
+
+\item{what}{specify whether predicted or rerouted locations are to be used}
 
 \item{meta}{metadata}
 
