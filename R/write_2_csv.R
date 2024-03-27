@@ -473,7 +473,7 @@ write_2_csv <- function(smru_ssm, fit, what, meta, path = "~/Dropbox/collab/imos
                     is.character(release_site),
                     any(inherits(release_date, "POSIXct"), is.na(release_date)),
                     any(inherits(recovery_date, "POSIXct"), is.na(recovery_date)),
-                    all(unique(age_class) %in% c("adult","subadult","juvenille","juvenile","weaner")),
+                    all(unique(age_class) %in% c("adult","subadult","juvenille","juvenile","weaner",NA)),
                     all(unique(sex) %in% c("female","male","f","m")),
                     all(is.double(length), (length > 0 | is.na(length))),
                     all(is.integer(estimated_mass), (estimated_mass > 0 | is.na(estimated_mass))),

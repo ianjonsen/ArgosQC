@@ -7,6 +7,7 @@
 diagnostics(
   fit,
   fit1,
+  what = "p",
   cut,
   diag,
   smru_ssm,
@@ -20,6 +21,8 @@ diagnostics(
 \item{fit}{the final aniMotum fit object from QC process}
 
 \item{fit1}{the initial aniMotum fit object from QC process}
+
+\item{what}{the SSM-estimated or rerouted locations to be used}
 
 \item{cut}{logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap}
 
