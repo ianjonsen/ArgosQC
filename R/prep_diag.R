@@ -6,15 +6,17 @@
 ##' diag files by species.
 ##'
 ##' @param smru list of SMRU tables
-##' @param drop.refs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##' @param meta metadata used to truncate start of diag data for each individual
+##' @param drop.refs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##' @param crs a proj4string to re-project diag locations from longlat
-##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm), in latter case diag is not right-truncated
+##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
+##' in latter case diag is not right-truncated & date of first dive is used
+##' for the track start date
 ##'
 ##' @examples
 ##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
-##' @importFrom dplyr %>% ungroup rename
+##' @importFrom dplyr %>% ungroup rename select
 ##' @importFrom assertthat assert_that
 ##' @importFrom sf st_as_sf st_transform
 ##' @importFrom stringr str_extract
@@ -33,7 +35,7 @@ prep_diag <- function(smru,
   ## clean step
   if("semi_major_axis" %in% names(smru$diag)) {
     diag <- smru$diag %>%
-      select(ref,
+      dplyr::select(ref,
              d_date,
              lq,
              lon,
@@ -43,7 +45,7 @@ prep_diag <- function(smru,
              ellipse_orientation)
   } else {
     diag <- smru$diag %>%
-      select(ref,
+      dplyr::select(ref,
              d_date,
              lq,
              lon,
@@ -80,25 +82,25 @@ prep_diag <- function(smru,
 
   ## truncate & convert to sf geometry steps
   deploy_meta <- meta %>%
-    select(device_id, ctd_start, ctd_end, dive_end)
+    dplyr::select(device_id, ctd_start, dive_start, ctd_end, dive_end)
 
   if(QCmode == "nrt") {
     ## left- and right-truncate tracks
     diag <- diag %>%
       left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
       filter(date >= ctd_start & date <= ctd_end) %>%
-      select(-ctd_start, -ctd_end, -dive_end)
+      dplyr::select(-ctd_start, -ctd_end, -dive_end)
   } else {
-    ## only left-truncate tracks with date of first ctd profile,
+    ## only left-truncate tracks with date of first dive
     diag <- diag %>%
       left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
-      filter(date >= ctd_start & date <= dive_end) %>%
-      select(-ctd_start, -ctd_end, -dive_end)
+      filter(date >= dive_start) %>%
+      dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
   }
 
   diag_sf <- diag %>%
     mutate(id = ref) %>%
-    select(ref, id, everything()) %>%
+    dplyr::select(ref, id, everything()) %>%
     group_by(ref) %>%
     do(
       d_sf =
@@ -123,7 +125,7 @@ prep_diag <- function(smru,
     rename(sp = species) %>%
     mutate(sp = factor(sp, levels = c("sese","wese","nzfs","aufs","ausl"), ordered = TRUE)) %>%
     mutate(sp = droplevels(sp)) %>%
-    select(ref, cid, sp, d_sf) %>%
+    dplyr::select(ref, cid, sp, d_sf) %>%
     split(., .$sp)
 
   return(diag_sf)

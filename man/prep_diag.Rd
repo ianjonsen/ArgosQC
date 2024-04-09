@@ -22,7 +22,9 @@ prep_diag(
 
 \item{crs}{a proj4string to re-project diag locations from longlat}
 
-\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm), in latter case diag is not right-truncated}
+\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
+in latter case diag is not right-truncated & date of first dive is used
+for the track start date}
 }
 \description{
 restructures diag files, formats dates & lc's; truncates start

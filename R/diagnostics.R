@@ -11,6 +11,8 @@
 ##' @param meta metadata
 ##' @param mpath path to write map file
 ##' @param tpath path to write diagnostic table files
+##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
+##' in latter case start end end of dive data are displayed rather than ctd data
 ##' @param ... extra arguments for aniMotum::map - used to generate maps
 ##'
 ##' @examples
@@ -37,6 +39,7 @@ diagnostics <-
            meta,
            mpath = NULL,
            tpath = NULL,
+           QCmode = "nrt",
            ...) {
 
     assert_that(!is.null(mpath))
@@ -107,11 +110,23 @@ diagnostics <-
     meta_miss <- meta %>% filter(is.na(start_date) & is.na(end_date))
     meta <- meta %>% filter(!is.na(start_date) & !is.na(end_date))
 
-    meta <- meta %>%
-      mutate(ctd_start = ifelse(is.na(ctd_start), start_date, ctd_start)) %>%
-      mutate(ctd_end = ifelse(is.na(ctd_end), end_date, ctd_end)) %>%
-      mutate(ctd_start = as.POSIXct(ctd_start, origin = "1970-01-01", tz = "UTC"),
-             ctd_end = as.POSIXct(ctd_end, origin = "1970-01-01", tz = "UTC"))
+    if(QCmode == "nrt") {
+      meta <- meta %>%
+        mutate(ctd_start = ifelse(is.na(ctd_start), start_date, ctd_start)) %>%
+        mutate(ctd_end = ifelse(is.na(ctd_end), end_date, ctd_end)) %>%
+        mutate(
+          ctd_start = as.POSIXct(ctd_start, origin = "1970-01-01", tz = "UTC"),
+          ctd_end = as.POSIXct(ctd_end, origin = "1970-01-01", tz = "UTC")
+        )
+    } else if (QCmode == "dm") {
+      meta <- meta %>%
+        mutate(dive_start = ifelse(is.na(dive_start), start_date, dive_start)) %>%
+        mutate(dive_end = ifelse(is.na(dive_end), end_date, dive_end)) %>%
+        mutate(
+          dive_start = as.POSIXct(dive_start, origin = "1970-01-01", tz = "UTC"),
+          dive_end = as.POSIXct(dive_end, origin = "1970-01-01", tz = "UTC")
+        )
+    }
 
   ## coverage of standardized diag locations
   ## ------------------------------------------------------------------------
@@ -120,8 +135,9 @@ diagnostics <-
       geom_point(data = p_out,
                  aes(date, lat),
                  size = 0.25,
-                 col = 'red') +
-      geom_rect(
+                 col = 'red')
+    if(QCmode == "nrt") {
+      p1 <- p1 + geom_rect(
         data = meta,
         aes(
           xmin = start_date,
@@ -133,11 +149,24 @@ diagnostics <-
         fill = grey(0.1),
         colour = NA
       ) +
-      geom_rect(
+        geom_rect(
+          data = meta,
+          aes(
+            xmin = ctd_end,
+            xmax = end_date,
+            ymin = -Inf,
+            ymax = Inf
+          ),
+          alpha = 0.5,
+          fill = grey(0.1),
+          colour = NA
+        )
+    } else if(QCmode == "dm") {
+      p1 <- p1 + geom_rect(
         data = meta,
         aes(
-          xmin = ctd_end,
-          xmax = end_date,
+          xmin = start_date,
+          xmax = dive_start,
           ymin = -Inf,
           ymax = Inf
         ),
@@ -145,6 +174,20 @@ diagnostics <-
         fill = grey(0.1),
         colour = NA
       ) +
+        geom_rect(
+          data = meta,
+          aes(
+            xmin = dive_end,
+            xmax = end_date,
+            ymin = -Inf,
+            ymax = Inf
+          ),
+          alpha = 0.5,
+          fill = grey(0.1),
+          colour = NA
+        )
+    }
+    p1 <- p1 +
       facet_wrap(
         ~ device_id,
         scales = "free",
@@ -167,8 +210,9 @@ diagnostics <-
     geom_point(data = p_out,
                aes(date, lon),
                size = 0.25,
-               col = 'red') +
-    geom_rect(
+               col = 'red')
+  if(QCmode == "nrt") {
+    p2 <- p2 + geom_rect(
       data = meta,
       aes(
         xmin = start_date,
@@ -180,11 +224,24 @@ diagnostics <-
       fill = grey(0.1),
       colour = NA
     ) +
-    geom_rect(
+      geom_rect(
+        data = meta,
+        aes(
+          xmin = ctd_end,
+          xmax = end_date,
+          ymin = -Inf,
+          ymax = Inf
+        ),
+        alpha = 0.5,
+        fill = grey(0.1),
+        colour = NA
+      )
+  } else if(QCmode == "dm") {
+    p2 <- p2 + geom_rect(
       data = meta,
       aes(
-        xmin = ctd_end,
-        xmax = end_date,
+        xmin = start_date,
+        xmax = dive_start,
         ymin = -Inf,
         ymax = Inf
       ),
@@ -192,6 +249,20 @@ diagnostics <-
       fill = grey(0.1),
       colour = NA
     ) +
+      geom_rect(
+        data = meta,
+        aes(
+          xmin = dive_end,
+          xmax = end_date,
+          ymin = -Inf,
+          ymax = Inf
+        ),
+        alpha = 0.5,
+        fill = grey(0.1),
+        colour = NA
+      )
+  }
+    p2 <- p2 +
     facet_wrap(
       ~ device_id,
       scales = "free",

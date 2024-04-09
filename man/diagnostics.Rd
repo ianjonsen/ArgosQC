@@ -14,6 +14,7 @@ diagnostics(
   meta,
   mpath = NULL,
   tpath = NULL,
+  QCmode = "nrt",
   ...
 )
 }
@@ -35,6 +36,9 @@ diagnostics(
 \item{mpath}{path to write map file}
 
 \item{tpath}{path to write diagnostic table files}
+
+\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
+in latter case start end end of dive data are displayed rather than ctd data}
 
 \item{...}{extra arguments for aniMotum::map - used to generate maps}
 }

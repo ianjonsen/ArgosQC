@@ -41,10 +41,13 @@ redo_multi_filter <-
   sprintf("%d optimiser crashes", length(oc))
   nc <- which(!fit$converged)
   sprintf("%d failed to converge", length(nc))
+  tmp <- aniMotum::grab(fit, what = "p")
+  ids <- unique(tmp$id[is.na(tmp$x.se) | is.na(tmp$y.se)])
+  NA.se <- which(fit$id %in% ids)
 
-  if(length(nc) > 0 | length(oc) > 0) {
+  if(length(nc) > 0 | length(oc) > 0 | length(NA.se) > 0) {
 
-    d <- sort(unique(c(oc,nc)))
+    d <- sort(unique(c(oc,nc,NA.se)))
     fit.f <- fit %>% ungroup() %>% slice(d)
     fit.s <- fit %>% ungroup() %>% slice(-d)
 
