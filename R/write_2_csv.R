@@ -21,7 +21,13 @@
 ##'
 ##' @export
 
-write_2_csv <- function(smru_ssm, fit, what, meta, path = "~/Dropbox/collab/imos/imos_qc/aodn", drop.refs = NULL, suffix = "_nrt") {
+write_2_csv <- function(smru_ssm,
+                        fit,
+                        what,
+                        meta,
+                        path = "~/Dropbox/collab/imos/imos_qc/aodn",
+                        drop.refs = NULL,
+                        suffix = "_nrt") {
 
   ## get predicted locations from fits
   ## can't cut using keep here as it messes up track subsampling
@@ -34,7 +40,7 @@ write_2_csv <- function(smru_ssm, fit, what, meta, path = "~/Dropbox/collab/imos
   if(all(!c("u","v","u_se","v_se","s","s_se") %in% names(p))) {
     p <- p %>%
       mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) %>%
-      select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, cid)
+      select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, cid, keep)
   }
 
   p.lst <- split(p, p$ref)

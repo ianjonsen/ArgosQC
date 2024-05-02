@@ -9,6 +9,7 @@
 ##' @param meta metadata used to truncate start of diag data for each individual
 ##' @param drop.refs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##' @param crs a proj4string to re-project diag locations from longlat
+##' @param gps if a GPS table exists in `smru` should location be merged into diag (default is FALSE)
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case diag is not right-truncated & date of first dive is used
 ##' for the track start date
@@ -20,6 +21,7 @@
 ##' @importFrom assertthat assert_that
 ##' @importFrom sf st_as_sf st_transform
 ##' @importFrom stringr str_extract
+##' @importFrom aniMotum format_data
 ##'
 ##' @export
 ##'
@@ -28,6 +30,7 @@ prep_diag <- function(smru,
                       meta,
                       drop.refs = NULL,
                       crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
+                      gps = FALSE,
                       QCmode = "nrt") {
 
   assert_that(is.list(smru))
@@ -77,6 +80,19 @@ prep_diag <- function(smru,
            smin = as.numeric(smin),
            eor = as.numeric(eor))
 
+  if(all(gps, "gps" %in% names(smru))) {
+   gps <- smru$gps %>%
+      mutate(date = lubridate::mdy_hms(d_date, tz="UTC")) %>%
+      aniMotum::format_data(id = "ref",
+                  coord = c("lon","lat")) %>%
+      select(ref = id,date,lc,lon,lat,smaj,smin,eor)
+
+   diag <- bind_rows(diag, gps) %>%
+     group_by(ref) %>%
+     arrange(date, .by_group=TRUE) %>%
+     ungroup()
+  }
+
   diag <- diag %>%
     filter(!ref %in% drop.refs)
 
@@ -121,9 +137,12 @@ prep_diag <- function(smru,
                             ifelse(species == "Leptonychotes weddellii", "wese",
                                    ifelse(species == "Arctocephalus forsteri", "nzfs",
                                           ifelse(species == "Arctocephalus pusillus", "aufs",
-                                                 ifelse(species == "Neophoca cinerea", "ausl", NA)))))) %>%
+                                                 ifelse(species == "Neophoca cinerea", "ausl",
+                                                        ifelse(species == "Chelonia mydas", "grtu",
+                                                               ifelse(species == "Lepidochelys olivacea", "ortu",
+                                                                      ifelse(species == "Natator depressus", "fbtu", NA))))))))) %>%
     rename(sp = species) %>%
-    mutate(sp = factor(sp, levels = c("sese","wese","nzfs","aufs","ausl"), ordered = TRUE)) %>%
+    mutate(sp = factor(sp, levels = c("sese","wese","nzfs","aufs","ausl","grtu","ortu","fbtu"), ordered = TRUE)) %>%
     mutate(sp = droplevels(sp)) %>%
     dplyr::select(ref, cid, sp, d_sf) %>%
     split(., .$sp)
