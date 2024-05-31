@@ -38,9 +38,15 @@ write_2_csv <- function(smru_ssm,
   names(p) <- to_snake_case(names(p))
 
   if(all(!c("u","v","u_se","v_se","s","s_se") %in% names(p))) {
+    if(suffix != "_nrt") {
     p <- p %>%
       mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) %>%
       select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, cid, keep)
+    } else {
+      p <- p %>%
+        mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) %>%
+        select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, cid)
+    }
   }
 
   p.lst <- split(p, p$ref)
@@ -480,7 +486,7 @@ write_2_csv <- function(smru_ssm,
                     any(inherits(release_date, "POSIXct"), is.na(release_date)),
                     any(inherits(recovery_date, "POSIXct"), is.na(recovery_date)),
                     all(unique(age_class) %in% c("adult","subadult","juvenille","juvenile","weaner",NA)),
-                    all(unique(sex) %in% c("female","male","f","m")),
+                    all(unique(sex) %in% c("female","male","f","m", NA)),
                     all(is.double(length), (length > 0 | is.na(length))),
                     all(is.integer(estimated_mass), (estimated_mass > 0 | is.na(estimated_mass))),
                     all(is.double(actual_mass), (actual_mass > 0 | is.na(actual_mass))),
@@ -488,7 +494,7 @@ write_2_csv <- function(smru_ssm,
                     any(inherits(qc_start_date, "POSIXct"), is.na(qc_start_date)),
                     any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date))))
   fails <- names(meta)[which(!tests)]
-  if(length(fails) > 0) stop(paste0("non-compliant metadata records found in: ", fails))
+  if(length(fails) > 0) stop(paste0("non-compliant metadata records found in: ", fails, "\n"))
 
   ## If metadata is compliant then write to .csv by sattag_program (SMRU campaign id)
   meta %>%

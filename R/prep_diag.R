@@ -85,7 +85,8 @@ prep_diag <- function(smru,
       mutate(date = lubridate::mdy_hms(d_date, tz="UTC")) %>%
       aniMotum::format_data(id = "ref",
                   coord = c("lon","lat")) %>%
-      select(ref = id,date,lc,lon,lat,smaj,smin,eor)
+      select(ref = id,date,lc,lon,lat,smaj,smin,eor) %>%
+     filter(!is.na(lon), !is.na(lat))
 
    diag <- bind_rows(diag, gps) %>%
      group_by(ref) %>%
