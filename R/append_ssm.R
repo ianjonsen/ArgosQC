@@ -6,6 +6,7 @@
 ##' @param fit final \code{foieGras} fit object
 ##' @param what choose which locations to use for annotating SMRU tables (default = "predicted")
 ##' @param meta metadata used to truncate start of diag data for each individual
+##' @param gps logical; does a SMRU GPS table exist, if so append to this as well
 ##' @param cut drop predicted locations if keep = FALSE, ie. locations in a large data gap
 ##' @param drop.refs SMRU refs to be dropped
 ##' @param crs CRS to be applied when interpolating SSM-estimated locations and re-projecting back from Cartesian coords to longlat
@@ -24,6 +25,7 @@ annotate_smru_tables <- function(smru,
                                  fit,
                                  what = "p",
                                  meta,
+                                 gps = FALSE,
                                  cut = FALSE,
                                  drop.refs = NULL,
                                  crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs") {
@@ -228,5 +230,47 @@ annotate_smru_tables <- function(smru,
       select(-c("u","u_se","v","v_se","s","s_se"))
   }
 
+  ## gps table
+  gps <- smru$gps %>%
+    mutate(ref = as.character(ref)) %>%
+    left_join(. , deploy_meta, by = c("ref" = "device_id")) %>%
+    mutate(release_date = ifelse(is.na(release_date), d_date, release_date)) %>%
+    mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
+    filter(d_date >= release_date) %>%
+    select(-release_date) %>%
+    filter(!ref %in% drop.refs)
+
+  gps <- f %>%
+    group_by(ref) %>%
+    unnest(cols = c()) %>%
+    left_join(diag, ., by = c("ref", c("d_date" = "date"))) %>%
+    distinct() %>%
+    rename(
+      lat = lat.x,
+      lon = lon.x,
+      ssm_lon = lon.y,
+      ssm_lat = lat.y,
+      ssm_x = x,
+      ssm_y = y,
+      ssm_x_se = x_se,
+      ssm_y_se = y_se
+    ) %>%
+    mutate(ssm_lon = round(ssm_lon,6),
+           ssm_lat = round(ssm_lat,6),
+           ssm_x = round(ssm_x,6),
+           ssm_y = round(ssm_y,6),
+           ssm_x_se = round(ssm_x_se,6),
+           ssm_y_se = round(ssm_y_se,6)
+    )
+  ## remove CRW-specific model params from diag files
+  ##  these only need to appear in ssmoutputs files
+  if(all(c("u","u_se","v","v_se","s","s_se") %in% names(gps))) {
+    gps <- gps %>%
+      select(-c("u","u_se","v","v_se","s","s_se"))
+  }
+  if(gps) {
+    list(diag = diag, gps = gps, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
+  } else {
   list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
+  }
 }
