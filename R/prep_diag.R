@@ -9,7 +9,7 @@
 ##' @param meta metadata used to truncate start of diag data for each individual
 ##' @param drop.refs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##' @param crs a proj4string to re-project diag locations from longlat
-##' @param gps if a GPS table exists in `smru` should location be merged into diag (default is FALSE)
+##' @param gps.tab if a GPS table exists in `smru` should location be merged into diag (default is FALSE)
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case diag is not right-truncated & date of first dive is used
 ##' for the track start date
@@ -30,7 +30,7 @@ prep_diag <- function(smru,
                       meta,
                       drop.refs = NULL,
                       crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
-                      gps = FALSE,
+                      gps.tab = FALSE,
                       QCmode = "nrt") {
 
   assert_that(is.list(smru))
@@ -80,9 +80,9 @@ prep_diag <- function(smru,
            smin = as.numeric(smin),
            eor = as.numeric(eor))
 
-  if(all(gps, "gps" %in% names(smru))) {
+  if(all(gps.tab, "gps" %in% names(smru))) {
    gps <- smru$gps %>%
-      mutate(date = lubridate::mdy_hms(d_date, tz="UTC")) %>%
+     rename(date = d_date) %>%
       aniMotum::format_data(id = "ref",
                   coord = c("lon","lat")) %>%
       select(ref = id,date,lc,lon,lat,smaj,smin,eor) %>%
