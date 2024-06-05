@@ -9,7 +9,7 @@ annotate_smru_tables(
   fit,
   what = "p",
   meta,
-  gps = FALSE,
+  gps.tab = FALSE,
   cut = FALSE,
   drop.refs = NULL,
   crs =
@@ -25,7 +25,7 @@ annotate_smru_tables(
 
 \item{meta}{metadata used to truncate start of diag data for each individual}
 
-\item{gps}{logical; does a SMRU GPS table exist, if so append to this as well}
+\item{gps.tab}{logical; does a SMRU GPS table exist, if so append to this as well}
 
 \item{cut}{drop predicted locations if keep = FALSE, ie. locations in a large data gap}
 

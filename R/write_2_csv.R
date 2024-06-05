@@ -6,6 +6,7 @@
 ##' @param fit final \code{aniMotum} fit object
 ##' @param what specify whether predicted or rerouted locations are to be used
 ##' @param meta metadata
+##' @param gps.tab logical; does a SMRU GPS table exist, if so append to this as well
 ##' @param path path to write .csv files
 ##' @param drop.refs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
@@ -25,6 +26,7 @@ write_2_csv <- function(smru_ssm,
                         fit,
                         what,
                         meta,
+                        gps.tab = FALSE,
                         path = "~/Dropbox/collab/imos/imos_qc/aodn",
                         drop.refs = NULL,
                         suffix = "_nrt") {
@@ -100,7 +102,8 @@ write_2_csv <- function(smru_ssm,
              s_se = round(s_se,6)) %>%
       split(., .$cid) %>%
       walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv"))))
-    }
+  }
+
   diag <- smru_ssm$diag %>%
     filter(!ref %in% drop.refs) %>%
     mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}"))
@@ -203,6 +206,69 @@ write_2_csv <- function(smru_ssm,
    diag <- diag %>%
     split(., .$cid) %>%
     walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "diag"), "_", .x$cid[1], suffix, ".csv"))))
+
+   if(gps.tab) {
+     gps <- smru_ssm$gps %>%
+       filter(!ref %in% drop.refs) %>%
+       mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}"))
+
+     ## check gps schema compliance to AODN standard
+     vars <- c("ref",
+               "ptt",
+               "d_date",
+               "nsats_detected",
+               "nsats_transmitted",
+               "gps_mode",
+               "pseudoranges",
+               "max_csn",
+               "cnt",
+               "lat",
+               "lon",
+               "residual",
+               "timeshift",
+               "submitted",
+               "nsats_healthy",
+               "nbits",
+               "deleted",
+               "v_mask",
+               "km_from_home",
+               "est_speed",
+               "gps_number",
+               "tx_date",
+               "uplink_number",
+               "tagging_id",
+               "d_date_tag",
+               "ssm_lon",
+               "ssm_lat",
+               "ssm_x",
+               "ssm_y",
+               "ssm_x_se",
+               "ssm_y_se",
+               "cid")
+     gps <- gps %>%
+       select(any_of(vars))
+
+     ## return error if unexpected object mode or value
+     tests <- with(gps, c(is.character(ref),
+                           is.integer(ptt),
+                           inherits(d_date, "POSIXct"),
+                           all(is.double(lat),
+                               ((lat >= -90 & lat <= 90) |
+                                  is.na(lat))),
+                           all(is.double(lon),
+                               ((lon >= -180 & lon <= 180) |
+                                  (lon >= 0 & lon <= 360) |
+                                  is.na(lon))),
+                           is.integer(v_mask),
+                           all(is.double(est_speed), (est_speed >= -1 | is.na(est_speed))),
+                           all(is.double(km_from_home), (km_from_home >= 0 | is.na(km_from_home)))))
+     fails <- names(gps)[which(!tests)]
+     if(length(fails) > 0) stop(paste0("non-compliant gps records found in: ", fails, "\n"))
+
+     gps <- gps %>%
+       split(., .$cid) %>%
+       walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "gps"), "_", .x$cid[1], suffix, ".csv"))))
+   }
 
   smru_ssm$haulout <- smru_ssm$haulout %>%
     filter(!ref %in% drop.refs) %>%

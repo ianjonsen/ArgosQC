@@ -64,6 +64,10 @@ pull_smru_tables <- function(cids,
     smru$diag <- smru$diag %>%
     mutate(d_date = mdy_hms(d_date, tz = "UTC"))
   }
+  if(any(names(smru) %in% "gps")) {
+    smru$gps <- smru$gps %>%
+      mutate(d_date = mdy_hms(d_date, tz = "UTC"))
+  }
 
   if(any(names(smru) %in% "haulout")) {
     smru$haulout <- smru$haulout %>%
