@@ -7,3 +7,5 @@ An R package to conduct location quality-control of IMOS-deployed SMRU SRDL-CTD 
 6. appends SSM-estimated locations to every tag-measured event record (CTD, dive, haulout, raw Argos location, raw GPS location, etc)
 7. writes appended tag files to .csv
 8. pushes to an incoming server
+
+The QC process is detailed in the IMOS [Best Practice Manual](https://repository.oceanbestpractices.org/handle/11329/2571)
