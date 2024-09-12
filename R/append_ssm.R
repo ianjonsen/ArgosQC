@@ -194,7 +194,7 @@ annotate_smru_tables <- function(smru,
   ## diag table
   diag <- smru$diag %>%
     mutate(ref = as.character(ref)) %>%
-    left_join(. , deploy_meta, by = c("ref" = "device_id")) %>%
+    left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
     mutate(release_date = ifelse(is.na(release_date), d_date, release_date)) %>%
     mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
     filter(d_date >= release_date) %>%

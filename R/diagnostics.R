@@ -66,7 +66,7 @@ diagnostics <-
       else
         stop("time step is > 6 h, can't subsample to 6 h")
     }) %>%
-      do.call(rbind, .)
+      bind_rows()
 
     my.aes <- aes_lst(conf = FALSE)
     my.aes$df$size[1] <- 0.1
