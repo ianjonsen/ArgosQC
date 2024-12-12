@@ -4,7 +4,6 @@
 ##' or accessed from the SMRU data server by calling `get_smru_mdb()`
 ##'
 ##' @param url url for data
-##' @param cids SMRU campaign ids to be downloaded
 ##' @param dest destination path for saving data files
 ##' @param smru (logical) should data be download from SMRU server. Default is
 ##' TRUE, in which case any user-specified `url` is ignored & `get_smru_mdb()`
@@ -22,6 +21,14 @@
 ##'
 ##' @export
 
-get_data <- function(url, cids, dest, smru, ...) {
+get_data <- function(url,
+                     dest,
+                     smru = TRUE,
+                     method = "curl",
+                     quiet = TRUE,
+                     ...) {
+
+  if(!smru) download.file(url, destfile=dest, method = method, quiet = quiet)
+  else get_smru_mdb(dest = dest, ...)
 
 }
