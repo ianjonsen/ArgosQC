@@ -147,6 +147,9 @@ write_2_csv <- function(smru_ssm,
   diag <- diag %>%
     select(any_of(vars))
 
+  diag <- diag |>
+    mutate(iq = ifelse(!is.integer(iq), as.integer(iq), iq))
+
   ## return error if unexpected object mode or value
   tests <- with(diag, c(is.character(ref),
                         is.integer(ptt),
