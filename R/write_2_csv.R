@@ -147,6 +147,9 @@ write_2_csv <- function(smru_ssm,
   diag <- diag %>%
     select(any_of(vars))
 
+  diag <- diag |>
+    mutate(iq = ifelse(!is.integer(iq), as.integer(iq), iq))
+
   ## return error if unexpected object mode or value
   tests <- with(diag, c(is.character(ref),
                         is.integer(ptt),
@@ -175,7 +178,7 @@ write_2_csv <- function(smru_ssm,
                         any(is.numeric(alt), is.na(alt)),
                         all(is.double(est_speed), (est_speed >= -1 | is.na(est_speed))),
                         all(is.double(km_from_home), (km_from_home >= 0 | is.na(km_from_home))),
-                        is.integer(iq),
+                        any(is.integer(iq), is.na(iq)),
                         is.integer(nops),
                         any(is.logical(deleted), is.character(deleted)),
                         is.integer(actual_ptt),

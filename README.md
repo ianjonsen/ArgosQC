@@ -1,4 +1,4 @@
-An R package to conduct location quality-control of IMOS-deployed SMRU SRDL-CTD tag data. The ArgosQC automatically does the following:
+An R package to conduct unsupervised location quality-control of IMOS-deployed SMRU SRDL-CTD tag data in near real-time. {ArgosQC} automatically does the following:
 1. accesses SMRU tag data from the SMRU server
 2. organizes the multi-file data structures
 3. organizes associated deployment metadata
