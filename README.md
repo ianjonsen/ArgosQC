@@ -9,3 +9,12 @@ An R package to conduct unsupervised location quality-control of IMOS-deployed S
 8. pushes to an incoming server
 
 The QC process is detailed in the IMOS [Best Practice Manual](https://repository.oceanbestpractices.org/handle/11329/2571)
+
+
+# Acknowledgements:
+
+### Financial support for the development of this software is provided by:
+
+### [LOCEAN, France](https://www.locean.ipsl.fr) via Laurent MORTIER & Jean-Benoît CHARRASSIN
+
+### [IMOS, Australia](https://imos.org.au) & [SIMS, Australia](https://sims.org.au) via Robert HARCOURT & Clive MCMAHON
