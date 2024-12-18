@@ -99,20 +99,23 @@ prep_diag <- function(smru,
 
   ## truncate & convert to sf geometry steps
   deploy_meta <- meta %>%
-    dplyr::select(device_id, ctd_start, dive_start, ctd_end, dive_end)
+    dplyr::select(device_id, release_date, ctd_start, dive_start, ctd_end, dive_end)
 
   if(QCmode == "nrt") {
     ## left- and right-truncate tracks
     diag <- diag %>%
       left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
       filter(date >= ctd_start & date <= ctd_end) %>%
-      dplyr::select(-ctd_start, -ctd_end, -dive_end)
-  } else {
-    ## only left-truncate tracks with date of first dive
-    diag <- diag %>%
-      left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
-      filter(date >= dive_start) %>%
-      dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
+      dplyr::select(-release_date, -ctd_start, -dive_start, -ctd_end, -dive_end)
+  } else if (QCmode == "dm") {
+    ## only left-truncate tracks with date of first dive, if present, otherwise
+    ##    use deployment date. Do not right-truncate tracks
+
+    diag <- left_join(diag, deploy_meta, by = c("ref" = "device_id")) |>
+      group_by(ref) |>
+      mutate(dive_start = ifelse(is.na(dive_start), release_date, dive_start)) |>
+      filter(date >= dive_start) |>
+      dplyr::select(-release_date, -ctd_start, -dive_start, -ctd_end, -dive_end)
   }
 
   diag_sf <- diag %>%
