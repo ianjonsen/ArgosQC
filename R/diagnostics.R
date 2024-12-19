@@ -5,7 +5,7 @@
 ##' @param fit the final aniMotum fit object from QC process
 ##' @param fit1 the initial aniMotum fit object from QC process
 ##' @param what the SSM-estimated or rerouted locations to be used
-##' @param cut logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap
+##' @param cut logical; should predicted/rerouted locations be dropped if keep = FALSE - ie. in a large data gap
 ##' @param diag the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)
 ##' @param smru_ssm the ssm-annotated SMRU tables
 ##' @param meta metadata
@@ -52,7 +52,7 @@ diagnostics <-
     } else if(what == "r") {
       locs <- "rerouted"
     }
-    p <- grab_QC(fit, locs, as_sf = FALSE, cut = cut) %>%
+    p <- grab_QC(fit, what = locs, as_sf = FALSE, cut = cut) %>%
       rename(ref = id) %>%
       mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
 

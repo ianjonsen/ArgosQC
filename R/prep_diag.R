@@ -97,10 +97,9 @@ prep_diag <- function(smru,
   diag <- diag %>%
     filter(!ref %in% drop.refs)
 
-  ## truncate & convert to sf geometry steps
   deploy_meta <- meta %>%
     dplyr::select(device_id, release_date, ctd_start, dive_start, ctd_end, dive_end)
-
+  ## truncate & convert to sf geometry steps
   if(QCmode == "nrt") {
     ## left- and right-truncate tracks
     diag <- diag %>%
@@ -108,14 +107,28 @@ prep_diag <- function(smru,
       filter(date >= ctd_start & date <= ctd_end) %>%
       dplyr::select(-release_date, -ctd_start, -dive_start, -ctd_end, -dive_end)
   } else if (QCmode == "dm") {
-    ## only left-truncate tracks with date of first dive, if present, otherwise
-    ##    use deployment date. Do not right-truncate tracks
+    ## left-truncate tracks with date of first dive, if present, otherwise
+    ##    use deployment date. Right-truncate tracks by dive_end, if present,
+    ##    otherwise use manually identified "track_end"
 
-    diag <- left_join(diag, deploy_meta, by = c("ref" = "device_id")) |>
-      group_by(ref) |>
-      mutate(dive_start = ifelse(is.na(dive_start), release_date, dive_start)) |>
-      filter(date >= dive_start) |>
-      dplyr::select(-release_date, -ctd_start, -dive_start, -ctd_end, -dive_end)
+    if(!"track_end" %in% names(meta)) {
+      diag <- left_join(diag, deploy_meta, by = c("ref" = "device_id")) |>
+        group_by(ref) |>
+        mutate(dive_start = ifelse(is.na(dive_start), release_date, dive_start)) |>
+        filter(date >= dive_start & date <= dive_end) |>
+        dplyr::select(-release_date, -ctd_start, -dive_start, -ctd_end, -dive_end)
+    } else {
+      deploy_meta <- meta %>%
+        dplyr::select(device_id, release_date, ctd_start, dive_start, ctd_end, dive_end, track_end)
+
+      diag <- left_join(diag, deploy_meta, by = c("ref" = "device_id")) |>
+        group_by(ref) |>
+        mutate(dive_start = ifelse(is.na(dive_start), release_date, dive_start)) |>
+        mutate(dive_end = ifelse(is.na(dive_end), track_end, dive_end)) |>
+        filter(date >= dive_start & date <= dive_end) |>
+        dplyr::select(-release_date, -ctd_start, -dive_start, -ctd_end, -dive_end, -track_end)
+    }
+
   }
 
   diag_sf <- diag %>%
