@@ -24,7 +24,7 @@
 ##' @importFrom usethis create_download_url
 ##' @importFrom openssl sha256
 ##' @importFrom httr2 request req_headers req_body_raw req_perform req_body_form
-##' @importFrom httr2 req_body_xml
+##' @importFrom httr2 resp_body_xml
 ##' @importFrom XML xmlParse xmlRoot xmlToDataFrame getNodeSet
 ##'
 ##' @export
