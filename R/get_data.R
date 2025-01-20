@@ -57,12 +57,12 @@ get_data <- function(url = NULL,
 
     if(any(is.null(WC_AccessKey), is.null(WC_SecretKey))) stop("A Wildlife Computers API Access Key & Secret Key are required to download data")
 
-    url <- 'https://my.wildlifecomputers.com/services/'
+    req <- request('https://my.wildlifecomputers.com/services/')
 
     ## get My collaborators as a data.frame
     hash <- sha256("action=get_collaborators", key = WC_SecretKey)
 
-    xml <- url |> req_headers(`X-Access` = WC_AccessKey,
+    xml <- req |> req_headers(`X-Access` = WC_AccessKey,
                               `X-Hash` = hash) |>
       req_body_form(action = "get_collaborators") |>
       req_perform() |>
@@ -76,7 +76,7 @@ get_data <- function(url = NULL,
     deps <- lapply(1:nrow(collabs), function(i) {
       hash <- sha256(paste0("action=get_deployments&owner_id=", collabs$id[i]),
                      key = WC_SecretKey)
-      xml <- url |>
+      xml <- req |>
         req_headers(`X-Access` = WC_AccessKey,
                     `X-Hash` = hash) |>
         req_body_raw(paste0("action=get_deployments&owner_id=", collabs$id[i])) |>
@@ -93,8 +93,6 @@ get_data <- function(url = NULL,
       dplyr::mutate(last_update_date = as.POSIXct(as.numeric(last_update_date,
                                                              origin = "1970-01-01",
                                                              tz = "GMT")))
-
-    browser()
 
     ## Download data for all deployments as zipfiles
     lapply(1:nrow(deps), function(i) {
