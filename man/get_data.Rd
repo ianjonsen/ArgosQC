@@ -2,14 +2,17 @@
 % Please edit documentation in R/get_data.R
 \name{get_data}
 \alias{get_data}
-\title{Generic wrapper to download data from arbitrary sources}
+\title{Download SMRU or Wildlife Computers tag data from arbitrary sources}
 \usage{
 get_data(
   url = NULL,
   dest = NULL,
   source = "smru",
-  WC_AccessKey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
-  WC_SecretKey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
+  cids = NULL,
+  user = NULL,
+  pwd = NULL,
+  wc.akey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
+  wc.skey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
   ...
 )
 }
@@ -19,20 +22,29 @@ get_data(
 \item{dest}{destination path to save download}
 
 \item{source}{source type of data to be downloaded. Can be one of:
-`smru` - SMRU Data Server; `wc` - Wildlife Computers Data Portal API;
-`googledrive` - a url link to a zipfile shared on a GoogleDrive;
-`dropbox` - a url link to a zipfile shared on Dropbox;
-`url` - a url link to a zipfile on a generic server.}
+\itemize{
+\item \code{smru} - SMRU Data Server;
+\item \code{wc} - Wildlife Computers Data Portal API;
+\item \code{googledrive} - a url link to a zipfile shared on a GoogleDrive;
+\item \code{dropbox} - a url link to a zipfile shared on Dropbox;
+\item \code{url} - a url link to a zipfile on a generic server.
+}}
+
+\item{cids}{SMRU tag deployment campaign id(s) to download, eg. "ct180"}
+
+\item{user}{SMRU data server username as a quoted string}
+
+\item{pwd}{SMRU data server password as a quoted string}
+
+\item{...}{additional arguments passed to \code{get_smru_mdb} or \code{get_wc_files()}}
 
 \item{WC_AccessKey}{an Access Key issued by Wildlife Computers for their API}
 
 \item{WC_SecretKey}{a Secret Key issued by Wildlife Computers for their API}
-
-\item{...}{additional arguments passed to `get_smru_mdb`}
 }
 \description{
-SMRU SRDL-CTD data are downloaded from a user-specified URL
+Satellite tracking data are downloaded from a user-specified URL
 (which can include files on GoogleDrive or Dropbox), accessed from the SMRU
-data server by calling `get_smru_mdb()`, or accessed from the Wildlife
-Computers Portal API.
+data server, or accessed from the Wildlife Computers Portal API via the
+\code{source} argument.
 }

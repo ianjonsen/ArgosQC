@@ -19,7 +19,7 @@
 ##' @importFrom assertthat assert_that
 ##' @importFrom purrr walk
 ##'
-##' @export
+##' @internal
 
 get_smru_mdb <-
   function(cids,
