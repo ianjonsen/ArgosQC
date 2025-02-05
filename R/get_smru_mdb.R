@@ -12,7 +12,6 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr %>% pull
 ##' @importFrom stringr str_split
 ##' @importFrom tibble as_tibble
 ##' @importFrom utils download.file unzip
@@ -69,7 +68,8 @@ get_smru_mdb <-
           dest = dest,
           user = user,
           pwd = pwd
-        ))
+        ),
+        .progress = verbose)
 
       options(timeout = 60)
 

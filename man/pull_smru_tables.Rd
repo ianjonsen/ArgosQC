@@ -9,7 +9,7 @@ pull_smru_tables(
   path2mdb,
   tables = c("diag", "haulout", "ctd", "dive", "summary"),
   p2mdbtools = NULL,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{

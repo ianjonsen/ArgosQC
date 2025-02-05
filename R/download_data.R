@@ -1,9 +1,9 @@
 ##' @title Download SMRU or Wildlife Computers tag data from arbitrary sources
 ##'
-##' @description Satellite tracking data are downloaded from a user-specified URL
-##' (which can include files on GoogleDrive or Dropbox), accessed from the SMRU
-##' data server, or accessed from the Wildlife Computers Portal API via the
-##' `source` argument.
+##' @description Satellite tracking data, in a zipfile, are downloaded from a
+##' user-specified URL (for accessing zipfiles on GoogleDrive or Dropbox),
+##' accessed from the SMRU data server, or accessed from the Wildlife Computers
+##' Portal API via the `source` argument.
 ##'
 ##' @param url url for data
 ##' @param dest destination path to save download
@@ -13,6 +13,7 @@
 ##' * `googledrive` - a url link to a zipfile shared on a GoogleDrive;
 ##' * `dropbox` - a url link to a zipfile shared on Dropbox;
 ##' * `url` - a url link to a zipfile on a generic server.
+##' @param unzip (logical) should the downloaded zipfile be unzipped.
 ##' @param cids SMRU tag deployment campaign id(s) to download, eg. "ct180"
 ##' @param user SMRU data server username as a quoted string
 ##' @param pwd SMRU data server password as a quoted string
@@ -22,6 +23,10 @@
 ##'
 ##' @md
 ##' @examples
+##'# download a SMRU .mdb file from GitHub
+##'download_data(url = "https://github.com/ocean-tracking-network/rt-sat-to-obis/tree/c1d93742d3d996a0436315563fae9b51d7a6e3fd/input/ATN/ct169-594-21",
+##'dest = tempdir(),
+##'source = "github")
 ##'
 ##' @importFrom dplyr select mutate bind_rows
 ##' @importFrom tidyr drop_na
@@ -34,9 +39,10 @@
 ##'
 ##' @export
 
-get_data <- function(url = NULL,
+download_data <- function(url = NULL,
                      dest = NULL,
                      source = "smru",
+                     unzip = FALSE,
                      cids = NULL,
                      user = NULL,
                      pwd = NULL,
@@ -44,25 +50,29 @@ get_data <- function(url = NULL,
                      wc.skey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
                      ...) {
 
-  source <- match.arg(source, choices = c("smru","wc", "googledrive","dropbox","url"))
+  source <- match.arg(source, choices = c("smru", "wc", "googledrive", "dropbox"))
 
   if(is.null(dest)) {
     dest <- tempdir()
     message(paste0("No 'dest' directory specified, so downloading data to ", dest))
+  } else {
+    if(!dir.exists(dest))  {
+      message(paste0("'dest' file path: ", dest, " doesn't exist, creating now"))
+      dir.create(dest)
+    }
   }
 
-  if(!source %in% c("smru","wc")) {
-    if(source != "url") url <- create_download_url(url)
+  if(!source %in% c("smru", "wc")) {
+    url <- create_download_url(url)
 
-    dwnld <- tidy_download(url, dest = tempdir())
+    tidy_download(url, dest = dest)
 
-    dd <- file.path(getwd(), "dwnld")
-    if(!dir.exists(dd)) dir.create(dd)
-    out <- unzip(dwnld, exdir = dd)
+    if(unzip)
+      unzip(dest, exdir = dest)
 
   } else if(source == "smru") {
 
-    get_smru_mdb(dest = dest, ...)
+    get_smru_mdb(dest = dest, cids = cids, user = user, pwd = pwd, ...)
 
   } else if(source == "wc") {
     if(any(is.null(wc.akey), is.null(wc.skey)))
@@ -73,7 +83,6 @@ get_data <- function(url = NULL,
                  ...)
 
   }
-
 
 }
 
@@ -96,7 +105,7 @@ tidy_download <- function (url, destdir = getwd())
   h <- usethis:::download_url(url, destfile = tmp)
   #  cli::cat_line()
   cd <- usethis:::content_disposition(h)
-  base_name <- usethis:::make_filename(cd, fallback = path_file(url))
+  base_name <- usethis:::make_filename(cd, fallback = fs::path_file(url))
   full_path <- path(destdir, base_name)
 
   attr(full_path, "content-type") <- usethis:::content_type(h)

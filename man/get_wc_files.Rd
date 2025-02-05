@@ -10,7 +10,8 @@ get_wc_files(
   s.key = NULL,
   owner.id = NULL,
   collaborator = TRUE,
-  unzip = FALSE
+  unzip = TRUE,
+  verbose = FALSE
 )
 }
 \arguments{

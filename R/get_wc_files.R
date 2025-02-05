@@ -34,7 +34,8 @@ get_wc_files <- function(dest = NULL,
                          s.key = NULL,
                          owner.id = NULL,
                          collaborator = TRUE,
-                         unzip = FALSE) {
+                         unzip = TRUE,
+                         verbose = FALSE) {
 
   assert_that(!is.null(a.key), msg = "A valid wc.akey (Access Key) must be provided when downloading data from Wildlife Computers")
   assert_that(!is.null(s.key), msg = "A valid wc.skey (Secret Key) must be provided when downloading data from Wildlife Computers")
@@ -107,20 +108,17 @@ get_wc_files <- function(dest = NULL,
     req |>
       req_headers(`X-Access` = a.key, `X-Hash` = hash) |>
       req_body_raw(paste0("action=download_deployment&id=", deps$id[i])) |>
-      req_perform(path = file.path(dest,
-                                   ifelse(deps$tag[i] == "SPLASH10",
-                                          paste0(deps$tag[i], "_", i, ".zip"),
-                                          paste0(deps$tag[i], ".zip")))
-                  )
-
-                  #  tempfile(tmpdir = dest, fileext = ".zip"))
+      req_perform(path = file.path(dest, paste0(deps$id[i], "_", deps$tag[i], ".zip")))
 
     if (unzip) {
-      system(paste0(
-        "unzip -o ",
-        file.path(dest, list.files(dest, pattern = "*.zip")),
-        paste0(" -d ", dest, "/", deps$tag[i], "_", i)
-      ))
+      fs <- file.path(dest, list.files(dest, pattern = "*.zip"))
+      unzip(zipfile = fs,
+            exdir = str_split(list.files(dest,
+                                         pattern = "*.zip",
+                                         full.names = TRUE),
+                              "\\.",
+                              simplify = TRUE)[,1])
+
       system(paste0("rm ", file.path(
         dest, list.files(dest, pattern = "*.zip")
       )))
