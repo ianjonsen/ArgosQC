@@ -113,6 +113,11 @@ download_meta <- function(source = "smru",
              everything()) |>
       mutate(ptt = as.integer(ptt)) |>
       mutate(body = as.integer(body)) |>
+      mutate(recovery_date = as.POSIXct(recovery_date, tz = "UTC")) |>
+      mutate(age_class = as.character(age_class)) |>
+      mutate(sex = as.character(sex)) |>
+      mutate(length = as.numeric(length)) |>
+      mutate(actual_mass = as.numeric(actual_mass)) |>
       mutate(estimated_mass = as.integer(estimated_mass)))
 
 ## subset to current campaigns & apply drop.refs
