@@ -15,7 +15,7 @@ download_meta(
 }
 \arguments{
 \item{source}{the source of the metadata, current options are `imos`, `smru`,
-`wc`, `ATN`.}
+`atn`.}
 
 \item{tag_mfr}{the tag manufacturer, current options are `smru` or `wc`
 cids SMRU campaign ids}

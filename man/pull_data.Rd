@@ -4,19 +4,28 @@
 \alias{pull_data}
 \title{Pull SMRU or WC data from downloaded data files}
 \usage{
-pull_data(path2data, source = "smru", cids = NULL, datafiles = NULL, ...)
+pull_data(
+  path2data,
+  source = "smru",
+  cids = NULL,
+  datafiles = NULL,
+  tag_mfr = "smru",
+  ...
+)
 }
 \arguments{
 \item{path2data}{path to data file(s)}
 
-\item{source}{either "smru" or "wc"}
+\item{source}{one of "smru", "wc", or "local"}
 
 \item{cids}{SMRU campaign ids. If not specified then the cids are built from
-the \code{.mdb} filenames present in the \code{path2data} directory.}
+the directory or filenames present in the \code{path2data} directory.}
 
 \item{datafiles}{specify which WC data files to extract, default is to
 extract all files: Locations, FastGPS, Histos, MinMaxDepth, Haulout, and
 SST (when present).}
+
+\item{tag_mfr}{either "smru or "wc", ignored if \code{source} != "local"}
 
 \item{...}{additional arguments passed to \code{pull_smru_tables}}
 }

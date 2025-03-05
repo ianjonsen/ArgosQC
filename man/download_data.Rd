@@ -5,7 +5,7 @@
 \title{Download SMRU or Wildlife Computers tag data from arbitrary sources}
 \usage{
 download_data(
-  url = NULL,
+  path = NULL,
   dest = NULL,
   source = "smru",
   unzip = FALSE,
@@ -18,7 +18,7 @@ download_data(
 )
 }
 \arguments{
-\item{url}{url for data}
+\item{path}{a url or local filepath pointing to a zipfile of tag datafiles}
 
 \item{dest}{destination path to save download}
 
@@ -28,7 +28,7 @@ download_data(
 \item \code{wc} - Wildlife Computers Data Portal API;
 \item \code{googledrive} - a url link to a zipfile shared on a GoogleDrive;
 \item \code{dropbox} - a url link to a zipfile shared on Dropbox;
-\item \code{url} - a url link to a zipfile on a generic server.
+\item \code{local} - a local filepath to a zipfile containing SMRU or WC tag datafiles.
 }}
 
 \item{unzip}{(logical) should the downloaded zipfile be unzipped.}

@@ -17,12 +17,13 @@
 ##' `FastGPS.csv` files.
 ##'
 ##' @param path2data path to data file(s)
-##' @param source either "smru" or "wc"
+##' @param source one of "smru", "wc", or "local"
 ##' @param cids SMRU campaign ids. If not specified then the cids are built from
-##' the `.mdb` filenames present in the `path2data` directory.
+##' the directory or filenames present in the `path2data` directory.
 ##' @param datafiles specify which WC data files to extract, default is to
 ##' extract all files: Locations, FastGPS, Histos, MinMaxDepth, Haulout, and
 ##' SST (when present).
+##' @param tag_mfr either "smru or "wc", ignored if `source` != "local"
 ##' @param ... additional arguments passed to `pull_smru_tables`
 ##'
 ##'
@@ -36,17 +37,16 @@ pull_data <- function(path2data,
                       source = "smru",
                       cids = NULL,
                       datafiles = NULL,
+                      tag_mfr = "smru",
                       ...) {
 
-  source <- match.arg(source, choices = c("smru", "wc"))
+  source <- match.arg(source, choices = c("smru", "wc", "local"))
 
-  if(source == "smru") {
-    ## if cids is NULL then build cids from .mdb filenames in path2data
-    if(is.null(cids)) {
-      fs <- list.files(path2data)
-      fs <- fs[grep("\\.mdb", fs)]
-      cids <- str_split(fs, "\\.", simplify = TRUE)[,1]
-    }
+
+  if(all(source == "smru", is.null(cids))) {
+    fs <- list.files(path2data)
+    fs <- fs[grep("\\.mdb", fs)]
+    cids <- str_split(fs, "\\.", simplify = TRUE)[,1]
 
     out <- pull_smru_tables(cids,
                     path2mdb = path2data,
@@ -56,6 +56,11 @@ pull_data <- function(path2data,
 
     out <- pull_wc_data(path2data,
                  datafiles)
+
+  } else if(source == "local") {
+
+    out <- pull_local_data(path2data,
+                           tag_mfr)
   }
 
   return(out)

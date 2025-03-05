@@ -5,14 +5,14 @@
 ##' accessed from the SMRU data server, or accessed from the Wildlife Computers
 ##' Portal API via the `source` argument.
 ##'
-##' @param url url for data
+##' @param path a url or local filepath pointing to a zipfile of tag datafiles
 ##' @param dest destination path to save download
 ##' @param source source type of data to be downloaded. Can be one of:
 ##' * `smru` - SMRU Data Server;
 ##' * `wc` - Wildlife Computers Data Portal API;
 ##' * `googledrive` - a url link to a zipfile shared on a GoogleDrive;
 ##' * `dropbox` - a url link to a zipfile shared on Dropbox;
-##' * `url` - a url link to a zipfile on a generic server.
+##' * `local` - a local filepath to a zipfile containing SMRU or WC tag datafiles.
 ##' @param unzip (logical) should the downloaded zipfile be unzipped.
 ##' @param cids SMRU tag deployment campaign id(s) to download, eg. "ct180"
 ##' @param user SMRU data server username as a quoted string
@@ -39,7 +39,7 @@
 ##'
 ##' @export
 
-download_data <- function(url = NULL,
+download_data <- function(path = NULL,
                      dest = NULL,
                      source = "smru",
                      unzip = FALSE,
@@ -50,7 +50,8 @@ download_data <- function(url = NULL,
                      wc.skey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
                      ...) {
 
-  source <- match.arg(source, choices = c("smru", "wc", "googledrive", "dropbox"))
+  source <- match.arg(source, choices = c("smru", "wc", "googledrive", "dropbox", "local"))
+  if(all(source == "local", (is.null(path) | is.null(dest)))) stop("A filepath containing a zipfile name must be provided")
 
   if(is.null(dest)) {
     dest <- tempdir()
@@ -62,8 +63,8 @@ download_data <- function(url = NULL,
     }
   }
 
-  if(!source %in% c("smru", "wc")) {
-    url <- create_download_url(url)
+  if(!source %in% c("smru", "wc", "local")) {
+    url <- create_download_url(path)
 
     tidy_download(url, dest = dest)
 
@@ -82,6 +83,9 @@ download_data <- function(url = NULL,
                  s.key = wc.skey,
                  ...)
 
+  } else if(source == "local") {
+
+    unzip(path, exdir = dest, setTimes = TRUE)
   }
 
 }

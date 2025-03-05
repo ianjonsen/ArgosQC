@@ -6,7 +6,7 @@
 ##' the GPS (if present) or Argos location file.
 ##'
 ##' @param source the source of the metadata, current options are `imos`, `smru`,
-##' `wc`, `ATN`.
+##' `atn`.
 ##' @param tag_mfr the tag manufacturer, current options are `smru` or `wc`
 ##' cids SMRU campaign ids
 ##' @param tag_data a list of either `smru` data tables or `wc` files as output by
@@ -35,6 +35,7 @@ download_meta <- function(source = "smru",
 
   if(is.null(tag_data)) stop("a tag_data object must be supplied")
   if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
+  if(all(source == "atn", tag_mfr %in% c("smru", "wc"), is.null(file))) stop("an ATN .csv metadata file must be provided")
 
   if(source == "imos") {
     if(tag_mfr == "smru") {
@@ -46,6 +47,17 @@ download_meta <- function(source = "smru",
     } else if(tag_mfr != "wc") {
       stop("IMOS WC tags not yet supported")
     }
+
+  } else if (source == "atn") {
+    if(tag_mfr == "smru") {
+      tmp <- readr::read_csv(file)
+browser()
+
+    } else if(tag_mfr == "wc") {
+      stop("ATN metadata not yet supported")
+    }
+
+
 
   } else if(source == "smru") {
     tag_mfr <- "smru"
