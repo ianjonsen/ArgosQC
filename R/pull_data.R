@@ -42,11 +42,12 @@ pull_data <- function(path2data,
 
   source <- match.arg(source, choices = c("smru", "wc", "local"))
 
-
-  if(all(source == "smru", is.null(cids))) {
-    fs <- list.files(path2data)
-    fs <- fs[grep("\\.mdb", fs)]
-    cids <- str_split(fs, "\\.", simplify = TRUE)[,1]
+  if (source == "smru") {
+    if (is.null(cids)) {
+      fs <- list.files(path2data)
+      fs <- fs[grep("\\.mdb", fs)]
+      cids <- str_split(fs, "\\.", simplify = TRUE)[, 1]
+    }
 
     out <- pull_smru_tables(cids,
                     path2mdb = path2data,
