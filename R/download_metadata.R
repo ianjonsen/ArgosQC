@@ -37,27 +37,19 @@ download_meta <- function(source = "smru",
   if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
   if(all(source == "atn", tag_mfr %in% c("smru", "wc"), is.null(file))) stop("an ATN .csv metadata file must be provided")
 
-  if(source == "imos") {
+ if (source == "atn") {
     if(tag_mfr == "smru") {
-      meta <- clean_meta(cids = cids,
-                         smru = tag_data,
-                         drop.refs = dropIDs,
-                         file = file)
+      meta <- readr::read_csv(file)
 
-    } else if(tag_mfr != "wc") {
-      stop("IMOS WC tags not yet supported")
-    }
-
-  } else if (source == "atn") {
-    if(tag_mfr == "smru") {
-      tmp <- readr::read_csv(file)
-      stop("ATN metadata not yet fully supported. This is WIP")
+      ## subset to current campaigns & apply drop.refs
+      SMRUCampaignID <- str_split(meta$DeploymentID, "\\-", simplify = TRUE)[,1]
+      meta <- meta |>
+        filter(SMRUCampaignID %in% cids) |>
+        filter(!DeploymentID %in% dropIDs)
 
     } else if(tag_mfr == "wc") {
       stop("ATN metadata not yet supported")
     }
-
-
 
   } else if(source == "smru") {
     tag_mfr <- "smru"
@@ -132,10 +124,11 @@ download_meta <- function(source = "smru",
       mutate(actual_mass = as.numeric(actual_mass)) |>
       mutate(estimated_mass = as.integer(estimated_mass)))
 
-## subset to current campaigns & apply drop.refs
-meta <- meta |>
-  filter(sattag_program %in% mdbs) |>
-  filter(!device_id %in% dropIDs)
+    ## subset to current campaigns & apply drop.refs
+    meta <- meta |>
+      filter(sattag_program %in% cids) |>
+      filter(!device_id %in% dropIDs)
+    }
 
 ## append dive start and end dates for (alternate) track truncation
 ##  to be used as alternate on final, delayed-mode (manual) QC
@@ -154,11 +147,34 @@ ctd_se <- tag_data$ctd |>
   summarise(ctd_start = min(end_date, na.rm = TRUE),
             ctd_end = max(end_date, na.rm = TRUE))
 
-meta <- meta |>
-  left_join(dive_se, by = c("device_id" = "ref")) |>
-  left_join(ctd_se, by = c("device_id" = "ref"))
 
+meta <- switch(source,
+               atn = {
+                 meta |>
+                   left_join(dive_se, by = c("DeploymentID" = "ref")) |>
+                   left_join(ctd_se, by = c("DeploymentID" = "ref"))
+               },
+               smru = {
+                 meta |>
+                   left_join(dive_se, by = c("device_id" = "ref")) |>
+                   left_join(ctd_se, by = c("device_id" = "ref"))
+               })
+
+## if none of above sources apply then default to local IMOS metadata
+if(source == "imos") {
+  if(tag_mfr == "smru") {
+    meta <- clean_meta(cids = cids,
+                       smru = tag_data,
+                       drop.refs = dropIDs,
+                       file = file)
+
+  } else if(tag_mfr != "smru") {
+    stop("IMOS WC tags not yet supported")
   }
+
+  return(meta)
+}
+
 
 return(meta)
 
