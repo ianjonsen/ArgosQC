@@ -51,7 +51,7 @@ download_meta <- function(source = "smru",
   } else if (source == "atn") {
     if(tag_mfr == "smru") {
       tmp <- readr::read_csv(file)
-browser()
+      stop("ATN metadata not yet fully supported. This is WIP")
 
     } else if(tag_mfr == "wc") {
       stop("ATN metadata not yet supported")
