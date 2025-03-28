@@ -83,9 +83,18 @@ annotate_smru_tables <- function(smru,
     names(r) <- to_snake_case(names(r))
   }
 
-  deploy_meta <- meta %>%
-    select(device_id, release_date) %>%
-    filter(!device_id %in% drop.refs)
+  if("device_id" %in% names(meta)) {
+    deploy_meta <- meta %>%
+      select(device_id, release_date) %>%
+      filter(!device_id %in% drop.refs)
+
+  } else if ("DeploymentID" %in% names(meta)) {
+    deploy_meta <- meta %>%
+      select(device_id = DeploymentID, release_date = DeploymentStartDateTime) %>%
+      filter(!device_id %in% drop.refs)
+
+  }
+
 
   ## ctd table
   ctd <- smru$ctd %>%

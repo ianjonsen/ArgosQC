@@ -118,7 +118,12 @@ prep_diag <- function(smru,
 
   } else if ("DeploymentID" %in% names(meta)) {
     deploy_meta <- meta |>
-      dplyr::select(DeploymentID, ctd_start, dive_start, ctd_end, dive_end)
+      dplyr::select(DeploymentID, DeploymentStartDateTime, DeploymentStopDateTime,
+                    ctd_start, dive_start, ctd_end, dive_end) |>
+      mutate(ctd_start = ifelse(DeploymentStartDateTime > ctd_start,
+                                DeploymentStartDateTime, ctd_start)) |>
+      mutate(dive_start = ifelse(DeploymentStartDateTime > dive_start,
+                                 DeploymentStartDateTime, dive_start))
 
     if(QCmode == "nrt") {
       ## left- and right-truncate tracks

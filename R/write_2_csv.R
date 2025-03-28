@@ -6,6 +6,7 @@
 ##' @param fit final \code{aniMotum} fit object
 ##' @param what specify whether predicted or rerouted locations are to be used
 ##' @param meta metadata
+##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param gps.tab logical; does a SMRU GPS table exist, if so append to this as well
 ##' @param path path to write .csv files
 ##' @param drop.refs individual ids to be dropped
@@ -13,7 +14,8 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr filter rename mutate %>% select any_of
+##' @importFrom dplyr filter rename mutate select any_of bind_rows group_by
+##' @importFrom dplyr group_split
 ##' @importFrom stringr str_extract regex
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom readr write_csv
@@ -26,27 +28,31 @@ write_2_csv <- function(smru_ssm,
                         fit,
                         what,
                         meta,
+                        program = "imos",
                         gps.tab = FALSE,
-                        path = "~/Dropbox/collab/imos/imos_qc/aodn",
+                        path = NULL,
                         drop.refs = NULL,
                         suffix = "_nrt") {
 
+  stopifnot("A destination directory for .csv files must be provided"= !is.null(path))
+
   ## get predicted locations from fits
   ## can't cut using keep here as it messes up track subsampling
-  p <- grab_QC(fit, what = what, cut = FALSE, as_sf = FALSE) %>%
-    rename(ref = id) %>%
-    filter(!ref %in% drop.refs) %>%
-    mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
+  p <- grab_QC(fit, what = what, cut = FALSE, as_sf = FALSE) |>
+    rename(ref = id) |>
+    filter(!ref %in% drop.refs) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
   names(p) <- to_snake_case(names(p))
 
   if(all(!c("u","v","u_se","v_se","s","s_se") %in% names(p))) {
     if(suffix != "_nrt") {
-    p <- p %>%
-      mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) %>%
+    p <- p |>
+      mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) |>
       select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, cid, keep)
     } else {
-      p <- p %>%
-        mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) %>%
+      p <- p |>
+        mutate(u = NA, v = NA, u_se = NA, v_se = NA, s = NA, s_se = NA) |>
         select(ref, date, lon, lat, x, y, x_se, y_se, u, v, u_se, v_se, s, s_se, cid)
     }
   }
@@ -60,16 +66,16 @@ write_2_csv <- function(smru_ssm,
       x[seq(1, nrow(x), by = ceiling(6 / ts)),]
     else
       stop("time step is > 6 h, can't subsample to 6 h")
-  }) %>% do.call(rbind, .)
+  }) |> bind_rows()
 
   ## calc QC start and end dates for each deployment - to be appended to metadata
-  qc_se <- p_out %>%
-    group_by(ref) %>%
+  qc_se <- p_out |>
+    group_by(ref) |>
     summarise(qc_start_date = min(date), qc_end_date = max(date))
 
   if(suffix != "_nrt") {
   ## cut predicted locs from large data gaps, split by campaign id & write .csv files
-  p_out %>%
+  p_out |>
     mutate(lon = round(lon,6),
            lat = round(lat,6),
            x = round(x,6),
@@ -81,13 +87,18 @@ write_2_csv <- function(smru_ssm,
            u_se = round(u_se,6),
            v_se = round(v_se,6),
            s = round(s,6),
-           s_se = round(s_se,6)) %>%
-    filter(keep) %>%
-    select(-keep) %>%
-    split(., .$cid) %>%
-    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv"))))
+           s_se = round(s_se,6)) |>
+    filter(keep) |>
+    select(-keep) |>
+    group_by(cid) |>
+    group_split() |>
+    walk( ~ suppressMessages(write_csv(.x,
+                                       file = paste0(file.path(path, "ssmoutputs"),
+                                                     "_",
+                                                     .x$cid[1],
+                                                     suffix, ".csv"))))
   } else {
-    p_out %>%
+    p_out |>
       mutate(lon = round(lon,6),
              lat = round(lat,6),
              x = round(x,6),
@@ -99,14 +110,21 @@ write_2_csv <- function(smru_ssm,
              u_se = round(u_se,6),
              v_se = round(v_se,6),
              s = round(s,6),
-             s_se = round(s_se,6)) %>%
-      split(., .$cid) %>%
-      walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ssmoutputs"), "_", .x$cid[1], suffix, ".csv"))))
+             s_se = round(s_se,6)) |>
+      group_by(cid) |>
+      group_split() |>
+      walk( ~ suppressMessages(write_csv(.x,
+                                         file = paste0(file.path(path, "ssmoutputs"),
+                                                       "_",
+                                                       .x$cid[1],
+                                                       suffix, ".csv"))))
   }
 
-  diag <- smru_ssm$diag %>%
-    filter(!ref %in% drop.refs) %>%
-    mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}"))
+  diag <- smru_ssm$diag |>
+    filter(!ref %in% drop.refs) |>
+    filter(!is.na(ref)) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
   ## check diag schema compliance to AODN standard
   vars <- c("ref",
@@ -144,7 +162,7 @@ write_2_csv <- function(smru_ssm,
                  "ssm_x_se",
                  "ssm_y_se",
                  "cid")
-  diag <- diag %>%
+  diag <- diag |>
     select(any_of(vars))
 
   diag <- diag |>
@@ -206,14 +224,23 @@ write_2_csv <- function(smru_ssm,
   fails <- names(diag)[which(!tests)]
   if(length(fails) > 0) stop(paste0("non-compliant diag records found in: ", fails, "\n"))
 
-   diag <- diag %>%
-    split(., .$cid) %>%
-    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "diag"), "_", .x$cid[1], suffix, ".csv"))))
+   diag <- diag |>
+    group_by(cid) |>
+     group_split() |>
+    walk( ~ suppressMessages(write_csv(.x,
+                                       file = paste0(file.path(path, "diag"),
+                                                     "_",
+                                                     .x$cid[1],
+                                                     suffix,
+                                                     ".csv"))))
 
    if(gps.tab) {
-     gps <- smru_ssm$gps %>%
-       filter(!ref %in% drop.refs) %>%
-       mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}"))
+     gps <- smru_ssm$gps |>
+       filter(!ref %in% drop.refs) |>
+       filter(!is.na(ref)) |>
+       mutate(cid = str_extract(ref,
+                                regex("[a-z]{1,2}[0-9]{2,3}",
+                                      ignore_case = TRUE)))
 
      ## check gps schema compliance to AODN standard
      vars <- c("ref",
@@ -248,7 +275,7 @@ write_2_csv <- function(smru_ssm,
                "ssm_x_se",
                "ssm_y_se",
                "cid")
-     gps <- gps %>%
+     gps <- gps |>
        select(any_of(vars))
 
      ## return error if unexpected object mode or value
@@ -268,14 +295,22 @@ write_2_csv <- function(smru_ssm,
      fails <- names(gps)[which(!tests)]
      if(length(fails) > 0) stop(paste0("non-compliant gps records found in: ", fails, "\n"))
 
-     gps <- gps %>%
-       split(., .$cid) %>%
-       walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "gps"), "_", .x$cid[1], suffix, ".csv"))))
+     gps <- gps |>
+       group_by(cid) |>
+       group_split() |>
+       walk( ~ suppressMessages(write_csv(.x,
+                                          file = paste0(file.path(path, "gps"),
+                                                        "_",
+                                                        .x$cid[1],
+                                                        suffix,
+                                                        ".csv"))))
    }
 
-  smru_ssm$haulout <- smru_ssm$haulout %>%
-    filter(!ref %in% drop.refs) %>%
-    mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}"))
+  smru_ssm$haulout <- smru_ssm$haulout |>
+    filter(!ref %in% drop.refs) |>
+    filter(!is.na(ref)) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
   ## check haulout schema compliance to AODN standard
   vars <- c("ref",
@@ -304,7 +339,7 @@ write_2_csv <- function(smru_ssm,
                  "ssm_y_se",
                  "cid"
   )
-  smru_ssm$haulout <- smru_ssm$haulout %>%
+  smru_ssm$haulout <- smru_ssm$haulout |>
     select(any_of(vars))
   if(any(!c("phosi_secs","wet_n","wet_min","wet_max","wet_mean","wet_sd","tagging_id","s_date_tag","e_date_tag") %in%
          names(smru_ssm$haulout))) {
@@ -345,13 +380,21 @@ write_2_csv <- function(smru_ssm,
   fails <- names(smru_ssm$haulout)[which(!tests)]
   if(length(fails) > 0) stop(paste0("non-compliant haulout records found in: ", fails, "\n"))
 
-  smru_ssm$haulout <- smru_ssm$haulout %>%
-    split(., .$cid) %>%
-    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "haulout"), "_", .x$cid[1], suffix, ".csv"))))
+  smru_ssm$haulout <- smru_ssm$haulout |>
+    group_by(cid) |>
+    group_split() |>
+    walk( ~ suppressMessages(write_csv(.x,
+                                       file = paste0(file.path(path, "haulout"),
+                                                         "_",
+                                                     .x$cid[1],
+                                                     suffix,
+                                                     ".csv"))))
 
-  smru_ssm$ctd <- smru_ssm$ctd %>%
-    filter(!ref %in% drop.refs) %>%
-    mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}"))
+  smru_ssm$ctd <- smru_ssm$ctd |>
+    filter(!ref %in% drop.refs) |>
+    filter(!is.na(ref)) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
   ## check ctd schema compliance to AODN standard
   vars <- c("ref",
@@ -392,7 +435,7 @@ write_2_csv <- function(smru_ssm,
                  "ssm_x_se",
                  "ssm_y_se",
                  "cid")
-  smru_ssm$ctd <- smru_ssm$ctd %>%
+  smru_ssm$ctd <- smru_ssm$ctd |>
     select(any_of(vars))
 
   if (any(!c("photo_dbar", "photo_vals", "created", "modified", "n_photo")
@@ -479,98 +522,211 @@ write_2_csv <- function(smru_ssm,
   fails <- names(smru_ssm$ctd)[which(!tests)]
   if(length(fails) > 0) stop(paste0("non-compliant ctd records found in: ", fails, "\n"))
 
-  smru_ssm$ctd <- smru_ssm$ctd %>%
-    split(., .$cid) %>%
-    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "ctd"), "_", .x$cid[1], suffix, ".csv"))))
+  smru_ssm$ctd <- smru_ssm$ctd |>
+    group_by(cid) |>
+    group_split() |>
+    walk( ~ suppressMessages(write_csv(.x,
+                                       file = paste0(file.path(path, "ctd"),
+                                                     "_",
+                                                     .x$cid[1],
+                                                     suffix,
+                                                     ".csv"))))
 
-  smru_ssm$dive %>%
-    filter(!ref %in% drop.refs) %>%
-    mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
-    split(., .$cid) %>%
+  smru_ssm$dive |>
+    filter(!ref %in% drop.refs) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE))) |>
+    group_by(cid) |>
+    group_split() |>
     walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "dive"), "_", .x$cid[1], suffix, ".csv"))))
 
-  smru_ssm$ssummary %>%
-    filter(!ref %in% drop.refs) %>%
-    mutate(cid = str_extract(ref, "[a-z]{1,2}[0-9]{2,3}")) %>%
-    split(., .$cid) %>%
-    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "summary"), "_", .x$cid[1], suffix, ".csv"))))
+  smru_ssm$ssummary |>
+    filter(!ref %in% drop.refs) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE))) |>
+    group_by(cid) |>
+    group_split() |>
+    walk( ~ suppressMessages(write_csv(.x,
+                                       file = paste0(file.path(path, "summary"),
+                                                     "_",
+                                                     .x$cid[1],
+                                                     suffix,
+                                                     ".csv"))))
 
   ## remove dive, ctd start/end dates columns, add 'state_country' for AODN (based on deployment location)
-  meta <- meta %>%
-    filter(!device_id %in% drop.refs) %>%
-    left_join(., qc_se, by = c("device_id" = "ref")) %>%
-    select(-dive_start, -dive_end, -ctd_start, -ctd_end) %>%
-    mutate(state_country = ifelse(release_site == "Dumont d'Urville", "French Antarctic Territory", NA)) %>%
-    mutate(state_country = ifelse(release_site == "Dumont D'Urville", "French Antarctic Territory", state_country)) %>%
-    mutate(state_country = ifelse(release_site == "Iles Kerguelen", "French Overseas Territory", state_country)) %>%
-    mutate(state_country = ifelse(release_site == "Scott Base", "New Zealand Antarctic Territory", state_country)) %>%
-    mutate(state_country = ifelse(release_site == "Campbell Island", "New Zealand", state_country)) %>%
-    mutate(state_country = ifelse(release_site == "Montague Island", "Australia", state_country)) %>%
-    mutate(state_country = ifelse(release_site == "Macquarie Island", "Australia", state_country)) %>%
-    mutate(state_country = ifelse(release_site == "Casey", "Australian Antarctic Territory", state_country)) %>%
-    mutate(state_country = ifelse(release_site == "Davis", "Australian Antarctic Territory", state_country)) %>%
-    mutate(state_country = ifelse(is.na(state_country), "Unknown", state_country))
+  if (program == "imos") {
+    meta <- meta |>
+      filter(!device_id %in% drop.refs) |>
+      left_join(., qc_se, by = c("device_id" = "ref")) |>
+      select(-dive_start, -dive_end, -ctd_start, -ctd_end) |>
+      mutate(
+        state_country = ifelse(
+          release_site == "Dumont d'Urville",
+          "French Antarctic Territory",
+          NA
+        )
+      ) |>
+      mutate(
+        state_country = ifelse(
+          release_site == "Dumont D'Urville",
+          "French Antarctic Territory",
+          state_country
+        )
+      ) |>
+      mutate(
+        state_country = ifelse(
+          release_site == "Iles Kerguelen",
+          "French Overseas Territory",
+          state_country
+        )
+      ) |>
+      mutate(
+        state_country = ifelse(
+          release_site == "Scott Base",
+          "New Zealand Antarctic Territory",
+          state_country
+        )
+      ) |>
+      mutate(state_country = ifelse(
+        release_site == "Campbell Island",
+        "New Zealand",
+        state_country
+      )) |>
+      mutate(state_country = ifelse(release_site == "Montague Island", "Australia", state_country)) |>
+      mutate(state_country = ifelse(
+        release_site == "Macquarie Island",
+        "Australia",
+        state_country
+      )) |>
+      mutate(
+        state_country = ifelse(
+          release_site == "Casey",
+          "Australian Antarctic Territory",
+          state_country
+        )
+      ) |>
+      mutate(
+        state_country = ifelse(
+          release_site == "Davis",
+          "Australian Antarctic Territory",
+          state_country
+        )
+      ) |>
+      mutate(state_country = ifelse(is.na(state_country), "Unknown", state_country))
 
-  ## check metadata schema compliance to AODN standard
-  meta <- meta %>%
-    select(sattag_program,
-           device_id,
-           ptt,
-           body,
-           device_wmo_ref,
-           tag_type,
-           common_name,
-           species,
-           release_longitude,
-           release_latitude,
-           release_site,
-           release_date,
-           recovery_date,
-           age_class,
-           sex,
-           length,
-           estimated_mass,
-           actual_mass,
-           state_country,
-           qc_start_date,
-           qc_end_date)
 
-  ## return error if unexpected object mode or value
-  tests <- with(meta, c(is.character(sattag_program),
-                    is.character(device_id),
-                    is.integer(ptt),
-                    is.integer(body),
-                    is.character(device_wmo_ref),
-                    is.character(tag_type),
-                    is.character(common_name),
-                    is.character(species),
-                    all(is.double(release_longitude),
-                        ((release_longitude >= -180 & release_longitude <= 180) |
-                        (release_longitude >= 0 & release_longitude <= 360) |
-                        is.na(release_longitude))),
-                    all(is.double(release_latitude),
-                        ((release_latitude >= -90 & release_latitude <= 90) |
-                         is.na(release_latitude))),
-                    is.character(release_site),
-                    any(inherits(release_date, "POSIXct"), is.na(release_date)),
-                    any(inherits(recovery_date, "POSIXct"), is.na(recovery_date)),
-                    all(unique(age_class) %in% c("adult","subadult","juvenille","juvenile","weaner",NA)),
-                    all(unique(sex) %in% c("female","male","f","m", NA)),
-                    all(is.double(length), (length > 0 | is.na(length))),
-                    all(is.integer(estimated_mass), (estimated_mass > 0 | is.na(estimated_mass))),
-                    all(is.double(actual_mass), (actual_mass > 0 | is.na(actual_mass))),
-                    is.character(state_country),
-                    any(inherits(qc_start_date, "POSIXct"), is.na(qc_start_date)),
-                    any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date))))
-  fails <- names(meta)[which(!tests)]
-  if(length(fails) > 0) stop(paste0("non-compliant metadata records found in: ", fails, "\n"))
+    ## check metadata schema compliance to AODN standard
+    meta <- meta |>
+      select(
+        sattag_program,
+        device_id,
+        ptt,
+        body,
+        device_wmo_ref,
+        tag_type,
+        common_name,
+        species,
+        release_longitude,
+        release_latitude,
+        release_site,
+        release_date,
+        recovery_date,
+        age_class,
+        sex,
+        length,
+        estimated_mass,
+        actual_mass,
+        state_country,
+        qc_start_date,
+        qc_end_date
+      )
 
-  ## If metadata is compliant then write to .csv by sattag_program (SMRU campaign id)
-  meta %>%
-    mutate(age_class = ifelse(age_class == "juvenile", "juvenille", age_class)) %>%
-    split(., .$sattag_program) %>%
-    walk( ~ suppressMessages(write_csv(.x, file = paste0(file.path(path, "metadata"), "_",
-                                               .x$sattag_program[1], suffix, ".csv"))))
+    ## return error if unexpected object mode or value
+    tests <- with(
+      meta,
+      c(
+        is.character(sattag_program),
+        is.character(device_id),
+        is.integer(ptt),
+        is.integer(body),
+        is.character(device_wmo_ref),
+        is.character(tag_type),
+        is.character(common_name),
+        is.character(species),
+        all(is.double(release_longitude), ((release_longitude >= -180 &
+                                              release_longitude <= 180) |
+                                             (release_longitude >= 0 &
+                                                release_longitude <= 360) |
+                                             is.na(release_longitude)
+        )),
+        all(is.double(release_latitude), ((release_latitude >= -90 &
+                                             release_latitude <= 90) |
+                                            is.na(release_latitude)
+        )),
+        is.character(release_site),
+        any(inherits(release_date, "POSIXct"), is.na(release_date)),
+        any(inherits(recovery_date, "POSIXct"), is.na(recovery_date)),
+        all(
+          unique(age_class) %in% c("adult", "subadult", "juvenille", "juvenile", "weaner", NA)
+        ),
+        all(unique(sex) %in% c("female", "male", "f", "m", NA)),
+        all(is.double(length), (length > 0 |
+                                  is.na(length))),
+        all(is.integer(estimated_mass), (
+          estimated_mass > 0 | is.na(estimated_mass)
+        )),
+        all(is.double(actual_mass), (actual_mass > 0 |
+                                       is.na(actual_mass))),
+        is.character(state_country),
+        any(inherits(qc_start_date, "POSIXct"), is.na(qc_start_date)),
+        any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date))
+      )
+    )
+    fails <- names(meta)[which(!tests)]
+    if (length(fails) > 0)
+      stop(paste0("non-compliant metadata records found in: ", fails, "\n"))
+
+    ## If metadata is compliant then write to .csv by sattag_program (SMRU campaign id)
+    meta |>
+      mutate(age_class = ifelse(age_class == "juvenile", "juvenille", age_class)) |>
+      group_by(sattag_program) |>
+      group_split() |>
+      walk(~ suppressMessages(write_csv(
+        .x,
+        file = paste0(
+          file.path(path, "metadata"),
+          "_",
+          .x$sattag_program[1],
+          suffix,
+          ".csv"
+        )
+      )))
+
+  } else if (program == "atn") {
+    meta <- meta |> filter(!DeploymentID %in% drop.refs)
+    meta <- left_join(meta, qc_se, by = c("DeploymentID" = "ref")) |>
+      select(-ctd_start, -ctd_end, -dive_start, -dive_end) |>
+      rename(QCStartDateTime = qc_start_date,
+             QCStopDateTime = qc_end_date)
+    meta.lst <- split(meta,
+                      str_extract(meta$DeploymentID,
+                                  regex("[a-z]+[0-9]+[a-z]?",
+                                        ignore_case = TRUE))
+                      )
+
+    meta.lst |> walk( ~ suppressMessages(write_csv(
+        .x,
+        file = paste0(
+          file.path(path, "metadata"),
+          "_",
+          str_extract(.x$DeploymentID,
+                      regex("[a-z]+[0-9]+[a-z]?",
+                            ignore_case = TRUE))[1],
+          suffix,
+          ".csv"
+        )
+      )))
+  }
 
   cat("\nwrite to `*.csv` completed\n")
 
