@@ -13,9 +13,11 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr filter select mutate group_by %>% summarise left_join distinct pull arrange ungroup
+##' @importFrom dplyr filter select mutate group_by %>% summarise left_join
+##' @importFrom dplyr distinct pull arrange ungroup
 ##' @importFrom tidyr unnest
-##' @importFrom lubridate mdy_hms
+##' @importFrom stringr str_detect regex
+##' @importFrom lubridate mdy_hms ymd_hms
 ##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry<-
 ##' @importFrom snakecase to_snake_case
 ##'
@@ -83,9 +85,18 @@ annotate_smru_tables <- function(smru,
     names(r) <- to_snake_case(names(r))
   }
 
-  deploy_meta <- meta %>%
-    select(device_id, release_date) %>%
-    filter(!device_id %in% drop.refs)
+  if("device_id" %in% names(meta)) {
+    deploy_meta <- meta %>%
+      select(device_id, release_date) %>%
+      filter(!device_id %in% drop.refs)
+
+  } else if ("DeploymentID" %in% names(meta)) {
+    deploy_meta <- meta %>%
+      select(device_id = DeploymentID, release_date = DeploymentStartDateTime) %>%
+      filter(!device_id %in% drop.refs)
+
+  }
+
 
   ## ctd table
   ctd <- smru$ctd %>%
@@ -128,10 +139,15 @@ annotate_smru_tables <- function(smru,
   ## dive table
   dive <- smru$dive %>%
     mutate(ref = as.character(ref)) %>%
-    mutate(ds_date = mdy_hms(ds_date, tz = "UTC")) %>%
+    mutate(ds_date = ifelse(str_detect(ds_date, regex("[a-z]", TRUE)),
+                            ymd_hms(ds_date, tz = "UTC"),
+                            mdy_hms(ds_date, tz = "UTC"))) %>%
+    mutate(ds_date = as.POSIXct(ds_date, tz = "UTC", origin = "1970-01-01")) %>%
     filter(!ref %in% drop.refs) %>%
     mutate(lon = round(lon,6),
            lat = round(lat,6))
+
+  class(dive$ds_date) <- c("POSIXct","POSIXt")
 
   if (what == "p") {
     dive <- p %>%
@@ -190,6 +206,7 @@ annotate_smru_tables <- function(smru,
       unnest(cols = c(locs)) %>%
       left_join(ssummary, ., by = c("ref", c("e_date" = "date")))
   }
+
 
   ## diag table
   diag <- smru$diag %>%
@@ -271,6 +288,7 @@ annotate_smru_tables <- function(smru,
         select(-c("u", "u_se", "v", "v_se", "s", "s_se"))
     }
   }
+
   if(gps.tab) {
     list(diag = diag, gps = gps, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
   } else {

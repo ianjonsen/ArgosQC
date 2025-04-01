@@ -26,7 +26,7 @@
 ##' @export
 ##'
 
-download_meta <- function(source = "smru",
+get_metadata <- function(source = "smru",
                        tag_mfr = "smru",
                        tag_data = NULL,
                        cids = NULL,
