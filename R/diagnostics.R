@@ -69,7 +69,7 @@ diagnostics <-
       bind_rows()
 
     my.aes <- aes_lst(conf = FALSE)
-    my.aes$df$size[1] <- 0.1
+    my.aes$df$size[1] <- 0.25
     my.aes$df$col[4] <- "orangered"
     my.aes$df$shape[4] <- 19
 
@@ -97,6 +97,11 @@ diagnostics <-
       bg = "white"
     )
 
+    if("DeploymentID" %in% names(meta)) {
+      meta <- meta |>
+        rename(device_id = DeploymentID)
+    }
+
     diag <- diag %>% rename(device_id = ref)
     p_out <- p_out %>% rename(device_id = ref)
     dd <-
@@ -105,6 +110,7 @@ diagnostics <-
         start_date = min(date),
         end_date = max(date)
       )
+<<<<<<< HEAD
 
     if("device_id" %in% names(meta)) {
       meta <- left_join(meta, dd, by = "device_id")
@@ -114,6 +120,10 @@ diagnostics <-
         rename(device_id = DeploymentID)
 
     }
+=======
+    meta <- left_join(meta, dd, by = "device_id")
+
+>>>>>>> 677367d24fafb8d60ea87bb1d591a6941c9be6dc
     ## Any device_id's in metadata but not in diag?
     meta_miss <- meta %>% filter(is.na(start_date) & is.na(end_date))
     meta <- meta %>% filter(!is.na(start_date) & !is.na(end_date))

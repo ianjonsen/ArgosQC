@@ -9,8 +9,9 @@ write_2_csv(
   fit,
   what,
   meta,
+  program = "imos",
   gps.tab = FALSE,
-  path = "~/Dropbox/collab/imos/imos_qc/aodn",
+  path = NULL,
   drop.refs = NULL,
   suffix = "_nrt"
 )
@@ -23,6 +24,8 @@ write_2_csv(
 \item{what}{specify whether predicted or rerouted locations are to be used}
 
 \item{meta}{metadata}
+
+\item{program}{Determines structure of output metadata. Currently, either `imos` or `atn`.}
 
 \item{gps.tab}{logical; does a SMRU GPS table exist, if so append to this as well}
 
