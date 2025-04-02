@@ -110,7 +110,6 @@ diagnostics <-
         start_date = min(date),
         end_date = max(date)
       )
-<<<<<<< HEAD
 
     if("device_id" %in% names(meta)) {
       meta <- left_join(meta, dd, by = "device_id")
@@ -120,10 +119,7 @@ diagnostics <-
         rename(device_id = DeploymentID)
 
     }
-=======
-    meta <- left_join(meta, dd, by = "device_id")
 
->>>>>>> 677367d24fafb8d60ea87bb1d591a6941c9be6dc
     ## Any device_id's in metadata but not in diag?
     meta_miss <- meta %>% filter(is.na(start_date) & is.na(end_date))
     meta <- meta %>% filter(!is.na(start_date) & !is.na(end_date))
