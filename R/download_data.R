@@ -54,9 +54,12 @@ download_data <- function(path = NULL,
   if(all(source == "local", (is.null(path) | is.null(dest)))) stop("A filepath containing a zipfile name must be provided")
 
   if(is.null(dest)) {
+
     dest <- tempdir()
     message(paste0("No 'dest' directory specified, so downloading data to ", dest))
+
   } else {
+
     if(!dir.exists(dest))  {
       message(paste0("'dest' file path: ", dest, " doesn't exist, creating now"))
       dir.create(dest)
@@ -76,9 +79,10 @@ download_data <- function(path = NULL,
     get_smru_mdb(dest = dest, cids = cids, user = user, pwd = pwd, ...)
 
   } else if(source == "wc") {
+
     if(any(is.null(wc.akey), is.null(wc.skey)))
       stop("Valid 'wc.akey' and 'wc.skey' must be supplied to download from the Wildlife Computers Portal")
-    get_wc_files(dest = dest,
+    meta <- get_wc_files(dest = dest,
                  a.key = wc.akey,
                  s.key = wc.skey,
                  ...)
@@ -88,6 +92,7 @@ download_data <- function(path = NULL,
     unzip(path, exdir = dest, setTimes = TRUE)
   }
 
+  if(exists("meta")) return(meta)
 }
 
 

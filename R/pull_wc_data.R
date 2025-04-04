@@ -61,8 +61,6 @@ pull_wc_data <- function(path2data,
     idx <- unlist(idx)
   idx <- idx > 20
   ndirs <- dirs[idx]
-
-
   ## get all data files & merge into list
   wc <- vector(mode = "list", length = 6)
 
@@ -227,8 +225,9 @@ pull_wc_data <- function(path2data,
   }
 
   ## drop empty list elements
+  idx <- !sapply(wc, is.null)
   wc <- list_drop_empty(wc)
-  names(wc) <- datafiles
+  names(wc) <- datafiles[idx]
 
   return(wc)
 }

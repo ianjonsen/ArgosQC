@@ -85,7 +85,6 @@ get_wc_files <- function(dest = NULL,
 
   } else if(!is.null(owner.id)) {
 
-#    stop("Sorry, download via supplied WC data owner.id is not set up yet!")
     hash <- sha256(paste0("action=get_deployments&owner_id=", owner.id),
                    key = s.key)
     xml <- req |>
@@ -97,7 +96,14 @@ get_wc_files <- function(dest = NULL,
       xmlRoot()
 
     deps <- xmlToDataFrame(nodes = getNodeSet(xml, "//deployment")) |>
-      dplyr::select(id, owner, status, tag, last_update_date)
+      select(id, owner, status, tag, deploy_date = deployment, last_update_date) |>
+      filter(!is.na(deploy_date)) |>
+      mutate(deploy_date = as.character(deploy_date)) |>
+      mutate(deploy_date = str_split(deploy_date, "\\-", simplify = TRUE)[,1]) |>
+      mutate(deploy_date = as.numeric(deploy_date)) |>
+      mutate(deploy_date = as.POSIXct(deploy_date, origin = "1970-01-01", tz = "UTC")) |>
+      mutate(last_update_date = as.numeric(last_update_date)) |>
+      mutate(last_update_date = as.POSIXct(last_update_date, origin = "1970-01-01", tz = "UTC"))
 
   }
 
@@ -126,4 +132,5 @@ get_wc_files <- function(dest = NULL,
 
   })
 
+  return(deps)
 }
