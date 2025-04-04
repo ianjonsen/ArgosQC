@@ -14,8 +14,10 @@
 ##' @param dropIDs SMRU refs or WC ids to be dropped
 ##' @param file path to metadata .csv file, if provided then metadata will be
 ##' downloaded from the provided `source`
+##' @param enc set locale encoding to handle special characters; default is "UTF-8"
 ##'
 ##' @examples
+##'
 ##'
 ##' @importFrom dplyr select rename mutate filter bind_rows
 ##' @importFrom rvest read_html html_nodes html_table
@@ -31,7 +33,8 @@ get_metadata <- function(source = "smru",
                        tag_data = NULL,
                        cids = NULL,
                        dropIDs = NULL,
-                       file = NULL) {
+                       file = NULL,
+                       enc = "UTF-8") {
 
   if(is.null(tag_data)) stop("a tag_data object must be supplied")
   if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
@@ -39,7 +42,7 @@ get_metadata <- function(source = "smru",
 
  if (source == "atn") {
     if(tag_mfr == "smru") {
-      meta <- readr::read_csv(file)
+      meta <- readr::read_csv(file, locale = readr::locale(encoding = enc))
 
       ## subset to current campaigns & apply drop.refs
       SMRUCampaignID <- str_split(meta$DeploymentID, "\\-", simplify = TRUE)[,1]

@@ -19,10 +19,14 @@
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom assertthat assert_that
 ##'
+##' @md
 ##' @export
 ##'
 
-clean_meta <- function(cids, smru, drop.refs = NULL, file = NULL) {
+clean_meta <- function(cids,
+                       smru,
+                       drop.refs = NULL,
+                       file = NULL) {
 
   assert_that(!is.null(file))
 

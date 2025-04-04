@@ -10,7 +10,6 @@ write_2_csv(
   what,
   meta,
   program = "imos",
-  gps.tab = FALSE,
   path = NULL,
   drop.refs = NULL,
   suffix = "_nrt"
@@ -27,11 +26,9 @@ write_2_csv(
 
 \item{program}{Determines structure of output metadata. Currently, either `imos` or `atn`.}
 
-\item{gps.tab}{logical; does a SMRU GPS table exist, if so append to this as well}
-
 \item{path}{path to write .csv files}
 
-\item{drop.refs}{individual ids to be dropped}
+\item{drop.refs}{individual SMRU ids to be dropped}
 
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 }

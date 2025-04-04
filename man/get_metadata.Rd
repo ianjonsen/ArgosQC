@@ -10,7 +10,8 @@ get_metadata(
   tag_data = NULL,
   cids = NULL,
   dropIDs = NULL,
-  file = NULL
+  file = NULL,
+  enc = "UTF-8"
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ cids SMRU campaign ids}
 
 \item{file}{path to metadata .csv file, if provided then metadata will be
 downloaded from the provided `source`}
+
+\item{enc}{set locale encoding to handle special characters; default is "UTF-8"}
 }
 \description{
 downloads, restructures & formats metadata, appends
