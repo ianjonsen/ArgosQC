@@ -41,5 +41,9 @@ smru_dive_write <- function(smru_ssm,
       select(-cid)
   }
 
+  ## strip out any records that are all NA's
+  dive <- dive |>
+    filter(!is.na(ref))
+
   return(dive)
 }

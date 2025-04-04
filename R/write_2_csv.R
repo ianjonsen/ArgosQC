@@ -148,7 +148,7 @@ write_2_csv <- function(smru_ssm,
 
   ## summary data
   if ("ssummary" %in% names(smru_ssm)) {
-    ssummary <- smru_dive_write(
+    ssummary <- smru_summary_write(
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
@@ -178,14 +178,22 @@ write_2_csv <- function(smru_ssm,
 
   ## write tables to .csv
   if (program == "imos") {
-
     lapply(1:length(out), function(i) {
-      out[[i]] |>
-        group_by(cid) |>
-        group_split() |>
-        walk( ~ suppressMessages(write_csv(
-          .x, file = paste0(file.path(path, nms[i]), "_", .x$cid[1], suffix, ".csv")
-        )))
+      if (nms[i] != "metadata") {
+        out[[i]] |>
+          group_by(cid) |>
+          group_split() |>
+          walk(~ suppressMessages(write_csv(
+            .x, file = paste0(file.path(path, nms[i]), "_", .x$cid[1], suffix, ".csv")
+          )))
+      } else {
+        out[[i]] |>
+          group_by(sattag_program) |>
+          group_split() |>
+          walk(~ suppressMessages(write_csv(
+            .x, file = paste0(file.path(path, nms[i]), "_", .x$sattag_program[1], suffix, ".csv")
+          )))
+      }
     })
 
   } else if (program == "atn") {
@@ -209,6 +217,7 @@ write_2_csv <- function(smru_ssm,
     })
   }
 
+  return(invisible())
 }
 
 
