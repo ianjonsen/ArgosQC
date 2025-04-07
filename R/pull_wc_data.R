@@ -61,6 +61,7 @@ pull_wc_data <- function(path2data,
     idx <- unlist(idx)
   idx <- idx > 20
   ndirs <- dirs[idx]
+
   ## get all data files & merge into list
   wc <- vector(mode = "list", length = 6)
 
@@ -87,7 +88,7 @@ pull_wc_data <- function(path2data,
     select(ptt = Ptt, everything(), -day, -time)
 }
 
-  if ("gps" %in% datafiles) {
+  if ("fastgps" %in% datafiles) {
     ## GPS locs
     wc[[2]] <- lapply(1:length(ndirs), function(i) {
       fs <- list.files(ndirs[i])
