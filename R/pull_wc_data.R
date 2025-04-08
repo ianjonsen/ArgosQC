@@ -78,14 +78,22 @@ pull_wc_data <- function(path2data,
                    Quality = ifelse(Type == "User", "G", Quality)),
           silent = TRUE)
     }
+  })
+  ## deal with potential issue where some tag -Locations file column names have
+  ##  different lower/upper case letters
+  wc[[1]] <- lapply(wc[[1]], function(x) {
+    names(x) <- tolower(names(x))
+    x
   }) |>
     bind_rows() |>
-    mutate(day = str_split(Date, " ", simplify = TRUE)[, 2],
-           time = str_split(Date, " ", simplify = TRUE)[, 1]) |>
+    filter(type != "FastGPS") |>
+    mutate(day = str_split(date, " ", simplify = TRUE)[, 2],
+           time = str_split(date, " ", simplify = TRUE)[, 1]) |>
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
     mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(ptt = Ptt, everything(), -day, -time)
+    select(ptt = ptt, everything(), -day, -time) |>
+    rename(DeployID = deployid)
 }
 
   if ("fastgps" %in% datafiles) {
