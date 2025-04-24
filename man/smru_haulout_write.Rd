@@ -29,3 +29,4 @@ smru_haulout_write(
 \description{
 Apply AODN tests to SMRU haulout table, write to .csv - format depends on program (IMOS, ATN)
 }
+\keyword{internal}

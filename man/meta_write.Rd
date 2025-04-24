@@ -26,3 +26,4 @@ meta_write(
 \description{
 Apply AODN tests to metadata table, write to .csv - format depends on program (IMOS, ATN)
 }
+\keyword{innternal}

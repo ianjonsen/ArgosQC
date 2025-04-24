@@ -14,7 +14,7 @@
 ##' @importFrom purrr walk
 ##' @importFrom snakecase to_snake_case
 ##'
-##' @internal
+##' @keywords internal
 
 ssm_outputs <- function(fit,
                         what,

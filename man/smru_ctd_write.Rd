@@ -29,3 +29,4 @@ smru_ctd_write(
 \description{
 Apply AODN tests to SMRU ctd table, write to .csv - format depends on program (IMOS, ATN)
 }
+\keyword{internal}

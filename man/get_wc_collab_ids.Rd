@@ -18,3 +18,4 @@ User-supplied WC Access Key, WC Secret Key.
 \details{
 Returns a data.frame with WC ids and email addresses of collaborators
 }
+\keyword{internal}

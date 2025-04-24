@@ -36,3 +36,4 @@ Satellite tracking data are downloaded from a user-specified URL
 data server by calling `get_smru_mdb()`, or accessed from the Wildlife
 Computers Portal API by calling `get_wc_files()`.
 }
+\keyword{internal}

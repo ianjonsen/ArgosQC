@@ -13,7 +13,7 @@
 ##' @importFrom dplyr filter mutate select any_of left_join
 ##' @importFrom stringr str_extract regex
 ##'
-##' @internal
+##' @keywords internal
 
 smru_gps_write <- function(smru_ssm,
                             meta,

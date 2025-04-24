@@ -29,3 +29,4 @@ ssm_write(
 \description{
 write to .csv - format depends on program (IMOS, ATN)
 }
+\keyword{internal}

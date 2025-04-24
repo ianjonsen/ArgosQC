@@ -27,7 +27,7 @@
 ##' @importFrom httr2 resp_body_xml
 ##' @importFrom XML xmlParse xmlRoot xmlToDataFrame getNodeSet
 ##'
-##' @internal
+##' @keywords internal
 
 get_wc_files <- function(dest = NULL,
                          a.key = NULL,

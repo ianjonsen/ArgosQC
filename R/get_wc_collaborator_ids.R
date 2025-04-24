@@ -18,7 +18,7 @@
 ##' @importFrom httr2 resp_body_xml
 ##' @importFrom XML xmlParse xmlRoot xmlToDataFrame getNodeSet
 ##'
-##' @internal
+##' @keywords internal
 
 get_wc_collab_ids <- function(a.key = NULL,
                               s.key = NULL,

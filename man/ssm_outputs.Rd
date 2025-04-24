@@ -16,3 +16,4 @@ ssm_outputs(fit, what, drop.refs)
 \description{
 build ssmoutputs data.frame from SSM predicted location
 }
+\keyword{internal}

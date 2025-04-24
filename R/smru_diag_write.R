@@ -18,7 +18,7 @@
 ##' @importFrom purrr walk
 ##' @importFrom snakecase to_snake_case
 ##'
-##' @internal
+##' @keywords internal
 
 smru_diag_write <- function(smru_ssm,
                        meta,

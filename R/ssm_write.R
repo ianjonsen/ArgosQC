@@ -14,7 +14,7 @@
 ##' @importFrom readr write_csv
 ##' @importFrom purrr walk
 ##'
-##' @internal
+##' @keywords internal
 
 ssm_write <- function(p_out,
                       meta,

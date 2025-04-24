@@ -18,7 +18,7 @@
 ##' @importFrom assertthat assert_that
 ##' @importFrom purrr walk
 ##'
-##' @internal
+##' @keywords internal
 
 get_smru_mdb <-
   function(cids,

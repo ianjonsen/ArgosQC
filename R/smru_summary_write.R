@@ -13,7 +13,7 @@
 ##' @importFrom dplyr filter mutate select
 ##' @importFrom stringr str_extract regex
 ##'
-##' @internal
+##' @keywords internal
 
 smru_summary_write <- function(smru_ssm,
                             meta,

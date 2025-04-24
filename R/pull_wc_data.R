@@ -27,7 +27,7 @@
 ##' @importFrom vctrs list_drop_empty
 ##'
 ##' @md
-##' @external
+##' @export
 
 pull_wc_data <- function(path2data,
                          datafiles = NULL) {

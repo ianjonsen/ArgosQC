@@ -29,3 +29,4 @@ smru_summary_write(
 \description{
 Apply AODN tests to SMRU summary table, write to .csv - format depends on program (IMOS, ATN)
 }
+\keyword{internal}

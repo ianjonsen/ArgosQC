@@ -29,3 +29,4 @@ smru_dive_write(
 \description{
 Apply AODN tests to SMRU dive table, write to .csv - format depends on program (IMOS, ATN)
 }
+\keyword{internal}
