@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_wc_files.R
 \name{get_wc_files}
 \alias{get_wc_files}
-\title{WC API access}
+\title{WC API access to tag data files}
 \usage{
 get_wc_files(
   dest = NULL,

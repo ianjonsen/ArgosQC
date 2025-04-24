@@ -1,4 +1,4 @@
-##' @title WC API access
+##' @title WC API access to tag data files
 ##'
 ##' @description Download satellite tracking data and associated tag files via
 ##' the Wildlife Computers Portal API. User-supplied WC Access Key, WC Secret Key,
