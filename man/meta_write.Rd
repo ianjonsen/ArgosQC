@@ -7,6 +7,7 @@
 meta_write(
   meta,
   program = "imos",
+  test = TRUE,
   path = NULL,
   drop.refs = NULL,
   suffix = "_nrt"
@@ -16,6 +17,10 @@ meta_write(
 \item{meta}{metadata}
 
 \item{program}{Determines structure of output metadata. Currently, either `imos` or `atn`.}
+
+\item{test}{should variables be tested for standards compliance, default is TRUE.
+Standards compliance is specific to the program. Currently, only program = `imos`
+has defined variable standard against which output compliance is tested.}
 
 \item{path}{path to write .csv files}
 

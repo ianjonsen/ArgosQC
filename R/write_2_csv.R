@@ -7,6 +7,9 @@
 ##' @param what specify whether predicted or rerouted locations are to be used
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param test should variables be tested for standards compliance, default is TRUE.
+##' Standards compliance is specific to the program. Currently, only program = `imos`
+##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
 ##' @param drop.refs individual SMRU ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
@@ -25,6 +28,7 @@ write_2_csv <- function(smru_ssm,
                         what,
                         meta,
                         program = "imos",
+                        test = TRUE,
                         path = NULL,
                         drop.refs = NULL,
                         suffix = "_nrt") {
@@ -84,6 +88,7 @@ write_2_csv <- function(smru_ssm,
     smru_ssm = smru_ssm,
     meta = meta,
     program = program,
+    test = test,
     path = path,
     drop.refs = drop.refs,
     suffix = suffix
@@ -97,6 +102,7 @@ write_2_csv <- function(smru_ssm,
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
+      test = test,
       path = path,
       drop.refs = drop.refs,
       suffix = suffix
@@ -111,6 +117,7 @@ write_2_csv <- function(smru_ssm,
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
+      test = test,
       path = path,
       drop.refs = drop.refs,
       suffix = suffix
@@ -125,6 +132,7 @@ write_2_csv <- function(smru_ssm,
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
+      test = test,
       path = path,
       drop.refs = drop.refs,
       suffix = suffix
@@ -165,6 +173,7 @@ write_2_csv <- function(smru_ssm,
   meta <- meta_write(
     meta = meta,
     program = program,
+    test = test,
     path = path,
     drop.refs = drop.refs,
     suffix = suffix

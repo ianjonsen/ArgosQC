@@ -5,6 +5,9 @@
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param test should variables be tested for standards compliance, default is TRUE.
+##' Standards compliance is specific to the program. Currently, only program = `imos`
+##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
 ##' @param drop.refs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
@@ -18,6 +21,7 @@
 smru_ctd_write <- function(smru_ssm,
                                meta,
                                program = "imos",
+                               test = TRUE,
                                path = NULL,
                                drop.refs = NULL,
                                suffix = "_nrt") {
@@ -154,7 +158,7 @@ smru_ctd_write <- function(smru_ssm,
   }
 
 
-  if (program == "imos") {
+  if (program == "imos" & test) {
     if(which(!tests) == 7) {
       ctd <- ctd |>
         mutate(n_cond = as.integer(n_cond, na.rm = TRUE))

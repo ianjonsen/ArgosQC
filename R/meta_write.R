@@ -4,6 +4,9 @@
 ##'
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param test should variables be tested for standards compliance, default is TRUE.
+##' Standards compliance is specific to the program. Currently, only program = `imos`
+##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
 ##' @param drop.refs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
@@ -21,6 +24,7 @@
 
 meta_write <- function(meta,
                            program = "imos",
+                           test = TRUE,
                            path = NULL,
                            drop.refs = NULL,
                            suffix = "_nrt") {
@@ -154,9 +158,11 @@ meta_write <- function(meta,
         any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date))
       )
     )
-    fails <- names(meta)[which(!tests)]
-    if (length(fails) > 0)
-      stop(paste0("non-compliant metadata records found in: ", fails, "\n"))
+    if(test) {
+      fails <- names(meta)[which(!tests)]
+      if (length(fails) > 0)
+        stop(paste0("non-compliant metadata records found in: ", fails, "\n"))
+    }
 
     ## If metadata is compliant then write to .csv by sattag_program (SMRU campaign id)
     meta <- meta |>
