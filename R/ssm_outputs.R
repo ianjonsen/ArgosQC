@@ -5,6 +5,7 @@
 ##' @param fit final \code{aniMotum} fit object
 ##' @param what specify whether predicted or rerouted locations are to be used
 ##' @param drop.refs individual SMRU ids to be dropped
+##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##' @importFrom dplyr filter rename mutate select any_of bind_rows group_by
 ##' @importFrom dplyr group_split
@@ -18,7 +19,8 @@
 
 ssm_outputs <- function(fit,
                         what,
-                        drop.refs
+                        drop.refs,
+                        suffix
                         ) {
 
   ## get predicted locations from fits
@@ -34,32 +36,61 @@ ssm_outputs <- function(fit,
 
   if (all(!c("u", "v", "u_se", "v_se", "s", "s_se") %in% names(p))) {
     if (suffix != "_nrt") {
-      p <- p |>
-        mutate(
-          u = NA,
-          v = NA,
-          u_se = NA,
-          v_se = NA,
-          s = NA,
-          s_se = NA
-        ) |>
-        select(ref,
-               date,
-               lon,
-               lat,
-               x,
-               y,
-               x_se,
-               y_se,
-               u,
-               v,
-               u_se,
-               v_se,
-               s,
-               s_se,
-               cid,
-               keep)
-    } else {
+      if ("keep" %in% names(p)) {
+        p <- p |>
+          mutate(
+            u = NA,
+            v = NA,
+            u_se = NA,
+            v_se = NA,
+            s = NA,
+            s_se = NA
+          ) |>
+          select(ref,
+                 date,
+                 lon,
+                 lat,
+                 x,
+                 y,
+                 x_se,
+                 y_se,
+                 u,
+                 v,
+                 u_se,
+                 v_se,
+                 s,
+                 s_se,
+                 cid,
+                 keep)
+
+      } else if (!"keep" %in% names(p)){
+        p <- p |>
+          mutate(
+            u = NA,
+            v = NA,
+            u_se = NA,
+            v_se = NA,
+            s = NA,
+            s_se = NA
+          ) |>
+          select(ref,
+                 date,
+                 lon,
+                 lat,
+                 x,
+                 y,
+                 x_se,
+                 y_se,
+                 u,
+                 v,
+                 u_se,
+                 v_se,
+                 s,
+                 s_se,
+                 cid)
+      }
+
+    } else if (suffix == "_nrt") {
       p <- p |>
         mutate(
           u = NA,

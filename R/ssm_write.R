@@ -23,6 +23,7 @@ ssm_write <- function(p_out,
                       drop.refs = NULL,
                       suffix = "_nrt") {
 
+
   p_out <- p_out |>
     mutate(
       lon = round(lon, 6),
@@ -39,7 +40,7 @@ ssm_write <- function(p_out,
       s_se = round(s_se, 6)
     )
 
-  if (suffix != "_nrt") {
+  if (suffix != "_nrt" & "keep" %in% names(p_out)) {
     ## cut predicted locs from large data gaps
     p_out <- p_out |>
       filter(keep) |>

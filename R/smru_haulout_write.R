@@ -62,7 +62,7 @@ smru_haulout_write <- function(smru_ssm,
 
   if(any(!c("phosi_secs","wet_n","wet_min","wet_max","wet_mean","wet_sd","tagging_id","s_date_tag","e_date_tag") %in%
          names(haulout))) {
-    test <- with(haulout,
+    tests <- with(haulout,
                  c(is.character(ref),
                    is.integer(ptt),
                    inherits(s_date, "POSIXct"),
@@ -106,6 +106,7 @@ smru_haulout_write <- function(smru_ssm,
     }
 
   }
+
   if (program == "imos") {
 
     ## Test fails only throw error for IMOS program data

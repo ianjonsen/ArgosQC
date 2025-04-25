@@ -4,7 +4,7 @@
 \alias{ssm_outputs}
 \title{create ssmoutputs data.frame}
 \usage{
-ssm_outputs(fit, what, drop.refs)
+ssm_outputs(fit, what, drop.refs, suffix)
 }
 \arguments{
 \item{fit}{final \code{aniMotum} fit object}
@@ -12,6 +12,8 @@ ssm_outputs(fit, what, drop.refs)
 \item{what}{specify whether predicted or rerouted locations are to be used}
 
 \item{drop.refs}{individual SMRU ids to be dropped}
+
+\item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 }
 \description{
 build ssmoutputs data.frame from SSM predicted location

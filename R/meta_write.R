@@ -17,7 +17,7 @@
 ##' @importFrom purrr walk
 ##' @importFrom snakecase to_snake_case
 ##'
-##' @keywords innternal
+##' @keywords internal
 
 meta_write <- function(meta,
                            program = "imos",

@@ -34,8 +34,9 @@ write_2_csv <- function(smru_ssm,
 
   ## SSM predictions
   ssm_out <- ssm_outputs(fit = fit,
-                         what = "p",
-                         drop.refs = drop.refs)
+                         what = what,
+                         drop.refs = drop.refs,
+                         suffix = suffix)
 
   ## Metadata
   if (program == "imos") {
