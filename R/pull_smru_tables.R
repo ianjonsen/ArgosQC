@@ -17,6 +17,7 @@
 ##' @importFrom furrr future_map
 ##' @importFrom purrr pmap
 ##' @importFrom lubridate mdy_hms
+##' @importFrom stringr str_split
 ##'
 ##' @export
 
@@ -45,6 +46,10 @@ pull_smru_tables <- function(cids,
     for(i in tab) {
       if(i == "gps") {
         tmp <- system(paste0(p2mdbtools, "mdb-tables ", file), intern = TRUE)
+        if(length(tmp) == 1) {
+          tmp <- str_split(tmp, "\\ ", simplify = TRUE) |>
+            as.vector()
+        }
         if(!"gps" %in% tmp) {
           next
         }
@@ -81,6 +86,7 @@ pull_smru_tables <- function(cids,
     smru$diag <- smru$diag |>
     mutate(d_date = mdy_hms(d_date, tz = "UTC"))
   }
+
   if(any(names(smru) %in% "gps")) {
     smru$gps <- smru$gps |>
       mutate(d_date = mdy_hms(d_date, tz = "UTC"))
