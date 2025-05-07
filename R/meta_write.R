@@ -39,7 +39,7 @@ meta_write <- function(meta,
         state_country = ifelse(
           release_site == "Dumont d'Urville",
           "French Antarctic Territory",
-          NA
+          state_country
         )
       ) |>
       mutate(
@@ -115,7 +115,9 @@ meta_write <- function(meta,
         state_country,
         qc_start_date,
         qc_end_date
-      )
+      ) |>
+      filter(!is.na(qc_start_date),
+             !is.na(qc_end_date))
 
     ## return error if unexpected object mode or value
     tests <- with(

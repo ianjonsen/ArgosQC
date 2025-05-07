@@ -78,6 +78,7 @@ pull_smru_tables <- function(cids,
 
   smru <- smru_t |>
     pmap(dplyr::bind_rows)
+
   ## drop empty table(s)
   idx <- as.numeric(which(sapply(smru, nrow) == 0))
   if(length(idx) > 0) smru <- smru[-idx]
