@@ -118,7 +118,7 @@ pull_local_data <- function(path2data,
                  summary = summary)
 
   } else if(tag_mfr == "wc") {
-    stop("currently not supported")
+    stop("tag_mfr = 'wc' is deprecated. Use 'pull_wd_data()' instead.")
   }
 
   idx <- as.numeric(which(sapply(smru, nrow) == 0))

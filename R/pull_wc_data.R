@@ -40,7 +40,8 @@ pull_wc_data <- function(path2data) {
       "Locations",
       "[0-9]-FastGPS",
       "FastGPS",
-      "ECDHistos",
+      "ECDHistos_SCOUT",
+      "ECDHistos_SPLASH",
       "Histos",
       "MixLayer",
       "PDTs",
@@ -327,7 +328,6 @@ pull_wc_data <- function(path2data) {
     suppressWarnings()
 
 
-
   ## SST df's
   SST <- lapply(wc, function(x) {
     if (length(x$SST) > 0) {
@@ -362,6 +362,8 @@ pull_wc_data <- function(path2data) {
              MinMaxDepth,
              Haulout,
              SST)
+
+  names(wc) <- datafiles
 
   return(wc)
 }
