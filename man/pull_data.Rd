@@ -21,10 +21,6 @@ pull_data(
 \item{cids}{SMRU campaign ids. If not specified then the cids are built from
 the directory or filenames present in the \code{path2data} directory.}
 
-\item{datafiles}{specify which WC data files to extract, default is to
-extract all files: Locations, FastGPS, Histos, MinMaxDepth, Haulout, and
-SST (when present).}
-
 \item{tag_mfr}{either "smru or "wc", ignored if \code{source} != "local"}
 
 \item{...}{additional arguments passed to \code{pull_smru_tables}}

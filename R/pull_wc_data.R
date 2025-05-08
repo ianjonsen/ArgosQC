@@ -1,26 +1,28 @@
 ##' @title Pull data from Wildlife Computers tag data files
 ##'
-##' @description extracts data from `-Locations.csv` (Argos), `-FastGPS.csv`,
-##' `Histos.csv`, `MinMaxDepth.csv`, `HaulOut.csv`, and `SST.csv` files.
+##' @description extracts data from `X-Locations.csv` (Argos), `X-FastGPS.csv`,
+##' `ECDHistos.csv`, `Histos.csv`, `MixLayer.csv`, `PDTs.csv`, `DSA.csv`,
+##' `MinMaxDepth.csv`, `HaulOut.csv`, and `SST.csv` files.
 ##' Extracted data are aggregated across individual tags and returned in a
 ##' single named list with the following data.frames:
-##' * argos
-##' * fastgps
-##' * histos
-##' * minmaxdepth
-##' * haulout
-##' * sst
+##' * Argos
+##' * FastGPS
+##' * ECDHistos
+##' * Histos
+##' * Mixlayer
+##' * PDTs
+##' * DSA
+##' * MinMaxDepth
+##' * Haulout
+##' * SST
 ##' WC tag data files downloaded via `download_data` will be stored in separate,
 ##' tag-specific subdirectories. `path2data` should point to the outer directory.
 ##'
 ##' @param path2data path to all WC tag data files.
-##' @param datafiles specify which files to extract, default is to extract data
-##' from all of the listed files. At a minimum, data must be extracted from the
-##' `-X-Locations.csv` file, where `-X-` denotes the latest WC-processed version.
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr select mutate bind_rows everything
+##' @importFrom dplyr select mutate bind_rows everything case_when
 ##' @importFrom lubridate dmy_hms
 ##' @importFrom readr read_csv cols
 ##' @importFrom stringr str_split
@@ -29,24 +31,27 @@
 ##' @md
 ##' @export
 
-pull_wc_data <- function(path2data,
-                         datafiles = NULL) {
+pull_wc_data <- function(path2data) {
 
-  if(is.null(datafiles))
-    datafiles <- c("argos", "fastgps", "histos", "depth", "haulout", "sst")
+  ## All known WC data files to be QC'd + regex expressions to obtain latest
+  ##    WC-post-processed Locations and FastGPS files
+    datafiles <- c(
+      "[0-9]-Locations",
+      "Locations",
+      "[0-9]-FastGPS",
+      "FastGPS",
+      "ECDHistos",
+      "Histos",
+      "MixLayer",
+      "PDTs",
+      "DSA",
+      "MinMaxDepth",
+      "Haulout",
+      "SST"
+    )
 
-  datafiles <- match.arg(datafiles,
-                         choices = c("argos",
-                                     "fastgps",
-                                     "histos",
-                                     "depth",
-                                     "haulout",
-                                     "sst"),
-                         several.ok = TRUE)
-
-  if(!"argos" %in% datafiles) stop("At a minimum, the '-Locations.csv' must be specified in 'datafiles'.")
-
-  ## drop tag dirs with *-Locations.csv files < 20 Argos locations
+  ## drop tag dirs with *-Locations.csv files < 20 Argos locations &/or without *-Locations.csv
+  ##    file(s) b/c these latter dirs likely contain SMRU data
   dirs <- list.dirs(path2data)[-1]
 
   idx <- sapply(1:length(dirs), function(i) {
@@ -62,190 +67,301 @@ pull_wc_data <- function(path2data,
   idx <- idx > 20
   ndirs <- dirs[idx]
 
-  ## get all data files & merge into list
-  wc <- vector(mode = "list", length = 6)
-
-  if ("argos" %in% datafiles) {
-  ## Argos locs
-  wc[[1]] <- lapply(1:length(ndirs), function(i) {
-    fs <- list.files(ndirs[i])
-    id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
-
-    if (file.exists(paste0(file.path(ndirs[i], id), "-Locations.csv"))) {
-      loc <- list.files(ndirs[i], pattern = "[0-9]-Locations.csv")[1]
-      try(read_csv(file.path(ndirs[i], loc), col_types = cols()) |>
-            mutate(DeployID = as.character(DeployID),
-                   Quality = ifelse(Type == "User", "G", Quality)),
-          silent = TRUE)
-    }
+  ## get all required data filenames
+  fs <- lapply(1:length(ndirs), function(i) {
+    tmp <- grep(paste(datafiles, collapse="|"),
+         list.files(ndirs[i]),
+         value = TRUE)
+    ds <- list.dirs(ndirs[i])
+    xx <- c("FastGPS","Locations")
+    out <- tmp[c(grep(xx[1], tmp)[1],
+          grep(xx[2], tmp)[1],
+          grep(paste(xx, collapse="|"), tmp, invert = TRUE))]
+    file.path(ds, out[!is.na(out)])
   })
-  ## deal with potential issue where some tag -Locations file column names have
-  ##  different lower/upper case letters
-  wc[[1]] <- lapply(wc[[1]], function(x) {
-    names(x) <- tolower(names(x))
-    x
+
+  ## drop the 2 regex expressions from the filenames
+  datafiles <- datafiles[-c(1,3)]
+
+  wc <- suppressWarnings(lapply(fs, function(x) {
+    out <- lapply(1:length(x), function(i) {
+      xx <- read_csv(x[[i]],
+                     show_col_types = FALSE,
+                     name_repair = "unique_quiet") |>
+        suppressMessages()
+      ## detect & account for any leading blank rows in .csv files
+      nn <- rowSums(is.na(xx)) == ncol(xx)
+      ns <- sum(nn)
+      if(ns > 0 & 1 %in% which(nn)) {
+        xx <- read_csv(x[[i]],
+                       show_col_types = FALSE,
+                       name_repair = "unique_quiet",
+                       skip = ns+1) |>
+          suppressMessages()
+      }
+      xx
+    })
+    nms <- str_split(str_split(x, "\\.", simplify = TRUE)[,1], "-(?=[^-]+$)", simplify = TRUE)[,2]
+    names(out) <- nms
+    out
+  }))
+
+
+  ## Locations df
+  Locations <- lapply(wc, function(x) {
+    if(length(x$Locations) > 0) {
+      x$Locations |>
+        mutate(DeployID = as.character(DeployID))
+    }
   }) |>
     bind_rows() |>
-    filter(type != "FastGPS") |>
-    mutate(day = str_split(date, " ", simplify = TRUE)[, 2],
-           time = str_split(date, " ", simplify = TRUE)[, 1]) |>
+    mutate(Quality = case_when(Type == "User" ~ "G",
+              Type == "FastGPS" ~ "G",
+              Type == "Mote" ~ "B",
+              Quality == "Z" ~ "B",
+              .default = as.character(Quality))) |>
+    mutate(day = str_split(Date, " ", simplify = TRUE)[, 2],
+           time = str_split(Date, " ", simplify = TRUE)[, 1]) |>
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
-    mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(ptt = ptt, everything(), -day, -time) |>
-    rename(DeployID = deployid)
-}
+    mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time)
 
-  if ("fastgps" %in% datafiles) {
-    ## GPS locs
-    wc[[2]] <- lapply(1:length(ndirs), function(i) {
-      fs <- list.files(ndirs[i])
-      id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
-
-      if (file.exists(paste0(file.path(ndirs[i], id), "-FastGPS.csv"))) {
-        loc <- list.files(ndirs[i], pattern = "[0-9]-FastGPS.csv")[1]
-        x <- try(read_csv(file.path(ndirs[i], loc),
-                          name_repair = "unique_quiet",
-                          col_types = cols()), silent = TRUE)
-        nr <- sum(rowSums(is.na(x)) == ncol(x))
-        if(nr > 0) {
-          x <- try(read_csv(file.path(ndirs[i], loc),
-                            name_repair = "unique_quiet",
-                            skip = nr+1,
-                            col_types = cols()), silent = TRUE)
-        }
-        if (!inherits(x, "try-error"))
-          x
+  ## FastGPS df
+  FastGPS <- lapply(wc, function(x) {
+    if(length(x$FastGPS) > 0) {
+      out <- x$FastGPS |>
+        mutate(Name = as.character(Name))
+      ## Add '50CI' & '90CI' variables if missing so all df's have same vars
+      if(!"50CI" %in% names(out)) {
+        out <- out |>
+          mutate("50CI" = NA,
+                 "95CI" = NA) |>
+          select(1:17, "50CI", "95CI", 18:ncol(out))
       }
-    }) |>
-      bind_rows() |>
-      mutate(date = dmy_hms(paste(Day, Time), tz = "UTC")) |>
-      rename(ptt = Name) |>
-      select(ptt, everything())
-  }
+      out
+    }
+    }) |> list_drop_empty()
 
-  if ("histos" %in% datafiles) {
-    ## Histos
-    wc[[3]] <- suppressWarnings(
-      lapply(1:length(ndirs), function(i) {
-        fs <- list.files(ndirs[i])
-        id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
-        if (file.exists(paste0(file.path(ndirs[i], id), "-Histos.csv"))) {
-          x <- try(read_csv(paste0(
-            file.path(ndirs[i], id), "-Histos.csv"
-          ), col_types = cols()), silent = TRUE)
-          x[, c(1, 16:87)] <- apply(x[, c(1, 16:87)], 2, as.character)
-          if (!inherits(x, "try-error"))
-            x
-        }
-      }) |>
-        bind_rows() |>
-        mutate(
-          day = str_split(Date, " ", simplify = TRUE)[, 2],
-          time = str_split(Date, " ", simplify = TRUE)[, 1]
-        ) |>
-        mutate(
-          day = ifelse(day == "", NA, day),
-          time = ifelse(time == "", NA, time)
-        ) |>
-        mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
-        mutate(ptt = Ptt) |>
-        select(ptt, everything(), -day, -time)
-    )
-  }
+  if(length(FastGPS) > 0) FastGPS <- FastGPS |>
+    bind_rows() |>
+    suppressMessages()
 
-  if ("depth" %in% datafiles) {
-    ## MinMaxDepth
-    wc[[4]] <- suppressWarnings(
-      lapply(1:length(ndirs), function(i) {
-        fs <- list.files(ndirs[i])
-        id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
-        if (file.exists(paste0(file.path(ndirs[i], id), "-MinMaxDepth.csv"))) {
-          x <- try(read_csv(paste0(
-            file.path(ndirs[i], id), "-MinMaxDepth.csv"
-          ), col_types = cols()), silent = TRUE) |>
-            mutate(DeployID = as.character(DeployID))
-          if (!inherits(x, "try-error"))
-            x
-        }
-      }) |>
-        bind_rows() |>
-        mutate(
-          day = str_split(Date, " ", simplify = TRUE)[, 2],
-          time = str_split(Date, " ", simplify = TRUE)[, 1]
-        ) |>
-        mutate(
-          day = ifelse(day == "", NA, day),
-          time = ifelse(time == "", NA, time)
-        ) |>
-        mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
-        mutate(ptt = Ptt) |>
-        select(ptt, everything(), -day, -time)
-    )
-  }
 
-browser()
+  ## ECDHistos df's - separate for SCOUT & SPLASH b/c df's have different structure
+  ECDHistos_SCOUT <- lapply(wc, function(x) {
+    if (length(x$ECDHistos) > 0 &
+        length(unique(x$ECDHistos$Kind)) > 1) {
+      x$ECDHistos |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |> list_drop_empty()
 
-  if ("haulout" %in% datafiles) {
-    ## Haulout
-    wc[[5]] <- suppressWarnings(
-      lapply(1:length(ndirs), function(i) {
-        fs <- list.files(ndirs[i])
-        id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
-        if (file.exists(paste0(file.path(ndirs[i], id), "-HaulOut.csv"))) {
-          x <- try(read_csv(paste0(
-            file.path(ndirs[i], id), "-HaulOut.csv"
-          ), col_types = cols()), silent = TRUE)
-          if (!inherits(x, "try-error"))
-            x
-        }
-      }) |>
-        bind_rows() |>
-        mutate(
-          day = str_split(EndMax, " ", simplify = TRUE)[, 2],
-          time = str_split(EndMax, " ", simplify = TRUE)[, 1]
-        ) |>
-        mutate(
-          day = ifelse(day == "", NA, day),
-          time = ifelse(time == "", NA, time)
-        ) |>
-        mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
-        mutate(ptt = Ptt) |>
-        select(ptt, everything(), -day, -time)
-    )
-  }
+  if (length(ECDHistos_SCOUT) > 0)
+    ECDHistos_SCOUT <- ECDHistos_SCOUT |>
+    bind_rows() |>
+    mutate(
+      day = str_split(Date, " ", simplify = TRUE)[, 2],
+      time = str_split(Date, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time)
 
-  if ("sst" %in% datafiles) {
-    ## SST
-    wc[[6]] <- suppressWarnings(
-      lapply(1:length(ndirs), function(i) {
-        fs <- list.files(ndirs[i])
-        id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
-        if (file.exists(paste0(file.path(ndirs[i], id), "-SST.csv"))) {
-          x <- try(read_csv(paste0(file.path(ndirs[i], id), "-SST.csv"), col_types = cols()), silent = TRUE)
-          if (!inherits(x, "try-error"))
-            x
-        }
-      }) |>
-        bind_rows() |>
-        mutate(
-          day = str_split(Date, " ", simplify = TRUE)[, 2],
-          time = str_split(Date, " ", simplify = TRUE)[, 1]
-        ) |>
-        mutate(
-          day = ifelse(day == "", NA, day),
-          time = ifelse(time == "", NA, time)
-        ) |>
-        mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
-        mutate(ptt = Ptt) |>
-        select(ptt, everything(), -day, -time)
-    )
-  }
+  ECDHistos_SPLASH <- lapply(wc, function(x) {
+    if(length(x$ECDHistos) > 0 & length(unique(x$ECDHistos$Kind)) == 1) {
+      x$ECDHistos |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |> list_drop_empty()
 
-  ## drop empty list elements
-  idx <- !sapply(wc, is.null)
-  wc <- list_drop_empty(wc)
-  names(wc) <- datafiles[idx]
+  if(length(ECDHistos_SPLASH) > 0) ECDHistos_SPLASH <- ECDHistos_SPLASH |>
+    bind_rows() |>
+    mutate(day = str_split(Start, " ", simplify = TRUE)[, 2],
+           time = str_split(Start, " ", simplify = TRUE)[, 1]) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(Start = dmy_hms(paste(day, time), tz = "UTC")) |>
+    mutate(day = str_split(End, " ", simplify = TRUE)[, 2],
+           time = str_split(End, " ", simplify = TRUE)[, 1]) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(End = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time)
+
+
+  ## Histos df's
+  Histos <- lapply(wc, function(x) {
+    if (length(x$Histos) > 0) {
+      x$Histos |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |>
+    list_drop_empty()
+
+  if(length(Histos) > 0) Histos <- Histos |>
+    bind_rows() |>
+    mutate(
+      day = str_split(Date, " ", simplify = TRUE)[, 2],
+      time = str_split(Date, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time)
+
+
+  ## MixLayer df's
+  MixLayer <- lapply(wc, function(x) {
+    if (length(x$MixLayer) > 0) {
+      x$MixLayer |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |>
+    list_drop_empty()
+
+  if(length(MixLayer) > 0) MixLayer <- MixLayer |>
+    bind_rows() |>
+    mutate(
+      day = str_split(Date, " ", simplify = TRUE)[, 2],
+      time = str_split(Date, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time)
+
+
+  ## PDTs df's
+  PDTs <- lapply(wc, function(x) {
+    if (length(x$PDTs) > 0) {
+      x$PDTs |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |>
+    list_drop_empty()
+
+  if(length(PDTs) > 0) PDTs <- PDTs |>
+    bind_rows() |>
+    mutate(
+      day = str_split(Date, " ", simplify = TRUE)[, 2],
+      time = str_split(Date, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time)
+
+
+  ## DSA df's
+  DSA <- lapply(wc, function(x) {
+    if (length(x$DSA) > 0) {
+      x$DSA |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |>
+    list_drop_empty()
+
+  if(length(DSA) > 0) DSA <- DSA |>
+    bind_rows() |>
+    mutate(
+      day = str_split(DiveStart, " ", simplify = TRUE)[, 2],
+      time = str_split(DiveStart, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(DiveStart = dmy_hms(paste(day, time), tz = "UTC")) |>
+    mutate(
+      day = str_split(SegmentStart, " ", simplify = TRUE)[, 2],
+      time = str_split(SegmentStart, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(SegmentStart = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time) |>
+    suppressWarnings()
+
+
+  ## MinMaxDepth df's
+  MinMaxDepth <- lapply(wc, function(x) {
+    if (length(x$MinMaxDepth) > 0) {
+      x$MinMaxDepth |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |>
+    list_drop_empty()
+
+  if(length(MinMaxDepth) > 0) MinMaxDepth <- MinMaxDepth |>
+    bind_rows() |>
+    mutate(
+      day = str_split(Date, " ", simplify = TRUE)[, 2],
+      time = str_split(Date, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time) |>
+    suppressWarnings()
+
+
+  ## Haulout df's
+  Haulout <- lapply(wc, function(x) {
+    if (length(x$Haulout) > 0) {
+      x$Haulout |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |>
+    list_drop_empty()
+
+  if(length(Haulout) > 0) Haulout <- Haulout |>
+    bind_rows() |>
+    mutate(
+      day = str_split(EndMax, " ", simplify = TRUE)[, 2],
+      time = str_split(EndMax, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(EndMax = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time) |>
+    suppressWarnings()
+
+
+
+  ## SST df's
+  SST <- lapply(wc, function(x) {
+    if (length(x$SST) > 0) {
+      x$SST |>
+        mutate(DeployID = as.character(DeployID))
+    }
+  }) |>
+    list_drop_empty()
+
+  if(length(SST) > 0) SST <- SST |>
+    bind_rows() |>
+    mutate(
+      day = str_split(Date, " ", simplify = TRUE)[, 2],
+      time = str_split(Date, " ", simplify = TRUE)[, 1]
+    ) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(-day, -time) |>
+    suppressWarnings()
+
+
+  ## Combine into single wc list
+  wc <- list(Locations,
+             FastGPS,
+             ECDHistos_SCOUT,
+             ECDHistos_SPLASH,
+             Histos,
+             MixLayer,
+             PDTs,
+             DSA,
+             MinMaxDepth,
+             Haulout,
+             SST)
 
   return(wc)
 }

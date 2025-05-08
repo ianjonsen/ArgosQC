@@ -27,9 +27,9 @@
 ##' @importFrom vctrs list_drop_empty
 ##'
 ##' @md
-##' @export
+##' @keywords internal
 
-pull_wc_data2 <- function(path2data,
+pull_wc_data_old <- function(path2data,
                          datafiles = NULL) {
 
   if(is.null(datafiles))
@@ -46,8 +46,7 @@ pull_wc_data2 <- function(path2data,
 
   if(!"argos" %in% datafiles) stop("At a minimum, the '-Locations.csv' must be specified in 'datafiles'.")
 
-  ## drop tag dirs with *-Locations.csv files < 20 Argos locations &/or without *-Locations.csv
-  ##    file(s) b/c these dirs contain SMRU data
+  ## drop tag dirs with *-Locations.csv files < 20 Argos locations
   dirs <- list.dirs(path2data)[-1]
 
   idx <- sapply(1:length(dirs), function(i) {
@@ -63,43 +62,39 @@ pull_wc_data2 <- function(path2data,
   idx <- idx > 20
   ndirs <- dirs[idx]
 
-  fs <- lapply(1:length(ndirs), function(i) list.files(ndirs[i]))
-
-  browser()
-
   ## get all data files & merge into list
   wc <- vector(mode = "list", length = 6)
 
   if ("argos" %in% datafiles) {
-    ## Argos locs
-    wc[[1]] <- lapply(1:length(ndirs), function(i) {
-      fs <- list.files(ndirs[i])
-      id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
+  ## Argos locs
+  wc[[1]] <- lapply(1:length(ndirs), function(i) {
+    fs <- list.files(ndirs[i])
+    id <- str_split(fs[grep("-All.csv", fs)], "\\-", simplify = TRUE)[, 1]
 
-      if (file.exists(paste0(file.path(ndirs[i], id), "-Locations.csv"))) {
-        loc <- list.files(ndirs[i], pattern = "[0-9]-Locations.csv")[1]
-        try(read_csv(file.path(ndirs[i], loc), col_types = cols()) |>
-              mutate(DeployID = as.character(DeployID),
-                     Quality = ifelse(Type == "User", "G", Quality)),
-            silent = TRUE)
-      }
-    })
-    ## deal with potential issue where some tag -Locations file column names have
-    ##  different lower/upper case letters
-    wc[[1]] <- lapply(wc[[1]], function(x) {
-      names(x) <- tolower(names(x))
-      x
-    }) |>
-      bind_rows() |>
-      filter(type != "FastGPS") |>
-      mutate(day = str_split(date, " ", simplify = TRUE)[, 2],
-             time = str_split(date, " ", simplify = TRUE)[, 1]) |>
-      mutate(day = ifelse(day == "", NA, day),
-             time = ifelse(time == "", NA, time)) |>
-      mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
-      select(ptt = ptt, everything(), -day, -time) |>
-      rename(DeployID = deployid)
-  }
+    if (file.exists(paste0(file.path(ndirs[i], id), "-Locations.csv"))) {
+      loc <- list.files(ndirs[i], pattern = "[0-9]-Locations.csv")[1]
+      try(read_csv(file.path(ndirs[i], loc), col_types = cols()) |>
+            mutate(DeployID = as.character(DeployID),
+                   Quality = ifelse(Type == "User", "G", Quality)),
+          silent = TRUE)
+    }
+  })
+  ## deal with potential issue where some tag -Locations file column names have
+  ##  different lower/upper case letters
+  wc[[1]] <- lapply(wc[[1]], function(x) {
+    names(x) <- tolower(names(x))
+    x
+  }) |>
+    bind_rows() |>
+    filter(type != "FastGPS") |>
+    mutate(day = str_split(date, " ", simplify = TRUE)[, 2],
+           time = str_split(date, " ", simplify = TRUE)[, 1]) |>
+    mutate(day = ifelse(day == "", NA, day),
+           time = ifelse(time == "", NA, time)) |>
+    mutate(date = dmy_hms(paste(day, time), tz = "UTC")) |>
+    select(ptt = ptt, everything(), -day, -time) |>
+    rename(DeployID = deployid)
+}
 
   if ("fastgps" %in% datafiles) {
     ## GPS locs
@@ -189,7 +184,7 @@ pull_wc_data2 <- function(path2data,
     )
   }
 
-  browser()
+browser()
 
   if ("haulout" %in% datafiles) {
     ## Haulout

@@ -4,27 +4,28 @@
 \alias{pull_wc_data}
 \title{Pull data from Wildlife Computers tag data files}
 \usage{
-pull_wc_data(path2data, datafiles = NULL)
+pull_wc_data(path2data)
 }
 \arguments{
 \item{path2data}{path to all WC tag data files.}
-
-\item{datafiles}{specify which files to extract, default is to extract data
-from all of the listed files. At a minimum, data must be extracted from the
-\code{-X-Locations.csv} file, where \verb{-X-} denotes the latest WC-processed version.}
 }
 \description{
-extracts data from \code{-Locations.csv} (Argos), \code{-FastGPS.csv},
-\code{Histos.csv}, \code{MinMaxDepth.csv}, \code{HaulOut.csv}, and \code{SST.csv} files.
+extracts data from \code{X-Locations.csv} (Argos), \code{X-FastGPS.csv},
+\code{ECDHistos.csv}, \code{Histos.csv}, \code{MixLayer.csv}, \code{PDTs.csv}, \code{DSA.csv},
+\code{MinMaxDepth.csv}, \code{HaulOut.csv}, and \code{SST.csv} files.
 Extracted data are aggregated across individual tags and returned in a
 single named list with the following data.frames:
 \itemize{
-\item argos
-\item fastgps
-\item histos
-\item minmaxdepth
-\item haulout
-\item sst
+\item Argos
+\item FastGPS
+\item ECDHistos
+\item Histos
+\item Mixlayer
+\item PDTs
+\item DSA
+\item MinMaxDepth
+\item Haulout
+\item SST
 WC tag data files downloaded via \code{download_data} will be stored in separate,
 tag-specific subdirectories. \code{path2data} should point to the outer directory.
 }

@@ -20,9 +20,6 @@
 ##' @param source one of "smru", "wc", or "local"
 ##' @param cids SMRU campaign ids. If not specified then the cids are built from
 ##' the directory or filenames present in the `path2data` directory.
-##' @param datafiles specify which WC data files to extract, default is to
-##' extract all files: Locations, FastGPS, Histos, MinMaxDepth, Haulout, and
-##' SST (when present).
 ##' @param tag_mfr either "smru or "wc", ignored if `source` != "local"
 ##' @param ... additional arguments passed to `pull_smru_tables`
 ##'
@@ -55,8 +52,7 @@ pull_data <- function(path2data,
 
   } else if (source == "wc") {
 
-    out <- pull_wc_data(path2data,
-                 datafiles)
+    out <- pull_wc_data(path2data)
 
   } else if(source == "local") {
 
