@@ -29,7 +29,10 @@ smru_dive_write <- function(smru_ssm,
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
-
+  if(program == "imos") {
+    dive <- dive |>
+      filter(ref %in% meta$device_id)
+  }
 
  if (program == "atn") {
 

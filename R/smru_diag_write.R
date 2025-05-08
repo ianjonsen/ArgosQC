@@ -156,6 +156,11 @@ smru_diag_write <- function(smru_ssm,
     )
   )
 
+  if(program == "imos") {
+    diag <- diag |>
+      filter(ref %in% meta$device_id)
+  }
+
   if (program == "imos" & test) {
     ## Test fails only throw error for IMOS program data
     fails <- names(diag)[which(!tests)]

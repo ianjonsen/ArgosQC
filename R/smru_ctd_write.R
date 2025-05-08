@@ -157,6 +157,10 @@ smru_ctd_write <- function(smru_ssm,
     )
   }
 
+  if(program == "imos") {
+    ctd <- ctd |>
+      filter(ref %in% meta$device_id)
+  }
 
   if (program == "imos" & test) {
     if(which(!tests) == 7) {

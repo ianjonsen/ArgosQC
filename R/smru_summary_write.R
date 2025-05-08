@@ -29,6 +29,12 @@ smru_summary_write <- function(smru_ssm,
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
+  if(program == "imos") {
+    ## double check only device_id's in metadata are written
+    ssummary <- ssummary |>
+      filter(ref %in% meta$device_id)
+  }
+
   if (program == "atn") {
 
     ssummary <- left_join(
