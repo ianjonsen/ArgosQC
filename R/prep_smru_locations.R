@@ -118,18 +118,42 @@ prep_diag <- function(smru,
 
   } else if ("DeploymentID" %in% names(meta)) {
     deploy_meta <- meta |>
-      dplyr::select(DeploymentID, DeploymentStartDateTime, DeploymentStopDateTime, ctd_start, dive_start, ctd_end, dive_end) |>
-      mutate(ctd_start = ifelse(DeploymentStartDateTime > ctd_start,
-                                DeploymentStartDateTime, ctd_start)) |>
+      dplyr::select(
+        DeploymentID,
+        DeploymentStartDateTime,
+        DeploymentStopDateTime,
+        ctd_start,
+        dive_start,
+        ctd_end,
+        dive_end
+      ) |>
+      mutate(
+        ctd_start = ifelse(
+          DeploymentStartDateTime > ctd_start,
+          DeploymentStartDateTime,
+          ctd_start
+        )
+      ) |>
       mutate(ctd_start = as.POSIXct(ctd_start, origin = "1970-01-01", tz = "UTC")) |>
-      mutate(ctd_end = ifelse(DeploymentStopDateTime < ctd_end,
-                                DeploymentStopDateTime, ctd_end)) |>
+      mutate(ctd_end = ifelse(
+        DeploymentStopDateTime < ctd_end,
+        DeploymentStopDateTime,
+        ctd_end
+      )) |>
       mutate(ctd_end = as.POSIXct(ctd_end, origin = "1970-01-01", tz = "UTC")) |>
-      mutate(dive_start = ifelse(DeploymentStartDateTime > dive_start,
-                                DeploymentStartDateTime, dive_start)) |>
+      mutate(
+        dive_start = ifelse(
+          DeploymentStartDateTime > dive_start,
+          DeploymentStartDateTime,
+          dive_start
+        )
+      ) |>
       mutate(dive_start = as.POSIXct(dive_start, origin = "1970-01-01", tz = "UTC")) |>
-      mutate(dive_end = ifelse(DeploymentStopDateTime < dive_end,
-                              DeploymentStopDateTime, dive_end)) |>
+      mutate(dive_end = ifelse(
+        DeploymentStopDateTime < dive_end,
+        DeploymentStopDateTime,
+        dive_end
+      )) |>
       mutate(dive_end = as.POSIXct(dive_end, origin = "1970-01-01", tz = "UTC"))
 
     if(QCmode == "nrt") {

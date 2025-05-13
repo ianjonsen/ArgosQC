@@ -175,37 +175,37 @@ get_metadata <- function(source = "smru",
   } else if(tag_mfr == "wc") {
 
     dive_se1 <- tag_data$Histos |>
-      group_by(Ptt) |>
+      group_by(DeploymentID) |>
       summarise(
         dive_start = min(Date, na.rm = TRUE),
         dive_end = min(Date, na.rm = TRUE)
       )
     dive_se2 <- tag_data$ECDHistos_SCOUT_TEMP_361A |>
-      group_by(Ptt) |>
+      group_by(DeploymentID) |>
       summarise(
         dive_start = min(Date, na.rm = TRUE),
         dive_end = min(Date, na.rm = TRUE)
       )
     dive_se3 <- tag_data$ECDHistos_SCOUT_DSA |>
-      group_by(Ptt) |>
+      group_by(DeploymentID) |>
       summarise(
         dive_start = min(Start, na.rm = TRUE),
         dive_end = min(End, na.rm = TRUE)
       )
     dive_se4 <- tag_data$MinMaxDepth |>
-      group_by(Ptt) |>
+      group_by(DeploymentID) |>
       summarise(
         dive_start = min(Date, na.rm = TRUE),
         dive_end = max(Date, na.rm = TRUE)
       )
 
     dive_se <- bind_rows(dive_se1, dive_se2, dive_se3, dive_se4) |>
-      group_by(Ptt) |>
+      group_by(DeploymentID) |>
       summarise(dive_start = min(dive_start),
                 dive_end = max(dive_end))
 
     meta <- meta |>
-      left_join(dive_se, by = c("TagID" = "Ptt"))
+      left_join(dive_se, by = "DeploymentID") #c("TagID" = "Ptt"))
 
   }
 

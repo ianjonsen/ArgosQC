@@ -101,8 +101,10 @@ pull_wc_data <- function(path2data) {
                        skip = ns+1) |>
           suppressMessages()
       }
+
       xx |>
         mutate(DeploymentID = unique(str_split(x[[i]], "\\/", simplify = TRUE)[,2])) |>
+        mutate(DeploymentID = str_split(DeploymentID, "\\_", simplify = TRUE)[,1]) |> ## removes _suffix (Tag serial number) if present
         select(DeploymentID, everything())
     })
     nms <- str_split(str_split(x, "\\.", simplify = TRUE)[,1], "-(?=[^-]+$)", simplify = TRUE)[,2]
