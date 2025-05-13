@@ -18,7 +18,8 @@ single named list with the following data.frames:
 \itemize{
 \item Argos
 \item FastGPS
-\item ECDHistos
+\item ECDHistos_SCOUT_TEMP_361A
+\item ECDHistos_SCOUT_DSA
 \item Histos
 \item Mixlayer
 \item PDTs

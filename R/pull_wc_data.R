@@ -7,7 +7,8 @@
 ##' single named list with the following data.frames:
 ##' * Argos
 ##' * FastGPS
-##' * ECDHistos
+##' * ECDHistos_SCOUT_TEMP_361A
+##' * ECDHistos_SCOUT_DSA
 ##' * Histos
 ##' * Mixlayer
 ##' * PDTs
@@ -40,8 +41,8 @@ pull_wc_data <- function(path2data) {
       "Locations",
       "[0-9]-FastGPS",
       "FastGPS",
-      "ECDHistos_SCOUT",
-      "ECDHistos_SPLASH",
+      "ECDHistos_SCOUT_TEMP_361A",
+      "ECDHistos_SCOUT_DSA",
       "Histos",
       "MixLayer",
       "PDTs",
@@ -100,13 +101,14 @@ pull_wc_data <- function(path2data) {
                        skip = ns+1) |>
           suppressMessages()
       }
-      xx
+      xx |>
+        mutate(DeploymentID = unique(str_split(x[[i]], "\\/", simplify = TRUE)[,2])) |>
+        select(DeploymentID, everything())
     })
     nms <- str_split(str_split(x, "\\.", simplify = TRUE)[,1], "-(?=[^-]+$)", simplify = TRUE)[,2]
     names(out) <- nms
     out
   }))
-
 
   ## Locations df
   Locations <- lapply(wc, function(x) {
@@ -126,7 +128,8 @@ pull_wc_data <- function(path2data) {
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(-day, -time)
+    select(-day, -time) |>
+    suppressMessages()
 
   ## FastGPS df
   FastGPS <- lapply(wc, function(x) {
@@ -148,9 +151,8 @@ pull_wc_data <- function(path2data) {
     bind_rows() |>
     suppressMessages()
 
-
-  ## ECDHistos df's - separate for SCOUT & SPLASH b/c df's have different structure
-  ECDHistos_SCOUT <- lapply(wc, function(x) {
+  ## ECDHistos df's - separate for SCOUT_TEMP_361A & SCOUT_DSA b/c df's have different structure
+  ECDHistos_SCOUT_TEMP_361A <- lapply(wc, function(x) {
     if (length(x$ECDHistos) > 0 &
         length(unique(x$ECDHistos$Kind)) > 1) {
       x$ECDHistos |>
@@ -158,8 +160,8 @@ pull_wc_data <- function(path2data) {
     }
   }) |> list_drop_empty()
 
-  if (length(ECDHistos_SCOUT) > 0)
-    ECDHistos_SCOUT <- ECDHistos_SCOUT |>
+  if (length(ECDHistos_SCOUT_TEMP_361A) > 0)
+    ECDHistos_SCOUT_TEMP_361A <- ECDHistos_SCOUT_TEMP_361A |>
     bind_rows() |>
     mutate(
       day = str_split(Date, " ", simplify = TRUE)[, 2],
@@ -168,16 +170,17 @@ pull_wc_data <- function(path2data) {
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(-day, -time)
+    select(-day, -time) |>
+    suppressMessages()
 
-  ECDHistos_SPLASH <- lapply(wc, function(x) {
+  ECDHistos_SCOUT_DSA <- lapply(wc, function(x) {
     if(length(x$ECDHistos) > 0 & length(unique(x$ECDHistos$Kind)) == 1) {
       x$ECDHistos |>
         mutate(DeployID = as.character(DeployID))
     }
   }) |> list_drop_empty()
 
-  if(length(ECDHistos_SPLASH) > 0) ECDHistos_SPLASH <- ECDHistos_SPLASH |>
+  if(length(ECDHistos_SCOUT_DSA) > 0) ECDHistos_SCOUT_DSA <- ECDHistos_SCOUT_DSA |>
     bind_rows() |>
     mutate(day = str_split(Start, " ", simplify = TRUE)[, 2],
            time = str_split(Start, " ", simplify = TRUE)[, 1]) |>
@@ -189,7 +192,8 @@ pull_wc_data <- function(path2data) {
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
     mutate(End = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(-day, -time)
+    select(-day, -time) |>
+    suppressMessages()
 
 
   ## Histos df's
@@ -210,7 +214,8 @@ pull_wc_data <- function(path2data) {
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(-day, -time)
+    select(-day, -time) |>
+    suppressMessages()
 
 
   ## MixLayer df's
@@ -231,7 +236,8 @@ pull_wc_data <- function(path2data) {
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(-day, -time)
+    select(-day, -time) |>
+    suppressMessages()
 
 
   ## PDTs df's
@@ -252,7 +258,8 @@ pull_wc_data <- function(path2data) {
     mutate(day = ifelse(day == "", NA, day),
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
-    select(-day, -time)
+    select(-day, -time) |>
+    suppressMessages()
 
 
   ## DSA df's
@@ -353,15 +360,16 @@ pull_wc_data <- function(path2data) {
   ## Combine into single wc list
   wc <- list(Locations,
              FastGPS,
-             ECDHistos_SCOUT,
-             ECDHistos_SPLASH,
+             ECDHistos_SCOUT_TEMP_361A,
+             ECDHistos_SCOUT_DSA,
              Histos,
              MixLayer,
              PDTs,
              DSA,
              MinMaxDepth,
              Haulout,
-             SST)
+             SST)|>
+    suppressMessages()
 
   names(wc) <- datafiles
 

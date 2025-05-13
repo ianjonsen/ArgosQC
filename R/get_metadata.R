@@ -24,6 +24,7 @@
 ##' @importFrom stringr str_to_lower str_replace_all
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom assertthat assert_that
+##' @importFrom readr read_csv cols locale
 ##'
 ##' @export
 ##'
@@ -47,11 +48,17 @@ get_metadata <- function(source = "smru",
       ## subset to current campaigns & apply drop.refs
       SMRUCampaignID <- str_split(meta$DeploymentID, "\\-", simplify = TRUE)[,1]
       meta <- meta |>
+        mutate(SMRUCampaignID = SMRUCampaignID) |>
         filter(SMRUCampaignID %in% cids) |>
-        filter(!DeploymentID %in% dropIDs)
+        filter(!DeploymentID %in% dropIDs) |>
+        select(-SMRUCampaignID)
 
     } else if(tag_mfr == "wc") {
-      stop("ATN metadata not yet supported")
+      ## read metadata & subset to ID's in current data to be QC'd
+      meta <- readr::read_csv(file,
+                              col_types = c("iiccccccTccicccccTTcddcccicdccdccdcccdcTc")) |>
+        filter(!DeploymentID %in% dropIDs)
+
     }
 
   } else if(source == "smru") {
@@ -133,35 +140,74 @@ get_metadata <- function(source = "smru",
       filter(!device_id %in% dropIDs)
     }
 
-## append dive start and end dates for (alternate) track truncation
-##  to be used as alternate on final, delayed-mode (manual) QC
-dive_se <- tag_data$dive |>
-  mutate(ref = as.character(ref)) |>
-  select(ref, de_date, max_dep) |>
-  group_by(ref) |>
-  summarise(dive_start = min(de_date, na.rm = TRUE),
-            dive_end = max(de_date, na.rm = TRUE))
+  if (tag_mfr == "smru") {
+    ## append dive start and end dates for (alternate) track truncation
+    ##  to be used as alternate on final, delayed-mode (manual) QC
+    dive_se <- tag_data$dive |>
+      mutate(ref = as.character(ref)) |>
+      select(ref, de_date, max_dep) |>
+      group_by(ref) |>
+      summarise(
+        dive_start = min(de_date, na.rm = TRUE),
+        dive_end = max(de_date, na.rm = TRUE)
+      )
 
-## append CTD start and end dates for track truncation
-ctd_se <- tag_data$ctd |>
-  mutate(ref = as.character(ref)) |>
-  select(ref, end_date) |>
-  group_by(ref) |>
-  summarise(ctd_start = min(end_date, na.rm = TRUE),
-            ctd_end = max(end_date, na.rm = TRUE))
+    ## append CTD start and end dates for track truncation
+    ctd_se <- tag_data$ctd |>
+      mutate(ref = as.character(ref)) |>
+      select(ref, end_date) |>
+      group_by(ref) |>
+      summarise(
+        ctd_start = min(end_date, na.rm = TRUE),
+        ctd_end = max(end_date, na.rm = TRUE)
+      )
 
+    meta <- switch(source, atn = {
+      meta |>
+        left_join(dive_se, by = c("DeploymentID" = "ref")) |>
+        left_join(ctd_se, by = c("DeploymentID" = "ref"))
+    }, smru = {
+      meta |>
+        left_join(dive_se, by = c("device_id" = "ref")) |>
+        left_join(ctd_se, by = c("device_id" = "ref"))
+    })
 
-meta <- switch(source,
-               atn = {
-                 meta |>
-                   left_join(dive_se, by = c("DeploymentID" = "ref")) |>
-                   left_join(ctd_se, by = c("DeploymentID" = "ref"))
-               },
-               smru = {
-                 meta |>
-                   left_join(dive_se, by = c("device_id" = "ref")) |>
-                   left_join(ctd_se, by = c("device_id" = "ref"))
-               })
+  } else if(tag_mfr == "wc") {
+
+    dive_se1 <- tag_data$Histos |>
+      group_by(Ptt) |>
+      summarise(
+        dive_start = min(Date, na.rm = TRUE),
+        dive_end = min(Date, na.rm = TRUE)
+      )
+    dive_se2 <- tag_data$ECDHistos_SCOUT_TEMP_361A |>
+      group_by(Ptt) |>
+      summarise(
+        dive_start = min(Date, na.rm = TRUE),
+        dive_end = min(Date, na.rm = TRUE)
+      )
+    dive_se3 <- tag_data$ECDHistos_SCOUT_DSA |>
+      group_by(Ptt) |>
+      summarise(
+        dive_start = min(Start, na.rm = TRUE),
+        dive_end = min(End, na.rm = TRUE)
+      )
+    dive_se4 <- tag_data$MinMaxDepth |>
+      group_by(Ptt) |>
+      summarise(
+        dive_start = min(Date, na.rm = TRUE),
+        dive_end = max(Date, na.rm = TRUE)
+      )
+
+    dive_se <- bind_rows(dive_se1, dive_se2, dive_se3, dive_se4) |>
+      group_by(Ptt) |>
+      summarise(dive_start = min(dive_start),
+                dive_end = max(dive_end))
+
+    meta <- meta |>
+      left_join(dive_se, by = c("TagID" = "Ptt"))
+
+  }
 
 ## if none of above sources apply then default to local IMOS metadata
 if(source == "imos") {
@@ -171,8 +217,11 @@ if(source == "imos") {
                        drop.refs = dropIDs,
                        file = file)
 
-  } else if(tag_mfr != "smru") {
+  } else if(tag_mfr == "wc") {
     stop("IMOS WC tags not yet supported")
+
+  } else if(!tag_mfr %in% c("smru","wc")) {
+    stop(paste("tags made by", tag_mfr, "are not yet supported"))
   }
 
   return(meta)
