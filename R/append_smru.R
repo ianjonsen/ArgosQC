@@ -8,7 +8,7 @@
 ##' @param meta metadata used to truncate start of diag data for each individual
 ##' @param gps.tab logical; does a SMRU GPS table exist, if so append to this as well
 ##' @param cut drop predicted locations if keep = FALSE, ie. locations in a large data gap
-##' @param drop.refs SMRU refs to be dropped
+##' @param dropIDs SMRU refs to be dropped
 ##' @param crs CRS to be applied when interpolating SSM-estimated locations and re-projecting back from Cartesian coords to longlat
 ##'
 ##' @examples
@@ -23,14 +23,14 @@
 ##'
 ##' @export
 
-annotate_smru_tables <- function(smru,
+annotate_smru <- function(smru,
                                  fit,
                                  what = "p",
                                  meta,
                                  gps.tab = FALSE,
                                  cut = FALSE,
-                                 drop.refs = NULL,
-                                 crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs") {
+                                 dropIDs = NULL,
+                                 crs = "+proj=merc +units=km +ellps=WGS84 +no_defs") {
 
   ## general approx fun
   approx.fn <- function(x, smru.table, date.var) {

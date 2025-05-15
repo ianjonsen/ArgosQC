@@ -39,6 +39,7 @@ redo_multi_filter <-
            map = NULL,
            reroute = TRUE,
            verbose = TRUE,
+           dist = 1500,
            ...) {
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
@@ -113,6 +114,7 @@ redo_multi_filter <-
       fit.s <- fit.s |>
         aniMotum::route_path(what = "predicted",
                              map_scale = 10,
+                             dist = dist,
                              ...)
     }
 
@@ -123,6 +125,7 @@ redo_multi_filter <-
       fit <- fit |>
         aniMotum::route_path(what = "predicted",
                              map_scale = 10,
+                             dist = dist,
                              ...)
     }
 

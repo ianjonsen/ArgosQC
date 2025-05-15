@@ -16,6 +16,7 @@ redo_multi_filter(
   map = NULL,
   reroute = TRUE,
   verbose = TRUE,
+  dist = 1500,
   ...
 )
 }
