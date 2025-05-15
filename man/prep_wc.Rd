@@ -4,13 +4,7 @@
 \alias{prep_wc}
 \title{clean, truncate & convert WC Locations files to sf-tibbles}
 \usage{
-prep_wc(
-  wc,
-  meta,
-  dropIDs,
-  crs = "+proj=merc +units=km +ellps=WGS84 +no_defs",
-  QCmode = "nrt"
-)
+prep_wc(wc, meta, dropIDs, as_sf = TRUE, program = "atn", QCmode = "nrt")
 }
 \arguments{
 \item{wc}{list of WC datafiles}
@@ -19,11 +13,13 @@ prep_wc(
 
 \item{dropIDs}{WC DeploymentID's to be dropped (eg. tags were turned on but not deployed)}
 
-\item{crs}{a proj4string to re-project diag locations from longlat}
+\item{as_sf}{specify whether lon,lat coords are to be projected (default = TRUE)}
+
+\item{program}{specify the aniBOS program contributing data (currently: 'atn', 'irap')}
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
-in latter case diag is not right-truncated & date of first dive is used
-for the track start date}
+in latter case wc is not right-truncated & date of first dive is used
+for the track start date.}
 }
 \description{
 restructures Locations files, formats dates & lc's; truncates start

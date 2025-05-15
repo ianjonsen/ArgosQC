@@ -14,7 +14,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr filter %>% bind_rows
+##' @importFrom dplyr %>% filter
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options
 ##' @importFrom aniMotum fit_ssm ssm_control
@@ -30,12 +30,12 @@ multi_filter <- function(x,
                          model = "crw",
                          ts = 2,
                          map = NULL,
-                         verbose = TRUE) {
+                         verbose = FALSE) {
 
 
   plan("multisession")
   fit <-
-    x$d_sf %>% future_map(~ try(fit_ssm(
+    x$d_sf |> future_map(~ try(fit_ssm(
       x = .x,
       model = model,
       time.step = ts,

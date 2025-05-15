@@ -8,19 +8,21 @@
 ##' @param wc list of WC datafiles
 ##' @param meta metadata used to truncate start of diag data for each individual
 ##' @param dropIDs WC DeploymentID's to be dropped (eg. tags were turned on but not deployed)
-##' @param crs a proj4string to re-project diag locations from longlat
+##' @param as_sf specify whether lon,lat coords are to be projected (default = TRUE)
+##' @param program specify the aniBOS program contributing data (currently: 'atn', 'irap')
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
-##' in latter case diag is not right-truncated & date of first dive is used
-##' for the track start date
+##' in latter case wc is not right-truncated & date of first dive is used
+##' for the track start date.
 ##'
 ##' @examples
 ##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
-##' @importFrom dplyr ungroup rename select
+##' @importFrom dplyr ungroup rename select n lag
 ##' @importFrom assertthat assert_that
 ##' @importFrom sf st_as_sf st_transform
 ##' @importFrom stringr str_extract
 ##' @importFrom aniMotum format_data
+##' @importFrom traipse track_distance_to
 ##'
 ##' @export
 ##'
@@ -28,9 +30,11 @@
 prep_wc <- function(wc,
                     meta,
                     dropIDs,
-                    crs = "+proj=merc +units=km +ellps=WGS84 +no_defs",
+                    as_sf = TRUE,
+                    program = "atn",
                     QCmode = "nrt") {
-  assert_that(is.list(wc))
+
+    assert_that(is.list(wc))
 
   ## clean step
   if ("Error Semi-major axis" %in% names(wc$Locations)) {
@@ -82,58 +86,201 @@ prep_wc <- function(wc,
   locs <- locs |>
     filter(!DeploymentID %in% dropIDs)
 
-  ## truncate by dive_start/dive_end datetimes & convert to sf geometry steps
-  deploy_meta <- meta |>
-    dplyr::select(
-      DeploymentID,
-      DeploymentStartDateTime,
-      dive_start,
-      dive_end
-    ) |>
-    mutate(
-      dive_start = ifelse(
-        DeploymentStartDateTime > dive_start,
+  if (program == "atn") {
+    ## truncate by dive_start/dive_end datetimes & convert to sf geometry steps
+    deploy_meta <- meta |>
+      dplyr::select(
+        DeploymentID,
         DeploymentStartDateTime,
-        dive_start))
+        DeploymentStopDateTime,
+        dive_start,
+        dive_end
+      )
 
-  ## only left-truncate tracks
+    ## only truncate tracks depending on QCmode
+    locs <- locs |>
+      left_join(deploy_meta, by = "DeploymentID") |>
+      mutate(dt.meta = as.numeric(difftime(
+        as.Date(DeploymentStopDateTime),
+        as.Date(DeploymentStartDateTime),
+        units = "days"
+      )),
+      dt.dive = as.numeric(difftime(
+        as.Date(dive_end), as.Date(dive_start), units = "days"
+      )))
+
+    locs.lst <- split(locs, locs$DeploymentID)
+
+    locs <- lapply(locs.lst, function(x) {
+      switch(QCmode, nrt = {
+        if (x$dive_start >= x$DeploymentStartDateTime) {
+          x |> filter(date >= dive_start)
+        } else {
+          x |> filter(date >= DeploymentStartDateTime)
+        }
+      }, dm = {
+        if (x$dt.meta[1] > x$dt.dive[1] &
+            x$dt.dive[1] > x$dt.meta[1] * 0.5) {
+          x |> filter(date >= dive_start & date <= dive_end)
+        } else {
+          x |> filter(date >= DeploymentStartDateTime &
+                        date <= DeploymentStopDateTime)
+        }
+      })
+    }) |>
+      bind_rows() |>
+      dplyr::select(
+        -DeploymentStartDateTime,-DeploymentStopDateTime,-dive_start,-dive_end,-dt.meta,-dt.dive
+      )
+
+  } else if (program == "irap") {
+    deploy_meta <- meta |>
+      dplyr::select(
+        DeploymentID,
+        dive_start,
+        dive_end
+      )
+
   locs <- locs |>
-    left_join(deploy_meta, by = "DeploymentID") |>
-    filter(date >= dive_start) |>
-    dplyr::select(-DeploymentStartDateTime, -dive_start, -dive_end)
+    left_join(deploy_meta,
+              by = "DeploymentID")
 
+    if (QCmode == "nrt") {
+       locs <- locs |>
+        filter(date >= dive_start & !is.na(lon)) |>
+        select(-dive_start,-dive_end)
 
-  ## project lon,lat coords
-  locs_sf <- locs |>
-    mutate(id = DeploymentID) |>
-    dplyr::select(DeploymentID, id, everything()) |>
+    } else {
+      locs <- locs |>
+        filter(date >= dive_start & !is.na(lon),
+               date <= dive_end & !is.na(lon)) |>
+        select(-dive_start, -dive_end)
+    }
+
+  } else {
+    stop("AniBOS program currently not supported")
+
+  }
+
+  ## apply simple distance - time filter on first 10 locations to remove potentially
+  ##  spurious locations immediately after the first location, which is often
+  ##  a user-measured GPS location. Assume dist >= 1000km + spd>=500km/h imply
+  ##  spurious locations
+  locs <- locs |>
     group_by(DeploymentID) |>
-    do(
-      d_sf =
-        sf::st_as_sf(., coords = c("lon", "lat"), crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") |>
-        sf::st_transform(., crs = crs) |>
-        select(-DeploymentID)
-    ) |>
-    ungroup() |>
-    left_join(meta |> select(DeploymentID, ADRProjectID), by = "DeploymentID")
+    mutate(dist = track_distance_to(lon, lat, lon[1], lat[1])/1000) |>
+    mutate(dt = as.numeric(difftime(date, lag(date), units = "hours"))) |>
+    mutate(spd = dist/dt) |>
+    mutate(test = c(rep(TRUE, 10), rep(FALSE, n()-10))) |>
+    filter((dist < 1000 & spd < 500 & test) | !test) |>
+    select(-dist, -dt, -spd, -test)
+
+  if (as_sf) {
+    ## project lon,lat coords
+    proj.fn <- function(x) {
+      if ((mean(x$lat, na.rm = T, trim=0.05) > 25 &
+          mean(x$lat, na.rm = T, trim=0.05) <= 55) |
+          (mean(x$lat, na.rm = T, trim=0.05) < -25 &
+          mean(x$lat, na.rm = T, trim=0.05) >= -55)) {
+        lat25 <- quantile(x$lat, 0.25, na.rm = TRUE)
+        lat75 <- quantile(x$lat, 0.75, na.rm = TRUE)
+        mlon <- mean(ifelse(x$lon < 0, x$lon + 360, x$lon),
+                     na.rm = T,
+                     trim = 0.1)
+
+        x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+          sf::st_transform(crs = paste0("+proj=eqdc +lat_1=",
+                                        lat25,
+                                        " +lat_2=",
+                                        lat75,
+                                        " +lon_0=",
+                                        mlon,
+                                        " +units=km +ellps=WGS84"))
+
+      } else if (mean(x$lat, na.rm = T, trim = 0.05) > 55 |
+                 mean(x$lat, na.rm = T, trim = 0.05) < -55) {
+        mlon <- mean(ifelse(x$lon < 0, x$lon + 360, x$lon),
+                     na.rm = T,
+                     trim = 0.1)
+        mlat <- mean(x$lat, na.rm = T, trim = 0.05)
+        x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+          sf::st_transform(crs = paste0(
+            "+proj=stere +lon_0=",
+            mlon,
+            " +lat_0=",
+            mlat,
+            " +units=km +ellps=WGS84"
+          ))
+
+      } else if(mean(x$lat, na.rm = T, trim=0.05) <= 25 &
+                 mean(x$lat, na.rm = T, trim=0.05) >= -25) {
+
+        if(diff(range(x$lon, na.rm = T)) > 180) {
+          x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+            sf::st_shift_longitude()
+
+        } else {
+          x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
+        }
+      }
+
+      x |> select(-DeploymentID)
+    }
+
+  } else {
+    proj.fn <- function(x) x |> select(-DeploymentID)
+  }
+
+  if (program == "atn") {
+    locs <- locs |>
+      mutate(id = DeploymentID) |>
+      dplyr::select(DeploymentID, id, everything()) |>
+      group_by(DeploymentID) |>
+      do(d_sf = proj.fn(.)) |>
+      ungroup() |>
+      left_join(meta |> select(DeploymentID, ADRProjectID), by = "DeploymentID")
+
+  } else if (program == "irap") {
+    locs <- locs |>
+      mutate(id = DeploymentID) |>
+      dplyr::select(DeploymentID, id, everything()) |>
+      group_by(DeploymentID) |>
+      do(d_sf = proj.fn(.)) |>
+      ungroup()
+
+  } else {
+    stop("AniBOS program currently not supported")
+  }
 
   ## add species code
   load(system.file("extdata/spcodes.rda", package = "ArgosQC"))
 
-  msp <- meta |> select(DeploymentID, AnimalScientificName)
-  msp <- left_join(msp, spcodes, by = c("AnimalScientificName" = "species"))
+  if(program == "atn") {
+    msp <- meta |> select(DeploymentID, AnimalScientificName)
+    msp <- left_join(msp, spcodes, by = c("AnimalScientificName" = "species"))
+    locs <- locs |>
+      left_join(msp, by = "DeploymentID")
 
-  locs_sf <- locs_sf |>
-    left_join(msp, by = "DeploymentID")
+    locs <- locs |>
+      rename(sp = code) |>
+      mutate(sp = factor(sp, levels = spcodes$code, ordered = TRUE)) |>
+      mutate(sp = droplevels(sp)) |>
+      dplyr::select(DeploymentID, ADRProjectID, sp, d_sf)
 
-  locs_sf <- locs_sf |>
-    rename(sp = code) |>
-    mutate(sp = factor(sp, levels = spcodes$code, ordered = TRUE)) |>
-    mutate(sp = droplevels(sp)) |>
-    dplyr::select(DeploymentID, ADRProjectID, sp, d_sf)
-  locs_sf <- split(locs_sf, locs_sf$sp)
+  } else if(program == "irap") {
+    msp <- meta |> select(DeploymentID, species)
+    msp <- left_join(msp, spcodes, by = "species")
+    locs <- locs |>
+      left_join(msp, by = "DeploymentID")
 
-  return(locs_sf)
+    locs <- locs |>
+      rename(sp = code) |>
+      mutate(sp = factor(sp, levels = spcodes$code, ordered = TRUE)) |>
+      mutate(sp = droplevels(sp)) |>
+      dplyr::select(DeploymentID, sp, d_sf)
+  }
 
+  locs <- split(locs, locs$sp)
 
+  return(locs)
 }

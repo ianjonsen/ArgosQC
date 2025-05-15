@@ -13,7 +13,7 @@ multi_filter(
   model = "crw",
   ts = 2,
   map = NULL,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{

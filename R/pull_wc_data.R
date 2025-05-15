@@ -23,7 +23,7 @@
 ##'
 ##' @examples
 ##'
-##' @importFrom dplyr select mutate bind_rows everything case_when
+##' @importFrom dplyr select mutate bind_rows everything case_when as_tibble
 ##' @importFrom lubridate dmy_hms
 ##' @importFrom readr read_csv cols
 ##' @importFrom stringr str_split
@@ -131,6 +131,7 @@ pull_wc_data <- function(path2data) {
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    arrange(Date, by_group = DeploymentID) |>
     suppressMessages()
 
   ## FastGPS df
@@ -201,11 +202,18 @@ pull_wc_data <- function(path2data) {
   ## Histos df's
   Histos <- lapply(wc, function(x) {
     if (length(x$Histos) > 0) {
-      x$Histos |>
-        mutate(DeployID = as.character(DeployID))
+      xx <- x$Histos |>
+        mutate(DeployID = as.character(DeployID)) |>
+        as.data.frame()
+      ## ensure all Bin# are double
+      for(i in 1:72) {
+        xx[,16+i] <- as.double(xx[,16+i])
+      }
+      as_tibble(xx)
     }
   }) |>
-    list_drop_empty()
+    list_drop_empty() |>
+    suppressWarnings()
 
   if(length(Histos) > 0) Histos <- Histos |>
     bind_rows() |>
@@ -217,8 +225,7 @@ pull_wc_data <- function(path2data) {
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
-    suppressMessages()
-
+    suppressWarnings()
 
   ## MixLayer df's
   MixLayer <- lapply(wc, function(x) {

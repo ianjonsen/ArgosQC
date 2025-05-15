@@ -206,7 +206,6 @@ get_metadata <- function(source = "smru",
 
     meta <- meta |>
       left_join(dive_se, by = "DeploymentID") #c("TagID" = "Ptt"))
-
   }
 
 ## if none of above sources apply then default to local IMOS metadata

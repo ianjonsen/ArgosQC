@@ -11,8 +11,10 @@
 ##' @param distlim sdafilter argument
 ##' @param min.dt min.dt argument for \code{aniMotum::fit_ssm}
 ##' @param map params to fix
+##' @param reroute (logical) should SSM-predicted locations be re-routed off of
+##' land (default is TRUE)
 ##' @param verbose turn on/off furrr::future_map progress indicator
-##'
+##' @param ... arguments to `aniMotum::route_path`
 ##'
 ##' @examples
 ##'
@@ -20,7 +22,7 @@
 ##' @importFrom tidyr nest
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options
-##' @importFrom aniMotum fit_ssm ssm_control
+##' @importFrom aniMotum fit_ssm ssm_control route_path
 ##'
 ##' @export
 ##'
@@ -35,7 +37,9 @@ redo_multi_filter <-
            distlim = c(1500, 5000),
            min.dt = 180,
            map = NULL,
-           verbose = TRUE) {
+           reroute = TRUE,
+           verbose = TRUE,
+           ...) {
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
@@ -105,8 +109,23 @@ redo_multi_filter <-
     }
     sprintf("%d convergence failures remain", sum(!fit_fail$converged))
 
+    if(reroute) {
+      fit.s <- fit.s |>
+        aniMotum::route_path(what = "predicted",
+                             map_scale = 10,
+                             ...)
+    }
+
     return(fit.s)
   } else {
+
+    if(reroute) {
+      fit <- fit |>
+        aniMotum::route_path(what = "predicted",
+                             map_scale = 10,
+                             ...)
+    }
+
     return(fit)
   }
 

@@ -14,7 +14,9 @@ redo_multi_filter(
   distlim = c(1500, 5000),
   min.dt = 180,
   map = NULL,
-  verbose = TRUE
+  reroute = TRUE,
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -36,7 +38,12 @@ redo_multi_filter(
 
 \item{map}{params to fix}
 
+\item{reroute}{(logical) should SSM-predicted locations be re-routed off of
+land (default is TRUE)}
+
 \item{verbose}{turn on/off furrr::future_map progress indicator}
+
+\item{...}{arguments to `aniMotum::route_path`}
 }
 \description{
 re-apply SSM filter to diag data for id's that failed to converge. parallelized

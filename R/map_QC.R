@@ -56,7 +56,7 @@
 ##' @importFrom grDevices extendrange grey
 ##' @importFrom dplyr group_by summarise
 ##' @importFrom grDevices hcl.colors
-##' @importFrom aniMotum aes_lst join
+##' @importFrom aniMotum aes_lst join elps
 ##'
 ##' @examples
 ##' # create an ssm fit object
@@ -151,7 +151,7 @@ map_QC <- function(x,
     locs.lst <- split(locs, locs$id)
     conf_poly <- lapply(locs.lst, function(x) {
       conf <- lapply(1:nrow(x), function(j)
-        with(x, elps(x[j], y[j], x.se[j], y.se[j], 90)))
+        with(x, aniMotum:::elps(x[j], y[j], x.se[j], y.se[j], 90)))
       lapply(conf, function(x)
         st_polygon(list(x))) %>%
         st_multipolygon()
