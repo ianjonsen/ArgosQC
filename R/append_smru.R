@@ -24,13 +24,13 @@
 ##' @export
 
 annotate_smru <- function(smru,
-                                 fit,
-                                 what = "p",
-                                 meta,
-                                 gps.tab = FALSE,
-                                 cut = FALSE,
-                                 dropIDs = NULL,
-                                 crs = "+proj=merc +units=km +ellps=WGS84 +no_defs") {
+                          fit,
+                          what = "p",
+                          meta,
+                          gps.tab = FALSE,
+                          cut = FALSE,
+                          dropIDs = NULL,
+                          crs = "+proj=merc +units=km +ellps=WGS84 +no_defs") {
 
   ## general approx fun
   approx.fn <- function(x, smru.table, date.var) {
@@ -69,31 +69,31 @@ annotate_smru <- function(smru,
 
   f <- grab_QC(fit, "fitted", as_sf = FALSE) %>%
     rename(ref = id) %>%
-    filter(!ref %in% drop.refs)
+    filter(!ref %in% dropIDs)
   names(f) <- to_snake_case(names(f))
 
   if(what == "p") {
   p <- grab_QC(fit, "predicted", cut = cut, as_sf = FALSE) %>%
     rename(ref = id) %>%
-    filter(!ref %in% drop.refs)
+    filter(!ref %in% dropIDs)
   names(p) <- to_snake_case(names(p))
 
   } else if (what == "r") {
     r <- grab_QC(fit, "rerouted", cut = cut, as_sf = FALSE) %>%
       rename(ref = id) %>%
-      filter(!ref %in% drop.refs)
+      filter(!ref %in% dropIDs)
     names(r) <- to_snake_case(names(r))
   }
 
   if("device_id" %in% names(meta)) {
     deploy_meta <- meta %>%
       select(device_id, release_date) %>%
-      filter(!device_id %in% drop.refs)
+      filter(!device_id %in% dropIDs)
 
   } else if ("DeploymentID" %in% names(meta)) {
     deploy_meta <- meta %>%
       select(device_id = DeploymentID, release_date = DeploymentStartDateTime) %>%
-      filter(!device_id %in% drop.refs)
+      filter(!device_id %in% dropIDs)
 
   }
 
@@ -101,7 +101,7 @@ annotate_smru <- function(smru,
   ## ctd table
   ctd <- smru$ctd %>%
     mutate(ref = as.character(ref)) %>%
-    filter(!ref %in% drop.refs) %>%
+    filter(!ref %in% dropIDs) %>%
     group_by(ref) %>%
     arrange(end_date, .by_group = TRUE) %>%
     ungroup()
@@ -143,7 +143,7 @@ annotate_smru <- function(smru,
                             ymd_hms(ds_date, tz = "UTC"),
                             mdy_hms(ds_date, tz = "UTC"))) %>%
     mutate(ds_date = as.POSIXct(ds_date, tz = "UTC", origin = "1970-01-01")) %>%
-    filter(!ref %in% drop.refs) %>%
+    filter(!ref %in% dropIDs) %>%
     mutate(lon = round(lon,6),
            lat = round(lat,6))
 
@@ -168,7 +168,7 @@ annotate_smru <- function(smru,
   ## haulout table
   haulout <- smru$haulout %>%
     mutate(ref = as.character(ref)) %>%
-    filter(!ref %in% drop.refs) %>%
+    filter(!ref %in% dropIDs) %>%
     mutate(lon = round(lon,6),
            lat = round(lat,6))
 
@@ -190,7 +190,7 @@ annotate_smru <- function(smru,
   ## summary table
   ssummary <- smru$summary %>%
     mutate(ref = as.character(ref)) %>%
-    filter(!ref %in% drop.refs)
+    filter(!ref %in% dropIDs)
 
   if (what == "p") {
     ssummary <- p %>%
@@ -216,7 +216,7 @@ annotate_smru <- function(smru,
     mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
     filter(d_date >= release_date) %>%
     select(-release_date) %>%
-    filter(!ref %in% drop.refs)
+    filter(!ref %in% dropIDs)
 
   diag <- f %>%
     group_by(ref) %>%
@@ -256,7 +256,7 @@ annotate_smru <- function(smru,
       mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
       filter(d_date >= release_date) %>%
       select(-release_date) %>%
-      filter(!ref %in% drop.refs)
+      filter(!ref %in% dropIDs)
 
     gps <- f %>%
       group_by(ref) %>%
