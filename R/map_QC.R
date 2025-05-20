@@ -56,7 +56,7 @@
 ##' @importFrom grDevices extendrange grey
 ##' @importFrom dplyr group_by summarise
 ##' @importFrom grDevices hcl.colors
-##' @importFrom aniMotum aes_lst join elps
+##' @importFrom aniMotum aes_lst join
 ##'
 ##' @examples
 ##' # create an ssm fit object

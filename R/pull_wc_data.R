@@ -113,10 +113,36 @@ pull_wc_data <- function(path2data) {
   }))
 
   ## Locations df
+  ## Need to ensure variable names are exactly the same before binding df rows
+  ##  WC doesn't always use identical variable names - Capitalization changes
+  nms <- c(
+    "DeploymentID",
+    "DeployID",
+    "Ptt",
+    "Instr",
+    "Date",
+    "Type",
+    "Quality",
+    "Latitude",
+    "Longitude",
+    "Error radius",
+    "Error Semi-major axis",
+    "Error Semi-minor axis",
+    "Error Ellipse orientation",
+    "Offset",
+    "Offset orientation",
+    "GPE MSD",
+    "GPE U",
+    "Count",
+    "Comment"
+  )
+
   Locations <- lapply(wc, function(x) {
-    if(length(x$Locations) > 0) {
-      x$Locations |>
+    if(nrow(x$Locations) > 0) {
+      xx <- x$Locations |>
         mutate(DeployID = as.character(DeployID))
+      names(xx) <- nms
+      xx
     }
   }) |>
     bind_rows() |>
@@ -133,6 +159,8 @@ pull_wc_data <- function(path2data) {
     select(-day, -time) |>
     arrange(Date, by_group = DeploymentID) |>
     suppressMessages()
+
+
 
   ## FastGPS df
   FastGPS <- lapply(wc, function(x) {

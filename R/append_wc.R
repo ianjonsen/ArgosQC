@@ -17,6 +17,7 @@
 ##' @importFrom dplyr distinct pull arrange ungroup
 ##' @importFrom tidyr unnest
 ##' @importFrom stringr str_detect regex
+##' @importFrom vctrs list_drop_empty
 ##' @importFrom lubridate mdy_hms ymd_hms
 ##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry<-
 ##' @importFrom snakecase to_snake_case
@@ -31,265 +32,88 @@ annotate_wc <- function(wc,
                           dropIDs = NULL,
                           crs = "+proj=merc +units=km +ellps=WGS84 +no_defs") {
 
-  ## general approx fun
-  approx.fn <- function(x, wc, date.var) {
-    dt <- wc |> filter(DeploymentID == x$DeploymentID[1]) |> pull(date.var)
-    lon1 <- approx(x = cbind(x$Date, x$lon), xout = dt)$y
-    lat1 <- approx(x = cbind(x$Date, x$lat), xout = dt)$y
-    x1 <- approx(x = cbind(x$Date, x$x), xout = dt)$y
-    y1 <- approx(x = cbind(x$Date, x$y), xout = dt)$y
-    x_se1 <- approx(x = cbind(x$Date, x$x_se), xout = dt)$y
-    y_se1 <- approx(x = cbind(x$Date, x$y_se), xout = dt)$y
-    data.frame(
-      date = dt,
-      ssm_lon = round(lon1,6),
-      ssm_lat = round(lat1,6),
-      ssm_x = round(x1,6),
-      ssm_y = round(y1,6),
-      ssm_x_se = round(x_se1,6),
-      ssm_y_se = round(y_se1,6)
-    )
+  if(any(class(fit) %in% "list")) {
+    f <- lapply(fit, function(x) {
+      grab_QC(x, "fitted", as_sf = FALSE) |>
+        rename(DeploymentID = id) |>
+        filter(!DeploymentID %in% dropIDs)
+    }) |>
+      bind_rows()
+
+    locs <- switch(what,
+           p = {
+             lapply(fit, function(x) {
+               grab_QC(x, "predicted", cut = cut, as_sf = FALSE) |>
+                 rename(DeploymentID = id) |>
+                 filter(!DeploymentID %in% dropIDs)
+             }) |>
+               bind_rows()
+           },
+           r = {
+             lapply(fit, function(x) {
+               grab_QC(x, "rerouted", cut = cut, as_sf = FALSE) |>
+                 rename(DeploymentID = id) |>
+                 filter(!DeploymentID %in% dropIDs)
+             }) |>
+               bind_rows()
+           })
+
+  } else if(inherits(fit, "ssm_df")) {
+    f <- grab_QC(fit, "fitted", as_sf = FALSE) |>
+      rename(DeploymentID = id) |>
+      filter(!DeploymentID %in% dropIDs)
+
+    locs <- switch(what, p = {
+      grab_QC(fit, "predicted", cut = cut, as_sf = FALSE) |>
+        rename(DeploymentID = id) |>
+        filter(!DeploymentID %in% dropIDs)
+    }, r = {
+      grab_QC(fit, "rerouted", cut = cut, as_sf = FALSE) |>
+        rename(DeploymentID = id) |>
+        filter(!DeploymentID %in% dropIDs)
+    })
+
   }
 
-  approx.ctd.fn <- function(x, wc, date.var) {
-    dt <- wc |> filter(DeploymentID == x$DeploymentID[1]) |> pull(date.var)
-    x1 <- approx(x = cbind(x$Date, x$x), xout = dt)$y
-    y1 <- approx(x = cbind(x$Date, x$y), xout = dt)$y
-    x_se1 <- approx(x = cbind(x$Date, x$x_se), xout = dt)$y
-    y_se1 <- approx(x = cbind(x$Date, x$y_se), xout = dt)$y
-    data.frame(
-      date = dt,
-      ssm_x = round(x1,6),
-      ssm_y = round(y1,6),
-      ssm_x_se = round(x_se1,6),
-      ssm_y_se = round(y_se1,6)
-    )
-  }
-
-  f <- grab_QC(fit, "fitted", as_sf = FALSE) |>
-    rename(DeploymentID = id) |>
+  deploy_meta <- meta |>
+    select(DeploymentID, dive_start) |>
     filter(!DeploymentID %in% dropIDs)
-  names(f) <- to_snake_case(names(f))
 
-  if(what == "p") {
-    p <- grab_QC(fit, "predicted", cut = cut, as_sf = FALSE) |>
-      rename(DeploymentID = id) |>
-      filter(!DeploymentID %in% dropIDs)
-    names(p) <- to_snake_case(names(p))
+  # get tag-specific file names
+  wc.fnms <- sapply(wc, nrow) |>
+    list_drop_empty() |>
+    names()
 
-  } else if (what == "r") {
-    r <- grab_QC(fit, "rerouted", cut = cut, as_sf = FALSE) |>
-      rename(DeploymentID = id) |>
-      filter(!DeploymentID %in% dropIDs)
-    names(r) <- to_snake_case(names(r))
-  }
+  out <- lapply(1:length(wc.fnms), function(i) {
 
-  if("device_id" %in% names(meta)) {
-    deploy_meta <- meta |>
-      select(DeploymentID, DeploymentStartDateTime) |>
-      filter(!DeploymentID %in% dropIDs)
+    if(wc.fnms[i] == "Locations") {
+      x <- append_wc_Locations(wc$Locations,
+                          f,
+                          deploy_meta,
+                          dropIDs)
 
-  } else if ("DeploymentID" %in% names(meta)) {
-    deploy_meta <- meta |>
-      select(DeploymentID, DeploymentStartDateTime) |>
-      filter(!DeploymentID %in% dropIDs)
+    } else if(wc.fnms[i] == "FastGPS") {
+      wc$FastGPS <- wc$FastGPS |>
+        mutate(Date = paste(Day, Time)) |>
+        mutate(Date = dmy_hms(Date, tz = "UTC"))
 
-  }
+      x <- append_wc_datafile(wc$FastGPS,
+                         locs,
+                         deploy_meta,
+                         dropIDs) |>
+        select(-Date)
 
-browser()
-  ## ECDHistos_SCOUT_TEMP_361A table
-  ECDHistos_SCOUT_TEMP_361A <- wc$ECDHistos_SCOUT_TEMP_361A |>
-    filter(!DeploymentID %in% dropIDs) |>
-    group_by(DeploymentID) |>
-    arrange(end_date, .by_group = TRUE) |>
-    ungroup()
-
-  if (what == "p") {
-    ctd <- p |>
-      group_by(DeploymentID) |>
-      do(locs = approx.ctd.fn(., smru.table = ctd, date.var = "end_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(ctd, ., by = c("DeploymentID", c("end_date" = "date"))) |>
-      distinct()
-
-  } else if (what == "r") {
-    ctd <- r |>
-      group_by(DeploymentID) |>
-      do(locs = approx.ctd.fn(., smru.table = ctd, date.var = "end_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(ctd, ., by = c("DeploymentID", c("end_date" = "date"))) |>
-      distinct()
-  }
-
-  ## re-project ctd interpolated ssm_x,y locs back to longlat
-  ssm_sf <- st_as_sf(ctd |> filter(!is.na(ssm_x)), coords = c("ssm_x", "ssm_y"), crs = crs)
-  ssm_ll <- ssm_sf |> st_transform(4326) |>
-    st_coordinates() |>
-    as.data.frame()
-  names(ssm_ll) <- c("ssm_lon","ssm_lat")
-  ssm_xy <- st_coordinates(ssm_sf) |>
-    as.data.frame()
-  names(ssm_xy) <- c("ssm_x", "ssm_y")
-  st_geometry(ssm_sf) <- NULL
-  ctd <- cbind(ssm_sf, ssm_ll, ssm_xy) |>
-    select(1:29, lat, lon, ssm_lon, ssm_lat, ssm_x, ssm_y, ssm_x_se, ssm_y_se)
-
-  ## dive table
-  dive <- wc$dive |>
-    mutate(DeploymentID = as.character(DeploymentID)) |>
-    mutate(ds_date = ifelse(str_detect(ds_date, regex("[a-z]", TRUE)),
-                            ymd_hms(ds_date, tz = "UTC"),
-                            mdy_hms(ds_date, tz = "UTC"))) |>
-    mutate(ds_date = as.POSIXct(ds_date, tz = "UTC", origin = "1970-01-01")) |>
-    filter(!DeploymentID %in% drop.DeploymentIDs) |>
-    mutate(lon = round(lon,6),
-           lat = round(lat,6))
-
-  class(dive$ds_date) <- c("POSIXct","POSIXt")
-
-  if (what == "p") {
-    dive <- p |>
-      group_by(DeploymentID) |>
-      do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(dive, ., by = c("DeploymentID", c("de_date" = "date")))
-
-  } else if (what == "r") {
-    dive <- r |>
-      group_by(DeploymentID) |>
-      do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(dive, ., by = c("DeploymentID", c("de_date" = "date")))
-  }
-
-
-  ## haulout table
-  haulout <- wc$haulout |>
-    mutate(DeploymentID = as.character(DeploymentID)) |>
-    filter(!DeploymentID %in% drop.DeploymentIDs) |>
-    mutate(lon = round(lon,6),
-           lat = round(lat,6))
-
-  if (what == "p") {
-    haulout <- p |>
-      group_by(DeploymentID) |>
-      do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(haulout, ., by = c("DeploymentID", c("s_date" = "date")))
-
-  } else if (what == "r") {
-    haulout <- r |>
-      group_by(DeploymentID) |>
-      do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(haulout, ., by = c("DeploymentID", c("s_date" = "date")))
-  }
-
-  ## summary table
-  ssummary <- wc$summary |>
-    mutate(DeploymentID = as.character(DeploymentID)) |>
-    filter(!DeploymentID %in% drop.DeploymentIDs)
-
-  if (what == "p") {
-    ssummary <- p |>
-      group_by(DeploymentID) |>
-      do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(ssummary, ., by = c("DeploymentID", c("e_date" = "date")))
-
-  } else if (what == "r") {
-    ssummary <- r |>
-      group_by(DeploymentID) |>
-      do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) |>
-      unnest(cols = c(locs)) |>
-      left_join(ssummary, ., by = c("DeploymentID", c("e_date" = "date")))
-  }
-
-
-  ## diag table
-  diag <- wc$diag |>
-    mutate(DeploymentID = as.character(DeploymentID)) |>
-    left_join(., deploy_meta, by = c("DeploymentID" = "device_id")) |>
-    mutate(release_date = ifelse(is.na(release_date), d_date, release_date)) |>
-    mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) |>
-    filter(d_date >= release_date) |>
-    select(-release_date) |>
-    filter(!DeploymentID %in% drop.DeploymentIDs)
-
-  diag <- f |>
-    group_by(DeploymentID) |>
-    unnest(cols = c()) |>
-    left_join(diag, ., by = c("DeploymentID", c("d_date" = "date"))) |>
-    distinct() |>
-    rename(
-      lat = lat.x,
-      lon = lon.x,
-      ssm_lon = lon.y,
-      ssm_lat = lat.y,
-      ssm_x = x,
-      ssm_y = y,
-      ssm_x_se = x_se,
-      ssm_y_se = y_se
-    ) |>
-    mutate(ssm_lon = round(ssm_lon,6),
-           ssm_lat = round(ssm_lat,6),
-           ssm_x = round(ssm_x,6),
-           ssm_y = round(ssm_y,6),
-           ssm_x_se = round(ssm_x_se,6),
-           ssm_y_se = round(ssm_y_se,6)
-    )
-  ## remove CRW-specific model params from diag files
-  ##  these only need to appear in ssmoutputs files
-  if(all(c("u","u_se","v","v_se","s","s_se") %in% names(diag))) {
-    diag <- diag |>
-      select(-c("u","u_se","v","v_se","s","s_se"))
-  }
-
-  if (gps.tab) {
-    ## gps table
-    gps <- wc$gps |>
-      mutate(DeploymentID = as.character(DeploymentID)) |>
-      left_join(. , deploy_meta, by = c("DeploymentID" = "device_id")) |>
-      mutate(release_date = ifelse(is.na(release_date), d_date, release_date)) |>
-      mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) |>
-      filter(d_date >= release_date) |>
-      select(-release_date) |>
-      filter(!DeploymentID %in% drop.DeploymentIDs)
-
-    gps <- f |>
-      group_by(DeploymentID) |>
-      unnest(cols = c()) |>
-      left_join(gps, ., by = c("DeploymentID", c("d_date" = "date"))) |>
-      distinct() |>
-      rename(
-        lat = lat.x,
-        lon = lon.x,
-        ssm_lon = lon.y,
-        ssm_lat = lat.y,
-        ssm_x = x,
-        ssm_y = y,
-        ssm_x_se = x_se,
-        ssm_y_se = y_se
-      ) |>
-      mutate(
-        ssm_lon = round(ssm_lon, 6),
-        ssm_lat = round(ssm_lat, 6),
-        ssm_x = round(ssm_x, 6),
-        ssm_y = round(ssm_y, 6),
-        ssm_x_se = round(ssm_x_se, 6),
-        ssm_y_se = round(ssm_y_se, 6)
-      )
-    ## remove CRW-specific model params from diag files
-    ##  these only need to appear in ssmoutputs files
-    if (all(c("u", "u_se", "v", "v_se", "s", "s_se") %in% names(gps))) {
-      gps <- gps |>
-        select(-c("u", "u_se", "v", "v_se", "s", "s_se"))
+    } else {
+      x <- append_wc_datafile(eval(parse(text = paste0("wc$", wc.fnms[i]))),
+                         locs,
+                         deploy_meta,
+                         dropIDs)
     }
-  }
 
-  if(gps.tab) {
-    list(diag = diag, gps = gps, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
-  } else {
-    list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
-  }
+    x |>
+      select(-dive_start)
+  })
+
+  names(out) <- wc.fnms
+  return(out)
 }
