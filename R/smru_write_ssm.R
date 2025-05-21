@@ -16,7 +16,7 @@
 ##'
 ##' @keywords internal
 
-ssm_write <- function(p_out,
+smru_write_ssm <- function(p_out,
                       meta,
                       program = "imos",
                       path = NULL,

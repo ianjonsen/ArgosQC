@@ -15,7 +15,7 @@
 ##'
 ##' @keywords internal
 
-smru_dive_write <- function(smru_ssm,
+smru_write_dive <- function(smru_ssm,
                            meta,
                            program = "imos",
                            path = NULL,

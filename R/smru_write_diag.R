@@ -23,7 +23,7 @@
 ##'
 ##' @keywords internal
 
-smru_diag_write <- function(smru_ssm,
+smru_write_diag <- function(smru_ssm,
                        meta,
                        program = "imos",
                        test = TRUE,

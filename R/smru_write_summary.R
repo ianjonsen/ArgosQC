@@ -15,7 +15,7 @@
 ##'
 ##' @keywords internal
 
-smru_summary_write <- function(smru_ssm,
+smru_write_summary <- function(smru_ssm,
                             meta,
                             program = "imos",
                             path = NULL,

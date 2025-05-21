@@ -115,5 +115,6 @@ annotate_wc <- function(wc,
   })
 
   names(out) <- wc.fnms
+
   return(out)
 }

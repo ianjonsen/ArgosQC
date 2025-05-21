@@ -18,7 +18,7 @@
 ##'
 ##' @keywords internal
 
-smru_gps_write <- function(smru_ssm,
+smru_write_gps <- function(smru_ssm,
                             meta,
                             program = "imos",
                             test = TRUE,

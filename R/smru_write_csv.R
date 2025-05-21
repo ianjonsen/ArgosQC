@@ -23,7 +23,7 @@
 ##'
 ##' @export
 
-write_2_csv <- function(smru_ssm,
+smru_write_csv <- function(smru_ssm,
                         fit,
                         what,
                         meta,
@@ -37,7 +37,7 @@ write_2_csv <- function(smru_ssm,
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   ## SSM predictions
-  ssm_out <- ssm_outputs(fit = fit,
+  ssm_out <- smru_ssm_outputs(fit = fit,
                          what = what,
                          drop.refs = drop.refs,
                          suffix = suffix)
@@ -72,7 +72,7 @@ write_2_csv <- function(smru_ssm,
   out <- list()
 
   ## SSM predictions
-  ssmoutputs <- ssm_write(
+  ssmoutputs <- smru_write_ssm(
     p_out = ssm_out$p_out,
     meta = meta,
     program = program,
@@ -84,7 +84,7 @@ write_2_csv <- function(smru_ssm,
   idx[1] <- TRUE
 
   ## Diag data
-  diag <- smru_diag_write(
+  diag <- smru_write_diag(
     smru_ssm = smru_ssm,
     meta = meta,
     program = program,
@@ -98,7 +98,7 @@ write_2_csv <- function(smru_ssm,
 
   ## GPS data (if present)
   if ("gps" %in% names(smru_ssm)) {
-    gps <- smru_gps_write(
+    gps <- smru_write_gps(
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
@@ -113,7 +113,7 @@ write_2_csv <- function(smru_ssm,
 
   ## Haulout data
   if ("haulout" %in% names(smru_ssm)) {
-    haulout <- smru_haulout_write(
+    haulout <- smru_write_haulout(
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
@@ -128,7 +128,7 @@ write_2_csv <- function(smru_ssm,
 
   ## CTD data
   if ("ctd" %in% names(smru_ssm)) {
-    ctd <- smru_ctd_write(
+    ctd <- smru_write_ctd(
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
@@ -143,7 +143,7 @@ write_2_csv <- function(smru_ssm,
 
   ## dive data
   if ("dive" %in% names(smru_ssm)) {
-    dive <- smru_dive_write(
+    dive <- smru_write_dive(
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
@@ -157,7 +157,7 @@ write_2_csv <- function(smru_ssm,
 
   ## summary data
   if ("ssummary" %in% names(smru_ssm)) {
-    ssummary <- smru_summary_write(
+    ssummary <- smru_write_summary(
       smru_ssm = smru_ssm,
       meta = meta,
       program = program,
@@ -170,7 +170,7 @@ write_2_csv <- function(smru_ssm,
   }
 
 ## Metadata
-  meta <- meta_write(
+  meta <- write_meta(
     meta = meta,
     program = program,
     test = test,

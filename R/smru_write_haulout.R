@@ -18,7 +18,7 @@
 ##'
 ##' @keywords internal
 
-smru_haulout_write <- function(smru_ssm,
+smru_write_haulout <- function(smru_ssm,
                             meta,
                             program = "imos",
                             test = TRUE,

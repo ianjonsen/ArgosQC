@@ -18,7 +18,7 @@
 ##'
 ##' @keywords internal
 
-smru_ctd_write <- function(smru_ssm,
+smru_write_ctd <- function(smru_ssm,
                                meta,
                                program = "imos",
                                test = TRUE,
