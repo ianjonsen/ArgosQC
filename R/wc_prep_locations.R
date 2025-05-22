@@ -27,7 +27,7 @@
 ##' @export
 ##'
 
-prep_wc <- function(wc,
+wc_prep_loc <- function(wc,
                     meta,
                     dropIDs,
                     as_sf = TRUE,
@@ -182,11 +182,12 @@ prep_wc <- function(wc,
           mean(x$lat, na.rm = T, trim=0.05) <= 55) |
           (mean(x$lat, na.rm = T, trim=0.05) < -25 &
           mean(x$lat, na.rm = T, trim=0.05) >= -55)) {
-        lat25 <- quantile(x$lat, 0.25, na.rm = TRUE)
-        lat75 <- quantile(x$lat, 0.75, na.rm = TRUE)
+        lat25 <- quantile(x$lat, 0.25, na.rm = TRUE) |> round(0)
+        lat75 <- quantile(x$lat, 0.75, na.rm = TRUE) |> round(0)
         mlon <- mean(ifelse(x$lon < 0, x$lon + 360, x$lon),
                      na.rm = T,
-                     trim = 0.1)
+                     trim = 0.1) |>
+          round(0)
 
         x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
           sf::st_transform(crs = paste0("+proj=eqdc +lat_1=",
@@ -201,8 +202,10 @@ prep_wc <- function(wc,
                  mean(x$lat, na.rm = T, trim = 0.05) < -55) {
         mlon <- mean(ifelse(x$lon < 0, x$lon + 360, x$lon),
                      na.rm = T,
-                     trim = 0.1)
-        mlat <- mean(x$lat, na.rm = T, trim = 0.05)
+                     trim = 0.1) |>
+          round(0)
+        mlat <- mean(x$lat, na.rm = T, trim = 0.05) |>
+          round(0)
         x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
           sf::st_transform(crs = paste0(
             "+proj=stere +lon_0=",

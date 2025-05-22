@@ -103,6 +103,18 @@ annotate_wc <- function(wc,
                          dropIDs) |>
         select(-Date)
 
+    } else if(wc.fnms[i] %in% c("ECDHistos_SCOUT_DSA")) {
+      x <- append_wc_ECDHistosDSA(eval(parse(text = paste0("wc$", wc.fnms[i]))),
+                                  locs,
+                                  deploy_meta,
+                                  dropIDs)
+
+    } else if(wc.fnms[i] == "DSA") {
+      x <- append_wc_DSA(eval(parse(text = paste0("wc$", wc.fnms[i]))),
+                              locs,
+                              deploy_meta,
+                              dropIDs)
+
     } else {
       x <- append_wc_datafile(eval(parse(text = paste0("wc$", wc.fnms[i]))),
                          locs,

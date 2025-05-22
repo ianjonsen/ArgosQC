@@ -76,13 +76,13 @@ download_data <- function(path = NULL,
 
   } else if(source == "smru") {
 
-    get_smru_mdb(dest = dest, cids = cids, user = user, pwd = pwd, ...)
+    smru_get_mdb(dest = dest, cids = cids, user = user, pwd = pwd, ...)
 
   } else if(source == "wc") {
 
     if(any(is.null(wc.akey), is.null(wc.skey)))
       stop("Valid 'wc.akey' and 'wc.skey' must be supplied to download from the Wildlife Computers Portal")
-    meta <- get_wc_files(dest = dest,
+    meta <- wc_get_files(dest = dest,
                  a.key = wc.akey,
                  s.key = wc.skey,
                  ...)

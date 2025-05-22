@@ -29,7 +29,7 @@
 ##'
 ##' @keywords internal
 
-get_wc_files <- function(dest = NULL,
+wc_get_files <- function(dest = NULL,
                          a.key = NULL,
                          s.key = NULL,
                          owner.id = NULL,

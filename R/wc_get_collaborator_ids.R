@@ -20,7 +20,7 @@
 ##'
 ##' @keywords internal
 
-get_wc_collab_ids <- function(a.key = NULL,
+wc_get_collab_ids <- function(a.key = NULL,
                               s.key = NULL,
                               verbose = FALSE) {
 

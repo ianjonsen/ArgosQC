@@ -11,9 +11,19 @@
 ##' @keywords internal
 
 approx_ssm <- function(sloc, wc) {
-  dt <- wc |>
-    filter(DeploymentID == sloc$DeploymentID[1]) |>
-    pull(Date)
+  if ("Date" %in% names(wc)) {
+    dt <- wc |>
+      filter(DeploymentID == sloc$DeploymentID[1]) |>
+      pull(Date)
+  } else if ("End" %in% names(wc)) {
+    dt <- wc |>
+      filter(DeploymentID == sloc$DeploymentID[1]) |>
+      pull(End)
+  } else if ("DiveStart" %in% names(wc)) {
+    dt <- wc |>
+      filter(DeploymentID == sloc$DeploymentID[1]) |>
+      pull(DiveStart)
+  }
   lon1 <- approx(x = cbind(sloc$date, sloc$lon), xout = dt)$y
   lat1 <- approx(x = cbind(sloc$date, sloc$lat), xout = dt)$y
   x1 <- approx(x = cbind(sloc$date, sloc$x), xout = dt)$y

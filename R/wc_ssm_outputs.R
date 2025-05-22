@@ -27,19 +27,19 @@ wc_ssm_outputs <- function(fit,
 ) {
 
   ## get predicted locations from fits
-  ## can't cut using keep here as it messes up track sub-sampling
-  p <- grab_QC(fit,
+  ## can't cut using keelocshere as it messes ulocstrack sub-sampling
+  locs <- grab_QC(fit,
                what = what,
                cut = FALSE,
                as_sf = FALSE) |>
     rename(DeploymentID = id) |>
     filter(!DeploymentID %in% dropIDs)
-  names(p)[-1] <- to_snake_case(names(p)[-1])
+  names(locs)[-1] <- to_snake_case(names(locs)[-1])
 
-  if (all(!c("u", "v", "u_se", "v_se", "s", "s_se") %in% names(p))) {
+  if (all(!c("u", "v", "u_se", "v_se", "s", "s_se") %in% names(locs))) {
     if (suffix != "_nrt") {
-      if ("keep" %in% names(p)) {
-        p <- p |>
+      if ("keep" %in% names(locs)) {
+        locs <- locs |>
           mutate(
             u = NA,
             v = NA,
@@ -62,10 +62,10 @@ wc_ssm_outputs <- function(fit,
                  v_se,
                  s,
                  s_se,
-                 keep)
+                 keelocs)
 
-      } else if (!"keep" %in% names(p)){
-        p <- p |>
+      } else if (!"keep" %in% names(locs)){
+        locs <- locs |>
           mutate(
             u = NA,
             v = NA,
@@ -91,7 +91,7 @@ wc_ssm_outputs <- function(fit,
       }
 
     } else if (suffix == "_nrt") {
-      p <- p |>
+      locs <- locs |>
         mutate(
           u = NA,
           v = NA,
@@ -117,23 +117,29 @@ wc_ssm_outputs <- function(fit,
     }
   }
 
-  p.lst <- split(p, p$DeploymentID)
+
+  locs.lst <- split(locs, locs$DeploymentID)
+  p4s <- lapply(fit$ssm, function(x) {
+    data.frame(id = x$fitted$id[1], proj4string = st_crs(x$fitted)[[1]])
+  }) |>
+    bind_rows()
 
   ## sub-sample predicted locs to 6-h resolution
-  p_out <- lapply(p.lst, function(x) {
+  locs_out <- lapply(locs.lst, function(x) {
     ts <- subset(fit, id == x$DeploymentID[1])$ssm[[1]]$ts
     if (ts <= pred.int)
       x[seq(1, nrow(x), by = ceiling(pred.int / ts)), ]
     else
-      stop(paste0("time step is > ", pred.int, " h, can't subsample to ", pred.int, " h"))
+      stop(paste0("time stelocsis > ", pred.int, " h, can't subsample to ", pred.int, " h"))
   }) |> bind_rows()
 
   ## calc QC start and end dates for each deployment - to be appended to metadata
-  qc_se <- p_out |>
+  qc_se <- locs_out |>
     group_by(DeploymentID) |>
     summarise(qc_start_date = min(date),
               qc_end_date = max(date))
+  out <- left_join(qc_se, p4s, by = c("DeploymentID" = "id"))
 
-  return(list(p_out = p_out, qc_se = qc_se))
+  return(list(locs_out = locs_out, qc_se = out))
 
 }

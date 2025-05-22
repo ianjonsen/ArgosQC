@@ -1,6 +1,6 @@
-##' @title annotate SMRU tables with SSM-estimated locations
+##' @title append SMRU tables with SSM-estimated locations
 ##'
-##' @description annotate SMRU tables so each event has SSM-derived lon, lat, x, y, x.se, y.se.
+##' @description append SMRU tables so each event has SSM-derived lon, lat, x, y, x.se, y.se.
 ##'
 ##' @param smru SMRU table file - output of \code{pull_smru_tables}
 ##' @param fit final \code{foieGras} fit object
@@ -23,7 +23,7 @@
 ##'
 ##' @export
 
-annotate_smru <- function(smru,
+smru_append <- function(smru,
                           fit,
                           what = "p",
                           meta,

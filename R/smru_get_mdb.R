@@ -20,7 +20,7 @@
 ##'
 ##' @keywords internal
 
-get_smru_mdb <-
+smru_get_mdb <-
   function(cids,
            dest = NULL,
            user = NULL,

@@ -26,7 +26,7 @@
 ##' @export
 ##'
 
-prep_diag <- function(smru,
+smru_prep_loc <- function(smru,
                       meta,
                       drop.refs = NULL,
                       crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
