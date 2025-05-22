@@ -32,7 +32,7 @@
 ##' @md
 ##' @export
 
-pull_wc_data <- function(path2data) {
+wc_pull_data <- function(path2data) {
 
   ## All known WC data files to be QC'd + regex expressions to obtain latest
   ##    WC-post-processed Locations and FastGPS files

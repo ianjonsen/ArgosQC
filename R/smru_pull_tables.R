@@ -21,7 +21,7 @@
 ##'
 ##' @export
 
-pull_smru_tables <- function(cids,
+smru_pull_tables <- function(cids,
                              path2mdb,
                              tables = c("diag", "haulout", "ctd", "dive", "summary"),
                              p2mdbtools = NULL,
