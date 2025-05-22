@@ -46,13 +46,13 @@ pull_data <- function(path2data,
       cids <- str_split(fs, "\\.", simplify = TRUE)[, 1]
     }
 
-    out <- pull_smru_tables(cids,
+    out <- smru_pull_tables(cids,
                     path2mdb = path2data,
                     ...)
 
   } else if (source == "wc") {
 
-    out <- pull_wc_data(path2data)
+    out <- wc_pull_data(path2data)
 
   } else if(source == "local") {
 
