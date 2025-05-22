@@ -170,7 +170,7 @@ smru_write_csv <- function(smru_ssm,
   }
 
 ## Metadata
-  meta <- write_meta(
+  meta <- smru_write_meta(
     meta = meta,
     program = program,
     test = test,

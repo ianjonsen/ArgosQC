@@ -22,7 +22,7 @@
 ##'
 ##' @keywords internal
 
-meta_write <- function(meta,
+smru_write_meta <- function(meta,
                            program = "imos",
                            test = TRUE,
                            path = NULL,

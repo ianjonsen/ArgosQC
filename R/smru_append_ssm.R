@@ -23,7 +23,7 @@
 ##'
 ##' @export
 
-smru_append <- function(smru,
+smru_append_ssm <- function(smru,
                           fit,
                           what = "p",
                           meta,
