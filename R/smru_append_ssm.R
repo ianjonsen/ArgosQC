@@ -9,7 +9,6 @@
 ##' @param gps.tab logical; does a SMRU GPS table exist, if so append to this as well
 ##' @param cut drop predicted locations if keep = FALSE, ie. locations in a large data gap
 ##' @param dropIDs SMRU refs to be dropped
-##' @param crs CRS to be applied when interpolating SSM-estimated locations and re-projecting back from Cartesian coords to longlat
 ##'
 ##' @examples
 ##'
@@ -29,12 +28,13 @@ smru_append_ssm <- function(smru,
                           meta,
                           gps.tab = FALSE,
                           cut = FALSE,
-                          dropIDs = NULL,
-                          crs = "+proj=merc +units=km +ellps=WGS84 +no_defs") {
+                          dropIDs = NULL) {
 
   ## general approx fun
   approx.fn <- function(x, smru.table, date.var) {
-    dt <- smru.table %>% filter(ref == x$ref[1]) %>% pull(date.var)
+    dt <- smru.table |>
+      filter(ref == x$ref[1]) |>
+      pull(date.var)
     lon1 <- approx(x = cbind(x$date, x$lon), xout = dt)$y
     lat1 <- approx(x = cbind(x$date, x$lat), xout = dt)$y
     x1 <- approx(x = cbind(x$date, x$x), xout = dt)$y
@@ -52,89 +52,51 @@ smru_append_ssm <- function(smru,
     )
   }
 
-  approx.ctd.fn <- function(x, smru.table, date.var) {
-    dt <- smru.table %>% filter(ref == x$ref[1]) %>% pull(date.var)
-    x1 <- approx(x = cbind(x$date, x$x), xout = dt)$y
-    y1 <- approx(x = cbind(x$date, x$y), xout = dt)$y
-    x_se1 <- approx(x = cbind(x$date, x$x_se), xout = dt)$y
-    y_se1 <- approx(x = cbind(x$date, x$y_se), xout = dt)$y
-    data.frame(
-      date = dt,
-      ssm_x = round(x1,6),
-      ssm_y = round(y1,6),
-      ssm_x_se = round(x_se1,6),
-      ssm_y_se = round(y_se1,6)
-    )
-  }
-
-  f <- grab_QC(fit, "fitted", as_sf = FALSE) %>%
-    rename(ref = id) %>%
+  f <- grab_QC(fit, "fitted", as_sf = FALSE) |>
+    rename(ref = id) |>
     filter(!ref %in% dropIDs)
   names(f) <- to_snake_case(names(f))
 
-  if(what == "p") {
-  p <- grab_QC(fit, "predicted", cut = cut, as_sf = FALSE) %>%
-    rename(ref = id) %>%
+  ssm_locs <- switch(what,
+                     p = {
+                       grab_QC(fit, "predicted", cut = cut, as_sf = FALSE)
+                     },
+                     r = {
+                       grab_QC(fit, "rerouted", cut = cut, as_sf = FALSE)
+                     }) |>
+    rename(ref = id) |>
     filter(!ref %in% dropIDs)
-  names(p) <- to_snake_case(names(p))
+  names(ssm_locs) <- to_snake_case(names(ssm_locs))
 
-  } else if (what == "r") {
-    r <- grab_QC(fit, "rerouted", cut = cut, as_sf = FALSE) %>%
-      rename(ref = id) %>%
-      filter(!ref %in% dropIDs)
-    names(r) <- to_snake_case(names(r))
-  }
 
   if("device_id" %in% names(meta)) {
-    deploy_meta <- meta %>%
-      select(device_id, release_date) %>%
+    deploy_meta <- meta |>
+      select(device_id, release_date) |>
       filter(!device_id %in% dropIDs)
 
   } else if ("DeploymentID" %in% names(meta)) {
-    deploy_meta <- meta %>%
-      select(device_id = DeploymentID, release_date = DeploymentStartDateTime) %>%
+    deploy_meta <- meta |>
+      select(device_id = DeploymentID, release_date = DeploymentStartDateTime) |>
       filter(!device_id %in% dropIDs)
 
   }
 
-
   ## ctd table
-  ctd <- smru$ctd %>%
-    mutate(ref = as.character(ref)) %>%
-    filter(!ref %in% dropIDs) %>%
-    group_by(ref) %>%
-    arrange(end_date, .by_group = TRUE) %>%
+  ctd <- smru$ctd |>
+    mutate(ref = as.character(ref)) |>
+    filter(!ref %in% dropIDs) |>
+    group_by(ref) |>
+    arrange(end_date, .by_group = TRUE) |>
     ungroup()
 
-  if (what == "p") {
-    ctd <- p %>%
-      group_by(ref) %>%
-      do(locs = approx.ctd.fn(., smru.table = ctd, date.var = "end_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(ctd, ., by = c("ref", c("end_date" = "date"))) %>%
-      distinct()
+  tmp <- ssm_locs |>
+    group_by(ref) |>
+    do(locs = approx.fn(., smru.table = ctd, date.var = "end_date")) |>
+    unnest(cols = c(locs))
 
-  } else if (what == "r") {
-    ctd <- r %>%
-      group_by(ref) %>%
-      do(locs = approx.ctd.fn(., smru.table = ctd, date.var = "end_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(ctd, ., by = c("ref", c("end_date" = "date"))) %>%
-      distinct()
-  }
+  ctd <- left_join(ctd, tmp, by = c("ref", c("end_date" = "date"))) |>
+    distinct()
 
-  ## re-project ctd interpolated ssm_x,y locs back to longlat
-  ssm_sf <- st_as_sf(ctd %>% filter(!is.na(ssm_x)), coords = c("ssm_x", "ssm_y"), crs = crs)
-  ssm_ll <- ssm_sf %>% st_transform(4326) %>%
-    st_coordinates() %>%
-    as.data.frame()
-  names(ssm_ll) <- c("ssm_lon","ssm_lat")
-  ssm_xy <- st_coordinates(ssm_sf) %>%
-    as.data.frame()
-  names(ssm_xy) <- c("ssm_x", "ssm_y")
-  st_geometry(ssm_sf) <- NULL
-  ctd <- cbind(ssm_sf, ssm_ll, ssm_xy) %>%
-    select(1:29, lat, lon, ssm_lon, ssm_lat, ssm_x, ssm_y, ssm_x_se, ssm_y_se)
 
   ## dive table
   dive <- smru$dive %>%
@@ -149,20 +111,11 @@ smru_append_ssm <- function(smru,
 
   class(dive$ds_date) <- c("POSIXct","POSIXt")
 
-  if (what == "p") {
-    dive <- p %>%
-      group_by(ref) %>%
-      do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(dive, ., by = c("ref", c("de_date" = "date")))
-
-  } else if (what == "r") {
-    dive <- r %>%
-      group_by(ref) %>%
-      do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(dive, ., by = c("ref", c("de_date" = "date")))
-  }
+  dive <- ssm_locs %>%
+    group_by(ref) %>%
+    do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) %>%
+    unnest(cols = c(locs)) %>%
+    left_join(dive, ., by = c("ref", c("de_date" = "date")))
 
 
   ## haulout table
@@ -172,40 +125,23 @@ smru_append_ssm <- function(smru,
     mutate(lon = round(lon,6),
            lat = round(lat,6))
 
-  if (what == "p") {
-    haulout <- p %>%
-      group_by(ref) %>%
-      do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(haulout, ., by = c("ref", c("s_date" = "date")))
+  haulout <- ssm_locs %>%
+    group_by(ref) %>%
+    do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) %>%
+    unnest(cols = c(locs)) %>%
+    left_join(haulout, ., by = c("ref", c("s_date" = "date")))
 
-  } else if (what == "r") {
-    haulout <- r %>%
-      group_by(ref) %>%
-      do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(haulout, ., by = c("ref", c("s_date" = "date")))
-  }
 
   ## summary table
   ssummary <- smru$summary %>%
     mutate(ref = as.character(ref)) %>%
     filter(!ref %in% dropIDs)
 
-  if (what == "p") {
-    ssummary <- p %>%
-      group_by(ref) %>%
-      do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(ssummary, ., by = c("ref", c("e_date" = "date")))
-
-  } else if (what == "r") {
-    ssummary <- r %>%
-      group_by(ref) %>%
-      do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) %>%
-      unnest(cols = c(locs)) %>%
-      left_join(ssummary, ., by = c("ref", c("e_date" = "date")))
-  }
+  ssummary <- ssm_locs %>%
+    group_by(ref) %>%
+    do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) %>%
+    unnest(cols = c(locs)) %>%
+    left_join(ssummary, ., by = c("ref", c("e_date" = "date")))
 
 
   ## diag table
@@ -246,6 +182,7 @@ smru_append_ssm <- function(smru,
     diag <- diag %>%
       select(-c("u","u_se","v","v_se","s","s_se"))
   }
+
 
   if (gps.tab) {
     ## gps table

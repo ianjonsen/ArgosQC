@@ -10,7 +10,7 @@
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
-##' @importFrom dplyr filter rename mutate select left_join groulocs_split groulocs_by
+##' @importFrom dplyr filter rename mutate select left_join
 ##' @importFrom readr write_csv
 ##' @importFrom purrr walk
 ##'
