@@ -11,8 +11,7 @@ smru_append_ssm(
   meta,
   gps.tab = FALSE,
   cut = FALSE,
-  dropIDs = NULL,
-  crs = "+proj=merc +units=km +ellps=WGS84 +no_defs"
+  dropIDs = NULL
 )
 }
 \arguments{
@@ -29,8 +28,6 @@ smru_append_ssm(
 \item{cut}{drop predicted locations if keep = FALSE, ie. locations in a large data gap}
 
 \item{dropIDs}{SMRU refs to be dropped}
-
-\item{crs}{CRS to be applied when interpolating SSM-estimated locations and re-projecting back from Cartesian coords to longlat}
 }
 \description{
 append SMRU tables so each event has SSM-derived lon, lat, x, y, x.se, y.se.
