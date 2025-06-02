@@ -2,18 +2,20 @@
 % Please edit documentation in R/diagnostics.R
 \name{diagnostics}
 \alias{diagnostics}
-\title{run QC diagnostics}
+\title{run QC diagnostics for WC or SMRU tag workflows}
 \usage{
 diagnostics(
   fit,
   fit1,
   what = "p",
   cut,
-  diag,
-  smru_ssm,
+  data,
+  ssm,
   meta,
+  lines = FALSE,
+  obs = FALSE,
   mpath = NULL,
-  tpath = NULL,
+  dpath = NULL,
   QCmode = "nrt",
   ...
 )
@@ -27,15 +29,19 @@ diagnostics(
 
 \item{cut}{logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap}
 
-\item{diag}{the standardized SMRU diag file (prior to truncation by metadata CTD start and end dates)}
+\item{data}{the standardized WC Locations or SMRU diag file (prior to truncation by metadata CTD start and end dates)}
 
-\item{smru_ssm}{the ssm-annotated SMRU tables}
+\item{ssm}{the ssm-annotated WC/SMRU tables}
 
 \item{meta}{metadata}
 
+\item{lines}{add track lines to map (default = FALSE)}
+
+\item{obs}{add observed locations to map (default = FALSE)}
+
 \item{mpath}{path to write map file}
 
-\item{tpath}{path to write diagnostic table files}
+\item{dpath}{path to write all other diagnostic files}
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
 in latter case start end end of dive data are displayed rather than ctd data}
@@ -43,5 +49,5 @@ in latter case start end end of dive data are displayed rather than ctd data}
 \item{...}{extra arguments for aniMotum::map - used to generate maps}
 }
 \description{
-produces a map of all QC''d tracks and generates diagnostic tables to assess QC run
+produces a map of all QC'd tracks and generates various diagnostics to assess QC run
 }
