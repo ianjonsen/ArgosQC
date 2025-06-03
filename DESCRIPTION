@@ -1,8 +1,8 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.5.9100
-Date: 2025-06-02
+Version: 0.5.9110
+Date: 2025-06-03
 Authors@R: 
     c(
       person(given = "Ian",

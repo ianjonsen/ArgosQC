@@ -118,7 +118,7 @@ wc_write_csv <- function(wc_ssm,
 ##'
 ##' @description Write WC generic datafile to .csv - format specific to ATN program
 ##'
-##' @param smru_ssm SSM-appended WC tag datafile - output of \code{append_ssm}
+##' @param wc_ssm SSM-appended WC tag datafile - output of \code{append_ssm}
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, only `atn`.
 ##' @param path path to write .csv files
@@ -162,7 +162,7 @@ wc_write_datafile <- function(wc_ssm,
 ##'
 ##' @description write to .csv - format depends on program (IMOS, ATN)
 ##'
-##' @param smru_ssm SSM-appended WC tag datafile - output of \code{append_ssm}
+##' @param locs_out SSM-appended WC tag datafile - output of \code{append_ssm}
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files
@@ -223,7 +223,7 @@ wc_write_ssm <- function(locs_out,
 ##'
 ##' @description Write WC Locations datafile to .csv - format specific to ATN program
 ##'
-##' @param smru_ssm SSM-appended WC tag datafile - output of \code{append_ssm}
+##' @param wc_ssm SSM-appended WC tag datafile - output of \code{append_ssm}
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, only `atn`.
 ##' @param path path to write .csv files

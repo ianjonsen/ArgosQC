@@ -14,6 +14,8 @@ wc_write_ssm(
 )
 }
 \arguments{
+\item{locs_out}{SSM-appended WC tag datafile - output of \code{append_ssm}}
+
 \item{meta}{metadata}
 
 \item{program}{Determines structure of output metadata. Currently, either `imos` or `atn`.}
@@ -23,8 +25,6 @@ wc_write_ssm(
 \item{dropIDs}{individual ids to be dropped}
 
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
-
-\item{smru_ssm}{SSM-appended WC tag datafile - output of \code{append_ssm}}
 }
 \description{
 write to .csv - format depends on program (IMOS, ATN)

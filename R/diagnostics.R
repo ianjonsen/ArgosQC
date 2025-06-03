@@ -49,7 +49,6 @@ diagnostics <-
     if(is.null(mpath)) stop("A valid file path for the map must be provided")
     if(is.null(dpath)) stop("A valid file path for the diagnostics must be provided")
 
-    if(inherits(fit, "list")) n <- length(fit)
 
     my.aes <- aes_lst(conf = FALSE,
                       line = ifelse(lines, TRUE, FALSE),
@@ -59,10 +58,13 @@ diagnostics <-
     if(obs) {
       my.aes$df$size[4] <- 0.75
       my.aes$df$col[4] <- "darkorange"
+      my.aes$df$alpha[4] <- 0.5
     }
 
 
     if (inherits(fit, "list")) {
+      n <- length(fit)
+
       flocs <- lapply(1:n, function(i) {
         locs <- grab_QC(fit[[i]], what = what, as_sf = TRUE)
         end.locs <- locs |>
