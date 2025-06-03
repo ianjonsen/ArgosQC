@@ -1014,6 +1014,11 @@ smru_write_meta <- function(meta,
       ) |>
       mutate(state_country = ifelse(is.na(state_country), "Unknown", state_country))
 
+    meta <- meta |>
+      mutate(age_class = case_when(
+        age_class == "juv" ~ "juvenile",
+        age_class == "juvenille" ~ "juvenile"
+      ))
 
     ## check metadata schema compliance to AODN standard
     meta <- meta |>
