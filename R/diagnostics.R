@@ -254,9 +254,9 @@ diagnostics <-
 
     ## Longitude coverage plots
     p.lon <- suppressWarnings(ggplot(olocs) +
-      geom_point(aes(date, lat), col = "blue") +
+      geom_point(aes(date, lon), col = "blue") +
       geom_point(data = flocs,
-                 aes(date, lat),
+                 aes(date, lon),
                  size = 0.25,
                  col = 'red'))
 

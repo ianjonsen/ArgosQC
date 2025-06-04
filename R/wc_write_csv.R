@@ -90,21 +90,41 @@ wc_write_csv <- function(wc_ssm,
 
   ## write tables to .csv files
   lapply(1:length(out), function(i) {
-    out[[i]] |>
-      group_by(AnimalAphiaID, ADRProjectID) |>
-      group_split() |>
-      walk( ~ suppressMessages(write_csv(
-        .x,
-        file = paste0(
-          file.path(path, nms[i]),
-          "_",
-          .x$AnimalAphiaID[1],
-          "_",
-          str_replace(.x$ADRProjectID[1], "\\ ", ""),
-          suffix,
-          ".csv"
-        )
-      )))
+    if(program == "atn") {
+      out[[i]] |>
+        group_by(AnimalAphiaID, ADRProjectID) |>
+        group_split() |>
+        walk( ~ suppressMessages(write_csv(
+          .x,
+          file = paste0(
+            file.path(path, nms[i]),
+            "_",
+            .x$AnimalAphiaID[1],
+            "_",
+            str_replace(.x$ADRProjectID[1], "\\ ", ""),
+            suffix,
+            ".csv"
+          )
+        )))
+
+    } else if(program == "irap") {
+      out[[i]] |>
+        mutate(DeploymentID = irapID) |>
+        group_by(common_name) |>
+        group_split() |>
+        walk( ~ suppressMessages(write_csv(
+          .x,
+          file = paste0(
+            file.path(path, nms[i]),
+            "_",
+            .x$common_name[1],
+            suffix,
+            ".csv"
+          )
+        )))
+
+    }
+
   })
 
 
@@ -120,7 +140,8 @@ wc_write_csv <- function(wc_ssm,
 ##'
 ##' @param wc_ssm SSM-appended WC tag datafile - output of \code{append_ssm}
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, only `atn`.
+##' @param program Determines structure of output metadata. Currently, `atn` or
+##' `irap`.
 ##' @param path path to write .csv files
 ##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
@@ -149,9 +170,16 @@ wc_write_datafile <- function(wc_ssm,
     filter(!DeploymentID %in% dropIDs) |>
     filter(!is.na(DeploymentID))
 
+if(program == "atn") {
   out <- inner_join(tmp,
                     meta |> select(DeploymentID, TagID, TagModel, AnimalAphiaID, ADRProjectID),
                     by = "DeploymentID")
+
+} else if(program == "irap") {
+  out <- inner_join(tmp,
+                    meta |> select(DeploymentID, irapID, common_name),
+                    by = "DeploymentID")
+}
 
   return(out)
 }
@@ -208,10 +236,19 @@ wc_write_ssm <- function(locs_out,
 
   }
 
-  locs_out <- left_join(
-    locs_out,
-    meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
-    by = "DeploymentID")
+  if(program == "atn") {
+    locs_out <- left_join(
+      locs_out,
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
+      by = "DeploymentID")
+
+  } else if(program == "irap") {
+    locs_out <- left_join(
+      locs_out,
+      meta |> select(DeploymentID, irapID, common_name),
+      by = "DeploymentID")
+  }
+
 
 
   return(locs_out)
@@ -255,9 +292,18 @@ wc_write_locations <- function(wc_ssm,
     filter(!DeploymentID %in% dropIDs) |>
     filter(!is.na(DeploymentID))
 
-  locs <- left_join(locs,
-                    meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
-                    by = "DeploymentID")
+  if(program == "atn") {
+    locs <- left_join(locs,
+                      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
+                      by = "DeploymentID")
+
+  } else if(program == "irap") {
+    locs <- left_join(locs,
+                      meta |> select(DeploymentID, irapID, common_name),
+                      by = "DeploymentID")
+
+  }
+
 
   return(locs)
 }

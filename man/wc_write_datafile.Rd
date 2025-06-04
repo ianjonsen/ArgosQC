@@ -18,7 +18,8 @@ wc_write_datafile(
 
 \item{meta}{metadata}
 
-\item{program}{Determines structure of output metadata. Currently, only `atn`.}
+\item{program}{Determines structure of output metadata. Currently, `atn` or
+`irap`.}
 
 \item{path}{path to write .csv files}
 
