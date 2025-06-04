@@ -62,7 +62,7 @@ wc_ssm_outputs <- function(fit,
                  v_se,
                  s,
                  s_se,
-                 keelocs)
+                 keep)
 
       } else if (!"keep" %in% names(locs)){
         locs <- locs |>

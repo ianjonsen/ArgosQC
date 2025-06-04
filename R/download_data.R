@@ -28,14 +28,8 @@
 ##'dest = tempdir(),
 ##'source = "github")
 ##'
-##' @importFrom dplyr select mutate bind_rows
-##' @importFrom tidyr drop_na
 ##' @importFrom utils unzip
 ##' @importFrom usethis create_download_url
-##' @importFrom openssl sha256
-##' @importFrom httr2 request req_headers req_body_raw req_perform req_body_form
-##' @importFrom httr2 resp_body_xml
-##' @importFrom XML xmlParse xmlRoot xmlToDataFrame getNodeSet
 ##'
 ##' @export
 
@@ -103,7 +97,7 @@ download_data <- function(path = NULL,
 ##' @param url url for data
 ##' @param destdir destination path to save download
 ##'
-##' @importFrom fs file_temp file_move path
+##' @importFrom fs file_temp file_move path path_file
 ##'
 ##' @internal
 tidy_download <- function (url, destdir = getwd())
@@ -114,7 +108,7 @@ tidy_download <- function (url, destdir = getwd())
   h <- usethis:::download_url(url, destfile = tmp)
   #  cli::cat_line()
   cd <- usethis:::content_disposition(h)
-  base_name <- usethis:::make_filename(cd, fallback = fs::path_file(url))
+  base_name <- usethis:::make_filename(cd, fallback = path_file(url))
   full_path <- path(destdir, base_name)
 
   attr(full_path, "content-type") <- usethis:::content_type(h)
