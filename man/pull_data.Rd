@@ -4,14 +4,7 @@
 \alias{pull_data}
 \title{Pull SMRU or WC data from downloaded data files}
 \usage{
-pull_data(
-  path2data,
-  source = "smru",
-  cids = NULL,
-  datafiles = NULL,
-  tag_mfr = "smru",
-  ...
-)
+pull_data(path2data, source = "smru", cids = NULL, tag_mfr = "smru", ...)
 }
 \arguments{
 \item{path2data}{path to data file(s)}

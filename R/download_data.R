@@ -17,8 +17,8 @@
 ##' @param cids SMRU tag deployment campaign id(s) to download, eg. "ct180"
 ##' @param user SMRU data server username as a quoted string
 ##' @param pwd SMRU data server password as a quoted string
-##' @param WC_AccessKey an Access Key issued by Wildlife Computers for their API
-##' @param WC_SecretKey a Secret Key issued by Wildlife Computers for their API
+##' @param wc.akey an Access Key issued by Wildlife Computers for their API
+##' @param wc.skey a Secret Key issued by Wildlife Computers for their API
 ##' @param ... additional arguments passed to `get_smru_mdb` or `get_wc_files()`
 ##'
 ##' @md
@@ -63,7 +63,7 @@ download_data <- function(path = NULL,
   if(!source %in% c("smru", "wc", "local")) {
     url <- create_download_url(path)
 
-    tidy_download(url, dest = dest)
+    tidy_download(url, destdir = dest)
 
     if(unzip)
       unzip(dest, exdir = dest)

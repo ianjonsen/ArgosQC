@@ -18,7 +18,7 @@ wc_write_locations(
 
 \item{meta}{metadata}
 
-\item{program}{Determines structure of output metadata. Currently, only `atn`.}
+\item{program}{Determines structure of output metadata. Currently, only \code{atn}.}
 
 \item{path}{path to write .csv files}
 

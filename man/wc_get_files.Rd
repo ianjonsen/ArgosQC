@@ -22,7 +22,7 @@ wc_get_files(
 \item{owner.id}{a WC data owner ID}
 
 \item{collaborator}{(logical) should data owned by collaborators be
-downloaded. Ignored if `owner.id` provided.}
+downloaded. Ignored if \code{owner.id} provided.}
 
 \item{unzip}{(logical) should deployment zipfile be unzipped into destination
 directory.}
@@ -33,7 +33,7 @@ the Wildlife Computers Portal API. User-supplied WC Access Key, WC Secret Key,
 
 Satellite tracking data are downloaded from a user-specified URL
 (which can include files on GoogleDrive or Dropbox), accessed from the SMRU
-data server by calling `get_smru_mdb()`, or accessed from the Wildlife
-Computers Portal API by calling `get_wc_files()`.
+data server by calling \code{get_smru_mdb()}, or accessed from the Wildlife
+Computers Portal API by calling \code{get_wc_files()}.
 }
 \keyword{internal}

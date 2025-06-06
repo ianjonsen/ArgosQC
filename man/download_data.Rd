@@ -39,11 +39,11 @@ download_data(
 
 \item{pwd}{SMRU data server password as a quoted string}
 
+\item{wc.akey}{an Access Key issued by Wildlife Computers for their API}
+
+\item{wc.skey}{a Secret Key issued by Wildlife Computers for their API}
+
 \item{...}{additional arguments passed to \code{get_smru_mdb} or \code{get_wc_files()}}
-
-\item{WC_AccessKey}{an Access Key issued by Wildlife Computers for their API}
-
-\item{WC_SecretKey}{a Secret Key issued by Wildlife Computers for their API}
 }
 \description{
 Satellite tracking data, in a zipfile, are downloaded from a

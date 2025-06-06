@@ -15,8 +15,8 @@ redo_multi_filter(
   min.dt = 180,
   map = NULL,
   reroute = TRUE,
-  verbose = TRUE,
   dist = 1500,
+  verbose = TRUE,
   ...
 )
 }
@@ -42,9 +42,14 @@ redo_multi_filter(
 \item{reroute}{(logical) should SSM-predicted locations be re-routed off of
 land (default is TRUE)}
 
+\item{dist}{the distance (in km) to buffer around predicted locations. This
+buffer allows a larger portion of coastline to be selected for rerouting any
+locations that are on land. More coastline polygon data can help rerouting, but
+too much will make computation very slow.}
+
 \item{verbose}{turn on/off furrr::future_map progress indicator}
 
-\item{...}{arguments to `aniMotum::route_path`}
+\item{...}{arguments to \code{aniMotum::route_path}}
 }
 \description{
 re-apply SSM filter to diag data for id's that failed to converge. parallelized

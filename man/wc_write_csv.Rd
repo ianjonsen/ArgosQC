@@ -25,7 +25,7 @@ wc_write_csv(
 
 \item{meta}{metadata}
 
-\item{program}{Determines structure of output metadata. Currently, either `imos` or `atn`.}
+\item{program}{Determines structure of output metadata. Currently, either \code{imos} or \code{atn}.}
 
 \item{path}{path to write .csv files}
 

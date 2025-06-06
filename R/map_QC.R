@@ -61,7 +61,8 @@
 ##' @examples
 ##' # create an ssm fit object
 ##'
-##' fit <- aniMotum::fit_ssm(ellie, model = "rw", time.step = 24, control = aniMotum::ssm_control(verbose = 0))
+##' fit <- aniMotum::fit_ssm(ellie, model = "rw", time.step = 24,
+##' control = aniMotum::ssm_control(verbose = 0))
 ##'
 ##' # render default map
 ##'

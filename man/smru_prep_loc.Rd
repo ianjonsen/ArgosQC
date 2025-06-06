@@ -23,7 +23,7 @@ smru_prep_loc(
 
 \item{crs}{a proj4string to re-project diag locations from longlat}
 
-\item{gps.tab}{if a GPS table exists in `smru` should location be merged into diag (default is FALSE)}
+\item{gps.tab}{if a GPS table exists in \code{smru} should location be merged into diag (default is FALSE)}
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
 in latter case diag is not right-truncated & date of first dive is used

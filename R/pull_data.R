@@ -33,7 +33,6 @@
 pull_data <- function(path2data,
                       source = "smru",
                       cids = NULL,
-                      datafiles = NULL,
                       tag_mfr = "smru",
                       ...) {
 

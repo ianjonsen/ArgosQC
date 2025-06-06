@@ -39,7 +39,8 @@
 ##'
 ##' @examples
 ##' ## generate an ssm fit object
-##' xs <- aniMotum::fit_ssm(ellie, spdf=FALSE, model = "rw", time.step=24, control = ssm_control(verbose = 0))
+##' xs <- aniMotum::fit_ssm(ellie, model = "rw", time.step=24,
+##' control = ssm_control(verbose = 0))
 ##'
 ##' ## grab predicted values as an un-projected tibble
 ##' preds <- grab_QC(xs, what = "predicted", cut = TRUE)

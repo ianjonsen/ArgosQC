@@ -15,19 +15,21 @@ get_metadata(
 )
 }
 \arguments{
-\item{source}{the source of the metadata, current options are `imos`, `smru`,
-`atn`.}
+\item{source}{the source of the metadata, current options are \code{imos}, \code{smru},
+\code{atn}.}
 
-\item{tag_mfr}{the tag manufacturer, current options are `smru` or `wc`
+\item{tag_mfr}{the tag manufacturer, current options are \code{smru} or \code{wc}
 cids SMRU campaign ids}
 
-\item{tag_data}{a list of either `smru` data tables or `wc` files as output by
-`pull_data`.}
+\item{tag_data}{a list of either \code{smru} data tables or \code{wc} files as output by
+\code{pull_data}.}
+
+\item{cids}{SMRU campaign id(s) must be provided when the tag_mfr is \code{smru}}
 
 \item{dropIDs}{SMRU refs or WC ids to be dropped}
 
 \item{file}{path to metadata .csv file, if provided then metadata will be
-downloaded from the provided `source`}
+downloaded from the provided \code{source}}
 
 \item{enc}{set locale encoding to handle special characters; default is "UTF-8"}
 }

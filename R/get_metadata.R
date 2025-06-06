@@ -11,6 +11,7 @@
 ##' cids SMRU campaign ids
 ##' @param tag_data a list of either `smru` data tables or `wc` files as output by
 ##' `pull_data`.
+##' @param cids SMRU campaign id(s) must be provided when the tag_mfr is `smru`
 ##' @param dropIDs SMRU refs or WC ids to be dropped
 ##' @param file path to metadata .csv file, if provided then metadata will be
 ##' downloaded from the provided `source`
@@ -39,11 +40,12 @@ get_metadata <- function(source = "smru",
 
   if(is.null(tag_data)) stop("a tag_data object must be supplied")
   if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
+  if(all((tag_mfr == "smru" | source == "smru"), is.null(cids))) stop("'cids' argument is empty, SMRU campaign id(s) must be specified")
   if(all(source == "atn", tag_mfr %in% c("smru", "wc"), is.null(file))) stop("an ATN .csv metadata file must be provided")
 
  if (source == "atn") {
     if(tag_mfr == "smru") {
-      meta <- readr::read_csv(file, locale = readr::locale(encoding = enc))
+      meta <- read_csv(file, locale = readr::locale(encoding = enc))
 
       ## subset to current campaigns & apply drop.refs
       SMRUCampaignID <- str_split(meta$DeploymentID, "\\-", simplify = TRUE)[,1]
@@ -55,7 +57,7 @@ get_metadata <- function(source = "smru",
 
     } else if(tag_mfr == "wc") {
       ## read metadata & subset to ID's in current data to be QC'd
-      meta <- readr::read_csv(file,
+      meta <- read_csv(file,
                               col_types = c("iiccccccTccicccccTTcddcccicdccdccdcccdcTc")) |>
         filter(!DeploymentID %in% dropIDs)
 
@@ -68,9 +70,9 @@ get_metadata <- function(source = "smru",
    tag_meta <- lapply(1:length(cids), function(i) {
       url <- paste0("https://imos:imos@www.smru.st-andrews.ac.uk/protected/", cids[i], "/", cids[i], ".html")
       tm <- url |>
-        rvest::read_html() |>
-        rvest::html_nodes(xpath = '/html/body/ul[1]/table') |>
-        rvest::html_table()
+        read_html() |>
+        html_nodes(xpath = '/html/body/ul[1]/table') |>
+        html_table()
       tm
     }) |> bind_rows()
 

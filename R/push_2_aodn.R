@@ -5,6 +5,8 @@
 ##' @param cids campaign ids to zip and sync
 ##' @param path path to write .csv files
 ##' @param user AODN incoming server username as a string
+##' @param host rsync server address
+##' @param dest destination directory on host server
 ##' @param pwd AODN incoming server pwd as a string
 ##' @param nopush zip files but don't push to AODN incoming server (for testing)
 ##' @param suffix suffix to add to zip files (_nrt or _dm)
@@ -17,7 +19,14 @@
 ##'
 ##' @export
 
-push_2_aodn <- function(cids, path = NULL, user = NULL, host = NULL, dest = NULL, pwd = NULL, nopush = TRUE, suffix = "_nrt") {
+push_2_aodn <- function(cids,
+                        path = NULL,
+                        user = NULL,
+                        host = NULL,
+                        dest = NULL,
+                        pwd = NULL,
+                        nopush = TRUE,
+                        suffix = "_nrt") {
 
   assert_that(!is.null(path))
 ##  assert_that(!is.null(user))

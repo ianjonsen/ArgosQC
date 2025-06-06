@@ -11,7 +11,7 @@ wc_append_Locations(wc, locs, deploy_meta, dropIDs)
 
 \item{locs}{SSM location estimates}
 
-\item{deploy_meta}{the deployment metadata object created in `append_wc()`}
+\item{deploy_meta}{the deployment metadata object created in \code{append_wc()}}
 
 \item{dropIDs}{DeploymentID's to be ignored}
 }
