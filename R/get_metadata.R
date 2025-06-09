@@ -17,7 +17,6 @@
 ##' downloaded from the provided `source`
 ##' @param enc set locale encoding to handle special characters; default is "UTF-8"
 ##'
-##' @examples
 ##'
 ##'
 ##' @importFrom dplyr select rename mutate filter bind_rows
@@ -213,7 +212,7 @@ get_metadata <- function(source = "smru",
 ## if none of above sources apply then default to local IMOS metadata
 if(source == "imos") {
   if(tag_mfr == "smru") {
-    meta <- clean_meta(cids = cids,
+    meta <- smru_clean_meta(cids = cids,
                        smru = tag_data,
                        drop.refs = dropIDs,
                        file = file)

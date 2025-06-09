@@ -15,11 +15,9 @@ map_QC(
   crs = NULL,
   ext.rng = c(0.05, 0.05),
   buffer = 10000,
-  map_type = "default",
   normalise = TRUE,
   group = FALSE,
-  silent = FALSE,
-  ...
+  silent = FALSE
 )
 }
 \arguments{
@@ -58,14 +56,6 @@ polygons (default = 10000). If map extents are expanded by many factors then
 the buffer distance may need to be increased, otherwise this should not be
 used. Ignored if \code{map_type != "default"}.}
 
-\item{map_type}{background map type ("default" uses \link[rnaturalearth:ne_countries]{rnaturalearth::ne_countries}
-to add land polygons). If the \code{rnaturalearthdata} package is installed then
-high-resolution land polygons will be used. If the \code{ggspatial}
-and \code{rosm} packages are installed then any tile map type returned by
-\link[rosm:deprecated]{rosm::osm.types} can be used for a potentially more detailed coastline at
-fine spatial scales, given appropriate zoom settings
-(see \link[ggspatial:annotation_map_tile]{ggspatial::annotation_map_tile} for details).}
-
 \item{normalise}{logical; if output includes a move persistence estimate,
 should g (the move persistence index) be normalised to have minimum = 0 and
 maximum = 1 (default = TRUE).}
@@ -75,8 +65,6 @@ a 'relative g', or separately to highlight regions of lowest and highest move
 persistence along a track (default = FALSE).}
 
 \item{silent}{logical; generate maps silently (default = FALSE).}
-
-\item{...}{additional arguments passed to \link[ggspatial:annotation_map_tile]{ggspatial::annotation_map_tile}}
 }
 \value{
 a map as a ggplot2 object
@@ -84,15 +72,4 @@ a map as a ggplot2 object
 \description{
 map aniMotum-estimated locations and behavioural indices with
 coastline and projection options
-}
-\examples{
-# create an ssm fit object
-
-fit <- aniMotum::fit_ssm(ellie, model = "rw", time.step = 24,
-control = aniMotum::ssm_control(verbose = 0))
-
-# render default map
-
-map_QC(fit, what = "p", cut = TRUE)
-
 }

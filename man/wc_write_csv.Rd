@@ -29,12 +29,12 @@ wc_write_csv(
 
 \item{path}{path to write .csv files}
 
+\item{dropIDs}{individual WC DeploymentID's to be dropped}
+
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 
 \item{pred.int}{prediction interval to use for sub-sampling predicted locations
 (default = 6 h)}
-
-\item{drop.refs}{individual WC DeploymentID's to be dropped}
 }
 \description{
 subsample SSM-predicted locations to 6-h intervals, write annotated files to .csv

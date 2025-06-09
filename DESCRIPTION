@@ -1,8 +1,8 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.5-04
-Date: 2025-06-06
+Version: 0.5-05
+Date: 2025-06-09
 Author: Ian Jonsen [aut, cre, cph]           
 Maintainer: Ian Jonsen <jonsen@stochastic-qc.org>
 Description: An automated Argos location quality control process for Argos location data from satellite tags. Functions automatically download and collate data from one of several potential remote source: a user-supplied URL, a user-supplied Google Drive link, a user-supplied Dropbox link, the SMRU server, or the Wildlife Computers Portal API. The package matches deployment data with user-supplied deployment metadata; projects location data from lon,lat to a user-supplied projection or a default projection; fits user-specified SSM's in 2 passes to estimate most plausible locations; collates results by species & deployment program; generates diagnostic plots & maps; appends predicted locations at tag-measured event times to the tag manufacturer activity files such as CTD profiles, dive records, haulout records, and the Argos and (when present) GPS location files; saves activity files as .csv in one of several possible schema (IMOS ATF, ATN, User-defined); pushes QC'd files to a user-specified server or saves to a local archive (zipfile).
@@ -18,7 +18,6 @@ Imports:
     dplyr,
     tidyr,
     lubridate,
-    Hmisc,
     assertthat,
     purrr,
     readr,
@@ -37,12 +36,10 @@ Imports:
     traipse,
     usethis,
     vctrs,
-    fs,
-    knitr
+    fs
 Depends: 
     R (>= 4.1.0)
 SystemRequirements: GDAL (>= 2.4.2), GEOS (>= 3.7.0), PROJ (>= 5.2.0), pandoc (>=2.7.3)
-VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
 Remotes: 
   ropensci/rnaturalearthhires

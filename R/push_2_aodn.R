@@ -11,8 +11,6 @@
 ##' @param nopush zip files but don't push to AODN incoming server (for testing)
 ##' @param suffix suffix to add to zip files (_nrt or _dm)
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr %>%
 ##' @importFrom purrr walk
 ##' @importFrom assertthat assert_that

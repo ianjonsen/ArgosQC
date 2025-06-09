@@ -17,7 +17,6 @@
 ##' in latter case start end end of dive data are displayed rather than ctd data
 ##' @param ... extra arguments for aniMotum::map - used to generate maps
 ##'
-##' @examples
 ##'
 ##' @importFrom dplyr %>% group_by summarise pull
 ##' @importFrom sf st_as_sf st_transform st_cast st_bbox

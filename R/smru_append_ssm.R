@@ -10,8 +10,6 @@
 ##' @param cut drop predicted locations if keep = FALSE, ie. locations in a large data gap
 ##' @param dropIDs SMRU refs to be dropped
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr filter select mutate group_by %>% summarise left_join
 ##' @importFrom dplyr distinct pull arrange ungroup
 ##' @importFrom tidyr unnest

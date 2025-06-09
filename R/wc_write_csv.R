@@ -8,12 +8,10 @@
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files
-##' @param drop.refs individual WC DeploymentID's to be dropped
+##' @param dropIDs individual WC DeploymentID's to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##' @param pred.int prediction interval to use for sub-sampling predicted locations
 ##' (default = 6 h)
-##'
-##' @examples
 ##'
 ##' @importFrom dplyr filter rename mutate select inner_join
 ##' @importFrom stringr str_replace

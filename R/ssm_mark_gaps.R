@@ -9,8 +9,6 @@
 ##' @param mark logical; should the SSM data be marked (TRUE; default), otherwise
 ##' the function does no marking and returns the original SSM fit object
 ##'
-##' @examples
-##'
 ##' @export
 
 

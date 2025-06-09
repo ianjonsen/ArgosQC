@@ -11,8 +11,6 @@
 ##' @param drop.refs SMRU refs to be dropped
 ##' @param file path to metadata .csv file
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr select rename mutate filter %>% bind_rows
 ##' @importFrom readr read_csv
 ##' @importFrom stringr str_to_lower str_replace_all str_extract regex
@@ -20,10 +18,10 @@
 ##' @importFrom assertthat assert_that
 ##'
 ##' @md
-##' @export
+##' @keywords internal
 ##'
 
-clean_meta <- function(cids,
+smru_clean_meta <- function(cids,
                        smru,
                        drop.refs = NULL,
                        file = NULL) {

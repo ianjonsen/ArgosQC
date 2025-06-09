@@ -14,6 +14,8 @@ smru_write_ssm(
 )
 }
 \arguments{
+\item{p_out}{SSM-predicted locations}
+
 \item{meta}{metadata}
 
 \item{program}{Determines structure of output metadata. Currently, either \code{imos} or \code{atn}.}
@@ -23,8 +25,6 @@ smru_write_ssm(
 \item{drop.refs}{individual ids to be dropped}
 
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
-
-\item{smru_ssm}{SSM-appended SMRU table file - output of \code{append_ssm}}
 }
 \description{
 write to .csv - format depends on program (IMOS, ATN)

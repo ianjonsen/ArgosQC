@@ -14,8 +14,6 @@
 ##' @param drop.refs individual SMRU ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr filter rename mutate select group_by group_split
 ##' @importFrom stringr str_replace
 ##' @importFrom readr write_csv
@@ -1114,7 +1112,7 @@ smru_write_meta <- function(meta,
 ##'
 ##' @description write to .csv - format depends on program (IMOS, ATN)
 ##'
-##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
+##' @param p_out SSM-predicted locations
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files

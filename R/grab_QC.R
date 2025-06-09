@@ -37,16 +37,8 @@
 ##' @importFrom dplyr group_by mutate ungroup %>% bind_rows filter
 ##' @importFrom tibble as_tibble
 ##'
-##' @examples
-##' ## generate an ssm fit object
-##' xs <- aniMotum::fit_ssm(ellie, model = "rw", time.step=24,
-##' control = ssm_control(verbose = 0))
 ##'
-##' ## grab predicted values as an un-projected tibble
-##' preds <- grab_QC(xs, what = "predicted", cut = TRUE)
-##'
-##' @export
-##' @md
+##' @keywords internal
 
 grab_QC <- function(x, what = "fitted", cut = FALSE, as_sf = FALSE, normalise = FALSE, group = FALSE) {
 

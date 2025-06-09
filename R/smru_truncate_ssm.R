@@ -4,16 +4,14 @@
 ##'
 ##' @param smru_ssm SSM-appended SMRU file to use
 ##' @param meta metadata used to truncate SSM-appended SMRU tables for each individual
-##' @param ref device_id's (SMRU ref's) to apply truncation
-##'
-##' @examples
+##' @param refs device_id's (SMRU ref's) to apply truncation
 ##'
 ##' @importFrom dplyr select filter left_join %>%
 ##'
 ##' @export
 ##'
 
-truncate_smru_ssm <- function(smru_ssm, meta, refs) {
+smru_truncate_ssm <- function(smru_ssm, meta, refs) {
 
   deploy_meta <- meta %>%
     select(device_id, ctd_end)

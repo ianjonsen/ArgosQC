@@ -12,8 +12,6 @@
 ##' @param map params to fix
 ##' @param verbose turn on/off furrr::future_map progress indicator
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr %>% filter
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options

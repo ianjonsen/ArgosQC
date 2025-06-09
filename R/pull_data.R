@@ -23,10 +23,6 @@
 ##' @param tag_mfr either "smru or "wc", ignored if `source` != "local"
 ##' @param ... additional arguments passed to `pull_smru_tables`
 ##'
-##'
-##'
-##' @examples
-##'
 ##' @md
 ##' @export
 

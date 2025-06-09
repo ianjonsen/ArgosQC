@@ -20,8 +20,6 @@
 ##' @param verbose turn on/off furrr::future_map progress indicator
 ##' @param ... arguments to `aniMotum::route_path`
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr filter %>% bind_rows slice ungroup left_join select mutate
 ##' @importFrom tidyr nest
 ##' @importFrom future plan

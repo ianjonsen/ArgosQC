@@ -14,8 +14,6 @@
 ##' in latter case wc is not right-truncated & date of first dive is used
 ##' for the track start date.
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
 ##' @importFrom dplyr ungroup rename select n lag
 ##' @importFrom assertthat assert_that

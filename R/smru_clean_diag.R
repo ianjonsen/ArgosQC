@@ -5,15 +5,14 @@
 ##' @param smru list of SMRU tables
 ##' @param drop.refs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr select rename mutate filter %>%
 ##' @importFrom assertthat assert_that
 ##'
 ##' @export
 ##'
 
-clean_diag <- function(smru, drop.refs = NULL) {
+smru_clean_diag <- function(smru,
+                       drop.refs = NULL) {
 
   assert_that(is.list(smru))
 

@@ -5,8 +5,6 @@
 ##' @param path2data path to local datafile(s)
 ##' @param tag_mfr either "smru" or "wc"
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr select mutate bind_rows
 ##' @importFrom lubridate ymd_hms
 ##'
