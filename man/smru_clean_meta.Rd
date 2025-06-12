@@ -4,14 +4,14 @@
 \alias{smru_clean_meta}
 \title{clean metadata}
 \usage{
-smru_clean_meta(cids, smru, drop.refs = NULL, file = NULL)
+smru_clean_meta(cids, smru, dropIDs = NULL, file = NULL)
 }
 \arguments{
 \item{cids}{SMRU campaign ids}
 
 \item{smru}{SMRU table}
 
-\item{drop.refs}{SMRU refs to be dropped}
+\item{dropIDs}{SMRU refs to be dropped}
 
 \item{file}{path to metadata .csv file}
 }

@@ -3,7 +3,7 @@
 ##' @description restructures diag files, formats dates & lc's in preparation for SSM-filtering
 ##'
 ##' @param smru list of SMRU tables
-##' @param drop.refs SMRU refs to be dropped (eg. tags were turned on but not deployed)
+##' @param dropIDs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##'
 ##' @importFrom dplyr select rename mutate filter %>%
 ##' @importFrom assertthat assert_that
@@ -12,7 +12,7 @@
 ##'
 
 smru_clean_diag <- function(smru,
-                       drop.refs = NULL) {
+                       dropIDs = NULL) {
 
   assert_that(is.list(smru))
 
@@ -59,7 +59,7 @@ smru_clean_diag <- function(smru,
            eor = as.numeric(eor))
 
   diag <- diag %>%
-    filter(!ref %in% drop.refs) %>%
+    filter(!ref %in% dropIDs) %>%
     filter(!is.na(ref))
 
   return(diag)

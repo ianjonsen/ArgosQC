@@ -11,7 +11,7 @@
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
-##' @param drop.refs individual SMRU ids to be dropped
+##' @param dropIDs individual SMRU ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##' @importFrom dplyr filter rename mutate select group_by group_split
@@ -28,7 +28,7 @@ smru_write_csv <- function(smru_ssm,
                         program = "imos",
                         test = TRUE,
                         path = NULL,
-                        drop.refs = NULL,
+                        dropIDs = NULL,
                         suffix = "_nrt") {
 
 
@@ -37,13 +37,13 @@ smru_write_csv <- function(smru_ssm,
   ## SSM predictions
   ssm_out <- smru_ssm_outputs(fit = fit,
                          what = what,
-                         drop.refs = drop.refs,
+                         dropIDs = dropIDs,
                          suffix = suffix)
 
   ## Metadata
   if (program == "imos") {
     meta <- meta |>
-      filter(!device_id %in% drop.refs)
+      filter(!device_id %in% dropIDs)
 
     meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
       select(-ctd_start, -ctd_end, -dive_start, -dive_end)
@@ -51,7 +51,7 @@ smru_write_csv <- function(smru_ssm,
   } else if (program == "atn") {
 
     ## If ATN data then append QC variables to metadata
-    meta <- meta |> filter(!DeploymentID %in% drop.refs)
+    meta <- meta |> filter(!DeploymentID %in% dropIDs)
 
     meta <- left_join(meta, ssm_out$qc_se, by = c("DeploymentID" = "ref")) |>
       select(-ctd_start, -ctd_end, -dive_start, -dive_end) |>
@@ -75,7 +75,7 @@ smru_write_csv <- function(smru_ssm,
     meta = meta,
     program = program,
     path = path,
-    drop.refs = drop.refs,
+    dropIDs = dropIDs,
     suffix = suffix
   )
   out[[1]] <- ssmoutputs
@@ -88,7 +88,7 @@ smru_write_csv <- function(smru_ssm,
     program = program,
     test = test,
     path = path,
-    drop.refs = drop.refs,
+    dropIDs = dropIDs,
     suffix = suffix
   )
   out[[2]] <- diag
@@ -102,7 +102,7 @@ smru_write_csv <- function(smru_ssm,
       program = program,
       test = test,
       path = path,
-      drop.refs = drop.refs,
+      dropIDs = dropIDs,
       suffix = suffix
     )
     out[[3]] <- gps
@@ -117,7 +117,7 @@ smru_write_csv <- function(smru_ssm,
       program = program,
       test = test,
       path = path,
-      drop.refs = drop.refs,
+      dropIDs = dropIDs,
       suffix = suffix
     )
     out[[4]] <- haulout
@@ -132,7 +132,7 @@ smru_write_csv <- function(smru_ssm,
       program = program,
       test = test,
       path = path,
-      drop.refs = drop.refs,
+      dropIDs = dropIDs,
       suffix = suffix
     )
     out[[5]] <- ctd
@@ -146,7 +146,7 @@ smru_write_csv <- function(smru_ssm,
       meta = meta,
       program = program,
       path = path,
-      drop.refs = drop.refs,
+      dropIDs = dropIDs,
       suffix = suffix
     )
     out[[6]] <- dive
@@ -160,7 +160,7 @@ smru_write_csv <- function(smru_ssm,
       meta = meta,
       program = program,
       path = path,
-      drop.refs = drop.refs,
+      dropIDs = dropIDs,
       suffix = suffix
     )
     out[[7]] <- ssummary
@@ -173,7 +173,7 @@ smru_write_csv <- function(smru_ssm,
     program = program,
     test = test,
     path = path,
-    drop.refs = drop.refs,
+    dropIDs = dropIDs,
     suffix = suffix
   )
   out[[8]] <- meta
@@ -205,10 +205,9 @@ smru_write_csv <- function(smru_ssm,
     })
 
   } else if (program == "atn") {
-
     lapply(1:length(out), function(i) {
       out[[i]] |>
-        group_by(AnimalAphiaID, DeploymentLocation) |>
+        group_by(AnimalAphiaID, ADRProjectID) |>
         group_split() |>
         walk(~ suppressMessages(write_csv(
           .x,
@@ -217,7 +216,7 @@ smru_write_csv <- function(smru_ssm,
             "_",
             .x$AnimalAphiaID[1],
             "_",
-            str_replace(.x$DeploymentLocation[1], "\\ ", ""),
+            .x$ADRProjectID[1],
             suffix,
             ".csv"
           )
@@ -240,7 +239,7 @@ smru_write_csv <- function(smru_ssm,
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -254,13 +253,13 @@ smru_write_ctd <- function(smru_ssm,
                            program = "imos",
                            test = TRUE,
                            path = NULL,
-                           drop.refs = NULL,
+                           dropIDs = NULL,
                            suffix = "_nrt") {
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   ctd <- smru_ssm$ctd <- smru_ssm$ctd |>
-    filter(!ref %in% drop.refs) |>
+    filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
@@ -409,7 +408,7 @@ smru_write_ctd <- function(smru_ssm,
 
     ctd <- left_join(
       ctd,
-      meta |> select(DeploymentID, AnimalAphiaID, DeploymentLocation),
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = c("ref" = "DeploymentID")
     ) |>
       select(-cid)
@@ -431,7 +430,7 @@ smru_write_ctd <- function(smru_ssm,
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -450,7 +449,7 @@ smru_write_diag <- function(smru_ssm,
                             program = "imos",
                             test = TRUE,
                             path = NULL,
-                            drop.refs = NULL,
+                            dropIDs = NULL,
                             suffix = "_nrt") {
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
@@ -458,7 +457,7 @@ smru_write_diag <- function(smru_ssm,
 
   ## Argos data
   diag <- smru_ssm$diag |>
-    filter(!ref %in% drop.refs) |>
+    filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
     mutate(cid = str_extract(ref, regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
@@ -593,7 +592,7 @@ smru_write_diag <- function(smru_ssm,
     diag <- left_join(diag,
                       meta |> select(DeploymentID,
                                      AnimalAphiaID,
-                                     DeploymentLocation),
+                                     ADRProjectID),
                       by = c("ref" = "DeploymentID")) |>
       select(-cid)
 
@@ -612,7 +611,7 @@ smru_write_diag <- function(smru_ssm,
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -625,13 +624,13 @@ smru_write_dive <- function(smru_ssm,
                             meta,
                             program = "imos",
                             path = NULL,
-                            drop.refs = NULL,
+                            dropIDs = NULL,
                             suffix = "_nrt") {
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   dive <- smru_ssm$dive |>
-    filter(!ref %in% drop.refs) |>
+    filter(!ref %in% dropIDs) |>
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
@@ -644,7 +643,7 @@ smru_write_dive <- function(smru_ssm,
 
     dive <- left_join(
       dive,
-      meta |> select(DeploymentID, AnimalAphiaID, DeploymentLocation),
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = c("ref" = "DeploymentID")
     ) |>
       select(-cid)
@@ -670,7 +669,7 @@ smru_write_dive <- function(smru_ssm,
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -684,13 +683,13 @@ smru_write_gps <- function(smru_ssm,
                            program = "imos",
                            test = TRUE,
                            path = NULL,
-                           drop.refs = NULL,
+                           dropIDs = NULL,
                            suffix = "_nrt") {
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   gps <- smru_ssm$gps |>
-    filter(!ref %in% drop.refs) |>
+    filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
     mutate(cid = str_extract(ref, regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
@@ -768,7 +767,7 @@ smru_write_gps <- function(smru_ssm,
 
     gps <- left_join(
       gps,
-      meta |> select(DeploymentID, AnimalAphiaID, DeploymentLocation),
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = c("ref" = "DeploymentID")
     ) |>
       select(-cid)
@@ -791,7 +790,7 @@ smru_write_gps <- function(smru_ssm,
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -805,13 +804,13 @@ smru_write_haulout <- function(smru_ssm,
                                program = "imos",
                                test = TRUE,
                                path = NULL,
-                               drop.refs = NULL,
+                               dropIDs = NULL,
                                suffix = "_nrt") {
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   haulout <- smru_ssm$haulout |>
-    filter(!ref %in% drop.refs) |>
+    filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
@@ -908,7 +907,7 @@ smru_write_haulout <- function(smru_ssm,
   } else if (program == "atn") {
     haulout <- left_join(
       haulout,
-      meta |> select(DeploymentID, AnimalAphiaID, DeploymentLocation),
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = c("ref" = "DeploymentID")
     ) |>
       select(-cid)
@@ -930,7 +929,7 @@ smru_write_haulout <- function(smru_ssm,
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -948,7 +947,7 @@ smru_write_meta <- function(meta,
                             program = "imos",
                             test = TRUE,
                             path = NULL,
-                            drop.refs = NULL,
+                            dropIDs = NULL,
                             suffix = "_nrt") {
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
@@ -1099,7 +1098,7 @@ smru_write_meta <- function(meta,
 
   } else if (program == "atn") {
 
-    meta <- meta |> filter(!DeploymentID %in% drop.refs)
+    meta <- meta |> filter(!DeploymentID %in% dropIDs)
 
   }
 
@@ -1116,7 +1115,7 @@ smru_write_meta <- function(meta,
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -1130,7 +1129,7 @@ smru_write_ssm <- function(p_out,
                            meta,
                            program = "imos",
                            path = NULL,
-                           drop.refs = NULL,
+                           dropIDs = NULL,
                            suffix = "_nrt") {
 
 
@@ -1161,7 +1160,7 @@ smru_write_ssm <- function(p_out,
   if (program == "atn") {
     p_out <- left_join(
       p_out,
-      meta |> select(DeploymentID, AnimalAphiaID, DeploymentLocation),
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = c("ref" = "DeploymentID")
     ) |>
       select(-cid)
@@ -1181,7 +1180,7 @@ smru_write_ssm <- function(p_out,
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files
-##' @param drop.refs individual ids to be dropped
+##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##'
@@ -1194,13 +1193,13 @@ smru_write_summary <- function(smru_ssm,
                                meta,
                                program = "imos",
                                path = NULL,
-                               drop.refs = NULL,
+                               dropIDs = NULL,
                                suffix = "_nrt") {
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   ssummary <- smru_ssm$ssummary |>
-    filter(!ref %in% drop.refs) |>
+    filter(!ref %in% dropIDs) |>
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
@@ -1214,7 +1213,7 @@ smru_write_summary <- function(smru_ssm,
 
     ssummary <- left_join(
       ssummary,
-      meta |> select(DeploymentID, AnimalAphiaID, DeploymentLocation),
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = c("ref" = "DeploymentID")
     ) |>
       select(-cid)

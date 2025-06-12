@@ -12,7 +12,7 @@ smru_write_csv(
   program = "imos",
   test = TRUE,
   path = NULL,
-  drop.refs = NULL,
+  dropIDs = NULL,
   suffix = "_nrt"
 )
 }
@@ -33,7 +33,7 @@ has defined variable standard against which output compliance is tested.}
 
 \item{path}{path to write .csv files}
 
-\item{drop.refs}{individual SMRU ids to be dropped}
+\item{dropIDs}{individual SMRU ids to be dropped}
 
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 }

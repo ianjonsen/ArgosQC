@@ -4,7 +4,7 @@
 ##'
 ##' @param fit final \code{aniMotum} fit object
 ##' @param what specify whether predicted or rerouted locations are to be used
-##' @param drop.refs individual SMRU ids to be dropped
+##' @param dropIDs individual SMRU ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##'
 ##' @importFrom dplyr filter rename mutate select any_of bind_rows group_by
@@ -19,7 +19,7 @@
 
 smru_ssm_outputs <- function(fit,
                         what,
-                        drop.refs,
+                        dropIDs,
                         suffix
                         ) {
 
@@ -30,7 +30,7 @@ smru_ssm_outputs <- function(fit,
                cut = FALSE,
                as_sf = FALSE) |>
     rename(ref = id) |>
-    filter(!ref %in% drop.refs) |>
+    filter(!ref %in% dropIDs) |>
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
   names(p) <- to_snake_case(names(p))
 

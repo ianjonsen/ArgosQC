@@ -174,7 +174,8 @@ wc_prep_loc <- function(wc,
     select(-dist, -dt, -spd, -test)
 
   if (as_sf) {
-    ## project lon,lat coords
+    ## project lon,lat coords - use different projections depending where
+    ##  centroid of tracks lies latitudinally
     proj.fn <- function(x) {
       if ((mean(x$lat, na.rm = T, trim=0.05) > 25 &
           mean(x$lat, na.rm = T, trim=0.05) <= 55) |
@@ -232,25 +233,18 @@ wc_prep_loc <- function(wc,
     proj.fn <- function(x) x |> select(-DeploymentID)
   }
 
+  locs <- locs |>
+    mutate(id = DeploymentID) |>
+    dplyr::select(DeploymentID, id, everything()) |>
+    group_by(DeploymentID) |>
+    do(d_sf = proj.fn(.)) |>
+    ungroup()
+
   if (program == "atn") {
     locs <- locs |>
-      mutate(id = DeploymentID) |>
-      dplyr::select(DeploymentID, id, everything()) |>
-      group_by(DeploymentID) |>
-      do(d_sf = proj.fn(.)) |>
-      ungroup() |>
-      left_join(meta |> select(DeploymentID, ADRProjectID), by = "DeploymentID")
+      left_join(meta |> select(DeploymentID, ADRProjectID),
+                by = "DeploymentID")
 
-  } else if (program == "irap") {
-    locs <- locs |>
-      mutate(id = DeploymentID) |>
-      dplyr::select(DeploymentID, id, everything()) |>
-      group_by(DeploymentID) |>
-      do(d_sf = proj.fn(.)) |>
-      ungroup()
-
-  } else {
-    stop("AniBOS program currently not supported")
   }
 
   ## add species code

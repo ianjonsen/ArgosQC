@@ -15,7 +15,6 @@
 ##' @param dpath path to write all other diagnostic files
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case start end end of dive data are displayed rather than ctd data
-##' @param ... extra arguments for aniMotum::map - used to generate maps
 ##'
 ##'
 ##' @importFrom dplyr %>% group_by summarise pull
@@ -42,8 +41,7 @@ diagnostics <-
            obs = FALSE,
            mpath = NULL,
            dpath = NULL,
-           QCmode = "nrt",
-           ...) {
+           QCmode = "nrt") {
 
     if(is.null(mpath)) stop("A valid file path for the map must be provided")
     if(is.null(dpath)) stop("A valid file path for the diagnostics must be provided")
@@ -77,8 +75,7 @@ diagnostics <-
           what = what,
           by.id = FALSE,
           cut = cut,
-          aes = my.aes,
-          ...
+          aes = my.aes
         ) +
           geom_sf(
             data = end.locs,
@@ -118,8 +115,7 @@ diagnostics <-
         what = what,
         by.id = FALSE,
         cut = cut,
-        aes = my.aes,
-        ...
+        aes = my.aes
       ) +
         geom_sf(
           data = end.locs,
@@ -149,7 +145,9 @@ diagnostics <-
     if("DeploymentID" %in% names(meta)) {
       meta <- meta |>
         rename(device_id = DeploymentID)
+    }
 
+    if("DeploymentID" %in% names(data)) {
       olocs <- data |>
         rename(device_id = DeploymentID,
                lat = Latitude,
@@ -159,7 +157,6 @@ diagnostics <-
     } else {
       olocs <- data |>
         rename(device_id = ref)
-
     }
 
     flocs <- flocs |>

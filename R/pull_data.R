@@ -52,6 +52,7 @@ pull_data <- function(path2data,
   } else if(source == "local") {
 
     out <- pull_local_data(path2data,
+                           cids = cids,
                            tag_mfr)
   }
 

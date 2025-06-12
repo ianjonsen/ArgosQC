@@ -29,7 +29,7 @@ cids SMRU campaign ids}
 \item{dropIDs}{SMRU refs or WC ids to be dropped}
 
 \item{file}{path to metadata .csv file, if provided then metadata will be
-downloaded from the provided \code{source}}
+read from the provided \code{source}}
 
 \item{enc}{set locale encoding to handle special characters; default is "UTF-8"}
 }

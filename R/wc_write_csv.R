@@ -99,7 +99,7 @@ wc_write_csv <- function(wc_ssm,
             "_",
             .x$AnimalAphiaID[1],
             "_",
-            str_replace(.x$ADRProjectID[1], "\\ ", ""),
+            .x$ADRProjectID[1],
             suffix,
             ".csv"
           )

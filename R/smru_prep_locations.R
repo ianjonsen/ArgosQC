@@ -7,7 +7,7 @@
 ##'
 ##' @param smru list of SMRU tables
 ##' @param meta metadata used to truncate start of diag data for each individual
-##' @param drop.refs SMRU refs to be dropped (eg. tags were turned on but not deployed)
+##' @param dropIDs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##' @param crs a proj4string to re-project diag locations from longlat
 ##' @param gps.tab if a GPS table exists in `smru` should location be merged into diag (default is FALSE)
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
@@ -26,8 +26,8 @@
 
 smru_prep_loc <- function(smru,
                       meta,
-                      drop.refs = NULL,
-                      crs = "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
+                      dropIDs = NULL,
+                      crs = NULL,
                       gps.tab = FALSE,
                       QCmode = "nrt") {
 
@@ -93,7 +93,7 @@ smru_prep_loc <- function(smru,
   }
 
   diag <- diag |>
-    filter(!ref %in% drop.refs)
+    filter(!ref %in% dropIDs)
 
   ## truncate & convert to sf geometry steps
   if("device_id" %in% names(meta)) {
@@ -163,7 +163,7 @@ smru_prep_loc <- function(smru,
     } else {
       ## only left-truncate tracks with date of first dive
       diag <- diag |>
-        left_join(., deploy_meta, by = c("ref" = "DeploymentID")) |>
+        left_join(deploy_meta, by = c("ref" = "DeploymentID")) |>
         filter(date >= dive_start) |>
         dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
     }
@@ -173,21 +173,82 @@ smru_prep_loc <- function(smru,
 
   }
 
+## Define reprojection functions based on whether crs is NULL or specified
+  if (is.null(crs)) {
+    proj.fn <- function(x) {
+      if ((mean(x$lat, na.rm = T, trim = 0.05) > 25 &
+           mean(x$lat, na.rm = T, trim = 0.05) <= 55) |
+          (mean(x$lat, na.rm = T, trim = 0.05) < -25 &
+           mean(x$lat, na.rm = T, trim = 0.05) >= -55)) {
+        lat25 <- quantile(x$lat, 0.25, na.rm = TRUE) |> round(0)
+        lat75 <- quantile(x$lat, 0.75, na.rm = TRUE) |> round(0)
+        mlon <- mean(ifelse(x$lon < 0, x$lon + 360, x$lon),
+                     na.rm = T,
+                     trim = 0.1) |>
+          round(0)
 
+        x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+          sf::st_transform(
+            crs = paste0(
+              "+proj=eqdc +lat_1=",
+              lat25,
+              " +lat_2=",
+              lat75,
+              " +lon_0=",
+              mlon,
+              " +units=km +ellps=WGS84"
+            )
+          )
+
+      } else if (mean(x$lat, na.rm = T, trim = 0.05) > 55 |
+                 mean(x$lat, na.rm = T, trim = 0.05) < -55) {
+        mlon <- mean(ifelse(x$lon < 0, x$lon + 360, x$lon),
+                     na.rm = T,
+                     trim = 0.1) |>
+          round(0)
+        mlat <- mean(x$lat, na.rm = T, trim = 0.05) |>
+          round(0)
+        x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+          sf::st_transform(crs = paste0(
+            "+proj=stere +lon_0=",
+            mlon,
+            " +lat_0=",
+            mlat,
+            " +units=km +ellps=WGS84"
+          ))
+
+      } else if (mean(x$lat, na.rm = T, trim = 0.05) <= 25 &
+                 mean(x$lat, na.rm = T, trim = 0.05) >= -25) {
+        if (diff(range(x$lon, na.rm = T)) > 180) {
+          x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+            sf::st_shift_longitude()
+
+        } else {
+          x <- x |> sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
+        }
+      }
+
+      x |> select(-ref)
+
+    }
+  } else if (!is.null(crs)) {
+    proj.fn <- function(x) {
+      x |>
+        sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+        sf::st_transform(., crs = crs) |>
+        select(-ref)
+    }
+
+  }
+
+  ## Reproject
   diag_sf <- diag |>
     mutate(id = ref) |>
     dplyr::select(ref, id, everything()) |>
     group_by(ref) |>
-    do(
-      d_sf =
-        sf::st_as_sf(., coords = c("lon", "lat"),
-                     crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") |>
-        sf::st_transform(., crs = crs) |>
-        select(-ref)
-    ) |>
+    do(d_sf = proj.fn(.)) |>
     ungroup() |>
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
-
 
   ## add species code
   load(system.file("extdata/spcodes.rda", package = "ArgosQC"))

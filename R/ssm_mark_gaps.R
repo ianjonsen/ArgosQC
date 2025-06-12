@@ -69,13 +69,13 @@ ssm_mark_gaps <- function(ssm,
 
   } else if(inherits(ssm, "ssm_df")) {
     gaps <- lapply(ssm$ssm, function(x) {
-      idx <- which(difftime(x$fitted$date, lag(x$fitted$date), units = "hours") > gap)
+      idx <- which(difftime(x$fitted$date, lag(x$fitted$date), units = "hours") > min.gap)
       if(length(idx) > 0) {
         as.POSIXct(sapply(1:length(idx), function(i) x$fitted$date[(idx[i] - 1):idx[i]]), origin = "1970-01-01", tz = "UTC")
       }
     })
 
-    gaps.tf <- lapply(1:nrow(ssm), function(i) {
+    gaps.ptf <- lapply(1:nrow(ssm), function(i) {
       keep <- rep(TRUE, nrow(ssm$ssm[[i]]$predicted))
       if(length(gaps[[i]]) > 0) {
         for(j in seq(1, length(gaps[[i]]), by = 2)) {
@@ -86,7 +86,25 @@ ssm_mark_gaps <- function(ssm,
     })
 
     for(i in 1:nrow(ssm)) {
-      ssm$ssm[[i]]$predicted$keep <- gaps.tf[[i]]
+      ssm$ssm[[i]]$predicted$keep <- gaps.ptf[[i]]
+    }
+
+    ## Rerouted locations, if exist
+    if("rerouted" %in% names(ssm$ssm[[1]])) {
+      gaps.rtf <- lapply(1:nrow(ssm), function(i) {
+        keep <- rep(TRUE, nrow(ssm$ssm[[i]]$rerouted))
+        if (length(gaps[[i]]) > 0) {
+          for (j in seq(1, length(gaps[[i]]), by = 2)) {
+            keep[ssm$ssm[[i]]$rerouted$date > gaps[[i]][j] &
+                   ssm$ssm[[i]]$rerouted$date < gaps[[i]][j + 1]] <- FALSE
+          }
+        }
+        keep
+      })
+
+      for(i in 1:nrow(ssm)) {
+        ssm$ssm[[i]]$rerouted$keep <- gaps.rtf[[i]]
+      }
     }
 
     out <- ssm

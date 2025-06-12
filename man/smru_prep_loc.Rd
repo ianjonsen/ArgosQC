@@ -7,9 +7,8 @@
 smru_prep_loc(
   smru,
   meta,
-  drop.refs = NULL,
-  crs =
-    "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=70 +k=1 +ellps=WGS84 +units=km +no_defs",
+  dropIDs = NULL,
+  crs = NULL,
   gps.tab = FALSE,
   QCmode = "nrt"
 )
@@ -19,7 +18,7 @@ smru_prep_loc(
 
 \item{meta}{metadata used to truncate start of diag data for each individual}
 
-\item{drop.refs}{SMRU refs to be dropped (eg. tags were turned on but not deployed)}
+\item{dropIDs}{SMRU refs to be dropped (eg. tags were turned on but not deployed)}
 
 \item{crs}{a proj4string to re-project diag locations from longlat}
 

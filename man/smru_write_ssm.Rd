@@ -9,7 +9,7 @@ smru_write_ssm(
   meta,
   program = "imos",
   path = NULL,
-  drop.refs = NULL,
+  dropIDs = NULL,
   suffix = "_nrt"
 )
 }
@@ -22,7 +22,7 @@ smru_write_ssm(
 
 \item{path}{path to write .csv files}
 
-\item{drop.refs}{individual ids to be dropped}
+\item{dropIDs}{individual ids to be dropped}
 
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 }

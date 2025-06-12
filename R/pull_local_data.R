@@ -3,6 +3,9 @@
 ##' @description reads SMRU or WC tag datafiles & combines in a unified list
 ##'
 ##' @param path2data path to local datafile(s)
+##' @param cids SMRU campaign ids. If not specified then the cids are built from
+##' the directory or filenames present in the `path2data` directory. Ignored if
+##' `tag_mfr = "wc"`.
 ##' @param tag_mfr either "smru" or "wc"
 ##'
 ##' @importFrom dplyr select mutate bind_rows
@@ -11,16 +14,20 @@
 ##' @export
 
 pull_local_data <- function(path2data,
+                            cids = NULL,
                              tag_mfr) {
 
   if(tag_mfr == "smru") {
-    cids <- list.dirs(path2data, full.names = FALSE, recursive = FALSE)
-
-    fs <- lapply(1:length(cids), function(i) list.files(file.path(path2data, cids[i]), recursive = TRUE, full.names = TRUE))
+    fs <- lapply(1:length(cids),
+                 function(i) list.files(file.path(path2data,
+                                                  cids[i]),
+                                        recursive = TRUE,
+                                        full.names = TRUE))
 
     diag <- lapply(fs, function(x) {
       diag.fs <- x[grepl("\\_diag.txt", x)]
       col.fs <- x[grepl("\\_diag_col_types.txt", x)]
+
       lapply(1:length(diag.fs), function(i) {
         # cols <- read.delim(col.fs[i], sep = "\t") |>
         #   mutate(character = dplyr::case_when(character == "numeric" ~ "n",

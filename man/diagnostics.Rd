@@ -16,8 +16,7 @@ diagnostics(
   obs = FALSE,
   mpath = NULL,
   dpath = NULL,
-  QCmode = "nrt",
-  ...
+  QCmode = "nrt"
 )
 }
 \arguments{
@@ -45,8 +44,6 @@ diagnostics(
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
 in latter case start end end of dive data are displayed rather than ctd data}
-
-\item{...}{extra arguments for aniMotum::map - used to generate maps}
 }
 \description{
 produces a map of all QC'd tracks and generates various diagnostics to assess QC run

@@ -14,7 +14,7 @@
 ##' @param cids SMRU campaign id(s) must be provided when the tag_mfr is `smru`
 ##' @param dropIDs SMRU refs or WC ids to be dropped
 ##' @param file path to metadata .csv file, if provided then metadata will be
-##' downloaded from the provided `source`
+##' read from the provided `source`
 ##' @param enc set locale encoding to handle special characters; default is "UTF-8"
 ##'
 ##'
@@ -44,7 +44,8 @@ get_metadata <- function(source = "smru",
 
  if (source == "atn") {
     if(tag_mfr == "smru") {
-      meta <- read_csv(file, locale = readr::locale(encoding = enc))
+      meta <- read_csv(file, locale = readr::locale(encoding = enc)) |>
+        suppressMessages()
 
       ## subset to current campaigns & apply drop.refs
       SMRUCampaignID <- str_split(meta$DeploymentID, "\\-", simplify = TRUE)[,1]
@@ -214,7 +215,7 @@ if(source == "imos") {
   if(tag_mfr == "smru") {
     meta <- smru_clean_meta(cids = cids,
                        smru = tag_data,
-                       drop.refs = dropIDs,
+                       dropIDs = dropIDs,
                        file = file)
 
   } else if(tag_mfr == "wc") {
