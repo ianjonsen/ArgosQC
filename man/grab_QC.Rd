@@ -55,11 +55,4 @@ and at least 1 estimated track has a coordinate reference system (\code{crs}) wi
 longitude centered on 180 (e.g. a track straddling -180,180) then all tracks
 will be re-projected to that \code{crs}.
 }
-\examples{
-## generate an ssm fit object
-xs <- aniMotum::fit_ssm(ellie, spdf=FALSE, model = "rw", time.step=24, control = ssm_control(verbose = 0))
-
-## grab predicted values as an un-projected tibble
-preds <- grab_QC(xs, what = "predicted", cut = TRUE)
-
-}
+\keyword{internal}

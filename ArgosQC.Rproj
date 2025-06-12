@@ -1,5 +1,5 @@
 Version: 1.0
-ProjectId: 24908b42-1706-4ba3-8458-197ee37da449
+ProjectId: 87237b85-f6a5-4504-8239-edbb16222ea6
 
 RestoreWorkspace: Default
 SaveWorkspace: Default
@@ -19,4 +19,4 @@ StripTrailingWhitespace: Yes
 BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
-PackageRoxygenize: rd,collate,namespace
+PackageRoxygenize: rd,collate,namespace,vignette

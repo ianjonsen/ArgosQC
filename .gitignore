@@ -3,3 +3,6 @@
 .Rhistory
 .RData
 .Ruserdata
+.Rproj
+ArgosQC.Rproj
+.DS_Store
