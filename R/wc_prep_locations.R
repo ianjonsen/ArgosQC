@@ -111,7 +111,7 @@ wc_prep_loc <- function(wc,
 
     locs <- lapply(locs.lst, function(x) {
       switch(QCmode, nrt = {
-        if (x$dive_start >= x$DeploymentStartDateTime) {
+        if (x$dive_start[1] >= x$DeploymentStartDateTime[1]) {
           x |> filter(date >= dive_start)
         } else {
           x |> filter(date >= DeploymentStartDateTime)

@@ -1,4 +1,4 @@
-##' @title ATN SMRU SRDL QC workflow
+##' @title ATN WC tag QC workflow
 ##'
 ##' @description Wrapper function that executes the complete workflow from data
 ##' download to SSM-appended tag data files output as CSV files.
@@ -10,7 +10,7 @@
 ##' @param meta.file the metadata filename. Must reside within the `wd`
 ##' @param outdir the name of the QC output directory where CSV files will be
 ##' written (to be added to the `wd` path).
-##' @param dropIDs the SMRU ref ID's that are to be ignored during the QC process
+##' @param dropIDs the ATN DeploymentID's that are to be ignored during the QC process
 ##' @param model the aniMotum SSM model to be used for the location QC - typically
 ##' either `rw` or `crw`.
 ##' @param vmax for SSM fitting; max travel rate (m/s) to identify implausible locations
@@ -38,6 +38,8 @@
 ##' predicted locations (default is 72 h)
 ##' @param QCmode one of either `nrt` for Near Real-Time QC or `dm` for Delayed
 ##' Mode QC.
+##' @param p.int prediction interval to use for sub-sampling predicted locations
+##'  (default = 6 h)
 ##' @param output logical; should fn return a list of QC-generated objects. This
 ##' results in a single large object return that can be useful for troubleshooting
 ##' QC errors or undesirable results.
@@ -49,24 +51,28 @@
 ##' @md
 ##' @export
 
-atn_smru_qc <- function(wd = NULL,
-                        datadir = NULL,
-                        meta.file = NULL,
-                        outdir = NULL,
-                        dropIDs = NULL,
-                        model = "rw",
-                        vmax = 3,
-                        time.step = 6,
-                        proj = NULL,
-                        reroute = FALSE,
-                        dist = 1000,
-                        buffer = 0.5,
-                        centroids = TRUE,
-                        cut = FALSE,
-                        min.gap = 72,
-                        QCmode = "nrt",
-                        output = FALSE,
-                        ...) {
+atn_wc_qc <- function(wd = NULL,
+                      datadir = NULL,
+                      meta.file = NULL,
+                      outdir = NULL,
+                      collab.id = NULL,
+                      wc.akey = NULL,
+                      wc.skey = NULL,
+                      dropIDs = NULL,
+                      model = "rw",
+                      vmax = 3,
+                      time.step = 6,
+                      proj = NULL,
+                      reroute = FALSE,
+                      dist = 1000,
+                      buffer = 0.5,
+                      centroids = TRUE,
+                      cut = FALSE,
+                      min.gap = 72,
+                      QCmode = "nrt",
+                      p.int = 6,
+                      output = FALSE,
+                      ...) {
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
@@ -76,41 +82,49 @@ atn_smru_qc <- function(wd = NULL,
   what <- "p"
   if(reroute) what <- "r"
 
-  mdbs <- list.dirs(file.path(wd, datadir), full.names = FALSE, recursive = FALSE)
-  mdbs <- str_split(mdbs, pattern = "\\-", simplify = TRUE)[,1]
-  mdbs <- unique(mdbs)
-  ## filter out non-SMRU campaign ids
-  mdbs <- mdbs[str_length(mdbs) <= 5]
+  # mdbs <- list.dirs(file.path(wd, datadir), full.names = FALSE, recursive = FALSE)
+  # mdbs <- str_split(mdbs, pattern = "\\-", simplify = TRUE)[,1]
+  # mdbs <- unique(mdbs)
+  # ## filter out non-SMRU campaign ids
+  # mdbs <- mdbs[str_length(mdbs) <= 5]
+
+  ## Download WC tag data from WC Portal API & extract partial deployment metadata
+  download_data(
+    dest = file.path(wd, datadir),
+    source = "wc",
+    unzip = TRUE,
+    wc.akey = wc.akey,
+    wc.skey = wc.skey,
+    owner.id = collab.id
+  )
 
   ## read SMRU tag file data from .mdb/source files
-  smru <- pull_data(file.path(wd, datadir),
-                    source = "local",
-                    cids = mdbs,
-                    tag_mfr = "smru")
+  wc <- wc_pull_data(datadir)
+
 
   ## get metadata
-  meta <- suppressMessages(get_metadata(source = "atn",
-                       tag_data = smru,
-                       cids = mdbs,
+  meta <- get_metadata(source = "atn",
+                       tag_data = wc,
+                       tag_mfr = "wc",
                        dropIDs = dropIDs,
-                       file = meta.file,
-                       enc = "latin1"
-  ) )
+                       file = meta.file
+  )
+
 
   ## prepare location data
-  diag_sf <- smru_prep_loc(smru,
-                       meta,
-                       dropIDs = dropIDs,
-                       crs = proj,
-                       QCmode = QCmode)
+  locs_sf <- wc_prep_loc(wc,
+                         meta,
+                         dropIDs = dropIDs,
+                         as_sf = TRUE,
+                         QCmode = QCmode)
 
 
-  fit1 <- fit2 <- vector("list", length = length(diag_sf))
+  fit1 <- fit2 <- vector("list", length = length(locs_sf))
 
   ## First pass SSM-filter - separately by species
   fit1 <- lapply(1:length(fit1), function(i) {
     multi_filter(
-      diag_sf[[i]],
+      locs_sf[[i]],
       vmax = vmax,
       model = model,
       ts = time.step,
@@ -122,7 +136,7 @@ atn_smru_qc <- function(wd = NULL,
   fit2 <- lapply(1:length(fit1), function(i){
     redo_multi_filter(
       fit1[[i]],
-      diag_sf[[i]],
+      locs_sf[[i]],
       vmax = vmax,
       model = model,
       ts = time.step,
@@ -134,7 +148,7 @@ atn_smru_qc <- function(wd = NULL,
       ...
     )
   })
-  names(fit1) <- names(fit2) <- names(diag_sf)
+  names(fit1) <- names(fit2) <- names(locs_sf)
 
   ## Mark SSM track segments for removal in data gaps > min.gap hours long
   if (cut) {
@@ -142,64 +156,55 @@ atn_smru_qc <- function(wd = NULL,
       ssm_mark_gaps(fit2[[i]], min.gap = min.gap)
     })
 
-    names(fit2) <- names(diag_sf)
+    names(fit2) <- names(locs_sf)
   }
 
-  ## append SSM locations to SMRU tag data files
-  smru_ssm <- lapply(1:length(fit2), function(i){
-    smru_append_ssm(
-      smru = smru,
-      fit = fit2[[i]],
-      what = what,
-      meta = meta,
-      cut = cut,
-      dropIDs = dropIDs
-    )
-  })
+
+  ## Append SSM-estimated locations to tag datafiles
+  wc_ssm <- wc_append_ssm(wc = wc,
+                          fit = fit2,
+                          what = what,
+                          meta = meta,
+                          cut = cut,
+                          dropIDs = dropIDs)
 
 
-  ## generate SSM fit diagnostics & SSM-predicted track map
-  obs <- smru_clean_diag(smru, dropIDs = dropIDs)
+  ## Diagnostic plots
+  diagnostics(
+    fit2,
+    fit1,
+    what = what,
+    cut = cut,
+    data = wc$Locations,
+    ssm = wc_ssm,
+    meta = meta,
+    lines = TRUE,
+    obs = FALSE,
+    mpath = file.path(wd, "qc", "wc", "maps"),
+    dpath = file.path(wd, "qc", "wc", "diag"),
+    QCmode = "dm"
+  )
 
-  dir.create(file.path("qc","maps"), showWarnings = FALSE)
-  dir.create(file.path("qc","diag"), showWarnings = FALSE)
-  lapply(1:length(smru_ssm), function(i) {
-    diagnostics(fit = fit2[[i]],
-                fit1 = fit1[[i]],
-                what = what,
-                cut = cut,
-                data = obs,
-                ssm = smru_ssm[[i]],
-                meta = meta,
-                mpath = file.path("qc", "maps"),
-                dpath = file.path("qc", "diag"),
-                QCmode = QCmode
-    )
-  })
-
-  ## write SSM-appended files to CSV
-  lapply(1:length(smru_ssm), function(i) {
-    smru_write_csv(smru_ssm = smru_ssm[[i]],
-                   fit = fit2[[i]],
-                   what = what,
-                   meta = meta,
-                   program = "atn",
-                   path = file.path(wd, outdir),
-                   dropIDs = dropIDs,
-                   suffix = paste0("_", QCmode)
-    )
+  ## write SSM-annotated datafiles to .csv
+  lapply(fit2, function(x) {
+    wc_write_csv(wc_ssm,
+                 x,
+                 what = what,
+                 meta,
+                 program = "atn",
+                 path = outdir,
+                 dropIDs = dropIDs,
+                 suffix = "_dm",
+                 pred.int = p.int)
   })
 
   if (output) {
-    return(list(mdbs=mdbs,
-                dropIDs=dropIDs,
-                smru=smru,
+    return(list(dropIDs=dropIDs,
+                wc=wc,
                 meta=meta,
-                diag_sf=diag_sf,
+                locations_sf=locs_sf,
                 fit1=fit1,
                 fit2=fit2,
-                smru_ssm=smru_ssm,
-                obs=obs))
+                wc_ssm=wc_ssm))
   }
 }
-

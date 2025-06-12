@@ -1,4 +1,4 @@
-##' @title ATN SMRU SRDL QC workflow
+##' @title IMOS SMRU SRDL QC workflow
 ##'
 ##' @description Wrapper function that executes the complete workflow from data
 ##' download to SSM-appended tag data files output as CSV files.
@@ -6,6 +6,8 @@
 ##' @param wd the path to the working directory that contains: 1) the data directory
 ##' where tag data files are stored (if source = `local`); 2) the metadata directory
 ##' where all metadata files are stored; and 3) the destination directory for QC output.
+##' @param cids SMRU campaign (AODN sattag_program) ID's
+##' @param sp the species being QC'd - currently, either "sese" or "ortu"
 ##' @param datadir the name of the data directory (to be added to the `wd` path).
 ##' @param meta.file the metadata filename. Must reside within the `wd`
 ##' @param outdir the name of the QC output directory where CSV files will be
@@ -41,6 +43,9 @@
 ##' @param output logical; should fn return a list of QC-generated objects. This
 ##' results in a single large object return that can be useful for troubleshooting
 ##' QC errors or undesirable results.
+##' @param dwnld logical; should the tag data be downloaded from the SMRU server
+##' (default TRUE). Useful when testing so unnecessary load is not put on the
+##' SMRU server.
 ##' @param ... additional arguments to be passed to SSM model fitting, see
 ##' `aniMotum::fit_ssm` for details.
 ##'
@@ -49,15 +54,19 @@
 ##' @md
 ##' @export
 
-atn_smru_qc <- function(wd = NULL,
+imos_smru_qc <- function(wd = NULL,
+                         cids = NULL,
+                         sp = NULL,
+                         smru.usr = NULL,
+                         smru.pwd = NULL,
                         datadir = NULL,
                         meta.file = NULL,
                         outdir = NULL,
                         dropIDs = NULL,
+                        proj = NULL,
                         model = "rw",
                         vmax = 3,
                         time.step = 6,
-                        proj = NULL,
                         reroute = FALSE,
                         dist = 1000,
                         buffer = 0.5,
@@ -66,6 +75,7 @@ atn_smru_qc <- function(wd = NULL,
                         min.gap = 72,
                         QCmode = "nrt",
                         output = FALSE,
+                        dwnld = TRUE,
                         ...) {
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
@@ -76,33 +86,104 @@ atn_smru_qc <- function(wd = NULL,
   what <- "p"
   if(reroute) what <- "r"
 
-  mdbs <- list.dirs(file.path(wd, datadir), full.names = FALSE, recursive = FALSE)
-  mdbs <- str_split(mdbs, pattern = "\\-", simplify = TRUE)[,1]
-  mdbs <- unique(mdbs)
-  ## filter out non-SMRU campaign ids
-  mdbs <- mdbs[str_length(mdbs) <= 5]
+  if(dwnld) {
+    ## download tag data from SMRU server
+    download_data(
+      dest = datadir,
+      source = "smru",
+      cids = cids,
+      user = smru.usr,
+      pwd = smru.pwd,
+      timeout = 180
+    )
+  }
+
+  ## find which campaigns successfully downloaded from SMRU server
+  mdbs <- list.files(datadir)
+  if(length(mdbs) > 0) {
+    mdbs <- mdbs |> str_split("\\.", simplify = TRUE)
+    mdbs <- mdbs[, 1]
+  }
 
   ## read SMRU tag file data from .mdb/source files
-  smru <- pull_data(file.path(wd, datadir),
-                    source = "local",
-                    cids = mdbs,
-                    tag_mfr = "smru")
+  if (sp == "sese") {
 
-  ## get metadata
-  meta <- suppressMessages(get_metadata(source = "atn",
-                       tag_data = smru,
-                       cids = mdbs,
-                       dropIDs = dropIDs,
-                       file = meta.file,
-                       enc = "latin1"
-  ) )
+    ## pull tables (diag, haulout, ctd, dive, & summary) from .mdb files
+    smru1 <- pull_data(
+      path2data = datadir,
+      source = "smru",
+      cids = mdbs[mdbs != "ct185"],
+      p2mdbtools = "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/"
+    )
+
+    smru2 <- pull_data(
+      path2data = datadir,
+      source = "smru",
+      tables = c("diag", "haulout", "ctd", "summary"),
+      cids = "ct185",
+      p2mdbtools = "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/"
+    )
+
+
+    smru <- list()
+    smru$diag <- bind_rows(smru1$diag, smru2$diag)
+    smru$haulout <- bind_rows(smru1$haulout, smru2$haulout)
+    smru$ctd <- bind_rows(smru1$ctd, smru2$ctd)
+    smru$dive <- smru1$dive
+    smru$summary <- bind_rows(smru1$summary, smru2$summary)
+
+    ## download SMRU metadata & generate QC metadata for IMOS-AODN
+    meta1 <- get_metadata(
+      source = "smru",
+      tag_data = smru,
+      cids = mdbs[mdbs != "ct188"],
+      dropIDs = dropIDs
+    )
+
+    meta2 <- get_metadata(
+      source = "imos",
+      tag_data = smru,
+      cids = "ct188",
+      dropIDs = dropIDs,
+      file = meta.file
+    ) |>
+      suppressMessages()
+    meta <- bind_rows(meta1, meta2)
+
+  } else if (sp == "ortu") {
+    smru <- pull_data(
+      path2data = datadir,
+      source = "smru",
+      cids = mdbs,
+      tables = c("diag", "gps", "haulout", "ctd", "dive", "summary"),
+      p2mdbtools = "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/"
+    )
+
+    meta <- get_metadata(
+      source = "smru",
+      tag_data = smru,
+      cids = mdbs,
+      dropIDs = dropIDs
+    ) |>
+      mutate(
+        common_name = "olive ridley turtle",
+        species = "Lepidochelys olivacea",
+        release_site = "Tiwi Islands",
+        state_country = "Australia"
+      ) |>
+      select(-latest_gps) |>
+      filter(!is.na(release_date), !is.na(ctd_start))
+
+  } else {
+    stop("species currently not implemented")
+  }
 
   ## prepare location data
   diag_sf <- smru_prep_loc(smru,
-                       meta,
-                       dropIDs = dropIDs,
-                       crs = proj,
-                       QCmode = QCmode)
+                           meta,
+                           dropIDs = dropIDs,
+                           crs = proj,
+                           QCmode = "nrt")
 
 
   fit1 <- fit2 <- vector("list", length = length(diag_sf))
@@ -183,7 +264,7 @@ atn_smru_qc <- function(wd = NULL,
                    fit = fit2[[i]],
                    what = what,
                    meta = meta,
-                   program = "atn",
+                   program = "imos",
                    path = file.path(wd, outdir),
                    dropIDs = dropIDs,
                    suffix = paste0("_", QCmode)
