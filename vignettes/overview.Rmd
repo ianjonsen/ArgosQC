@@ -1,0 +1,23 @@
+---
+title: "Overview"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Overview}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(ArgosQC)
+```
+
+## Background
+`ArgosQC` provides automated workflows for quality controlling Argos & GPS (when present) locations obtained from either SMRU SRDL or Wildlife Computers animal telemetry tags. Workflows currently are set up for IMOS and ATN tagging data. The general workflow for SMRU tags is documented in [Jonsen et al. 2024](https://repository.oceanbestpractices.org/handle/11329/2571). The workflow for Wildlife Computers tags is analogous, with differences due to the various tag data structures.
+
