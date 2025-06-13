@@ -3,3 +3,7 @@
 ^R\/getSMRUct\.r$
 ^imos\_active\_qc\.R$
 ^LICENSE\.md$
+^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
