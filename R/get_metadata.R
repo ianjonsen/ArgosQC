@@ -22,7 +22,7 @@
 ##' @importFrom dplyr select rename mutate filter bind_rows
 ##' @importFrom rvest read_html html_nodes html_table
 ##' @importFrom stringr str_to_lower str_replace_all
-##' @importFrom lubridate mdy_hms
+##' @importFrom lubridate mdy_hms round_date
 ##' @importFrom assertthat assert_that
 ##' @importFrom readr read_csv cols locale
 ##'
