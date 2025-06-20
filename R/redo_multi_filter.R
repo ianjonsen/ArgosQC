@@ -18,7 +18,7 @@
 ##' locations that are on land. More coastline polygon data can help rerouting, but
 ##' too much will make computation very slow.
 ##' @param verbose turn on/off furrr::future_map progress indicator
-##' @param ... arguments to `aniMotum::route_path`
+##' @param ... additional arguments to `aniMotum::route_path`
 ##'
 ##' @importFrom dplyr filter %>% bind_rows slice ungroup left_join select mutate
 ##' @importFrom tidyr nest

@@ -85,14 +85,19 @@ wc_write_csv <- function(wc_ssm,
 
   nms <- names(out)
 
-
   ## write tables to .csv files
   lapply(1:length(out), function(i) {
-    if(program == "atn") {
-      out[[i]] |>
+    if (program == "atn") {
+      if (all(c("TagID", "TagModel") %in% names(out[[i]]))) {
+        tmp <- out[[i]] |>
+          select(-TagID, -TagModel)
+      } else {
+        tmp <- out[[i]]
+      }
+      tmp |>
         group_by(AnimalAphiaID, ADRProjectID) |>
         group_split() |>
-        walk( ~ suppressMessages(write_csv(
+        walk(~ suppressMessages(write_csv(
           .x |> select(-AnimalAphiaID, -ADRProjectID),
           file = paste0(
             file.path(path, nms[i]),

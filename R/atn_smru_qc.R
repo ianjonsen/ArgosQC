@@ -41,8 +41,6 @@
 ##' @param output logical; should fn return a list of QC-generated objects. This
 ##' results in a single large object return that can be useful for troubleshooting
 ##' QC errors or undesirable results.
-##' @param ... additional arguments to be passed to SSM model fitting, see
-##' `aniMotum::fit_ssm` & `aniMotum::route_path` for details.
 ##'
 ##' @importFrom stringr str_split str_length
 ##'
@@ -65,8 +63,7 @@ atn_smru_qc <- function(wd = NULL,
                         cut = FALSE,
                         min.gap = 72,
                         QCmode = "nrt",
-                        output = FALSE,
-                        ...) {
+                        output = FALSE) {
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
@@ -115,8 +112,7 @@ atn_smru_qc <- function(wd = NULL,
       diag_sf[[i]],
       vmax = vmax,
       model = model,
-      ts = time.step,
-      ...
+      ts = time.step
     )
   })
 
@@ -132,8 +128,7 @@ atn_smru_qc <- function(wd = NULL,
       reroute = TRUE,
       dist = dist,
       buffer = buffer,
-      centroids = centroids,
-      ...
+      centroids = centroids
     )
   })
   names(fit1) <- names(fit2) <- names(diag_sf)

@@ -44,8 +44,7 @@ multi_filter <- function(x,
       distlim = distlim,
       min.dt = min.dt,
       map = map,
-      control = ssm_control(verbose = 0),
-      ...
+      control = ssm_control(verbose = 0)
     ), silent = TRUE),
     .progress = verbose,
     .options = furrr_options(seed = TRUE)
