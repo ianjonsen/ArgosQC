@@ -1,4 +1,4 @@
 url: https://ianjonsen.github.io/ArgosQC/
 template:
   bootstrap: 5
-
+  bootswatch: cerulean
