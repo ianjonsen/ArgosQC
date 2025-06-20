@@ -5,7 +5,7 @@
 \title{ssmoutputs table write to .csv}
 \usage{
 smru_write_ssm(
-  p_out,
+  locs_out,
   meta,
   program = "imos",
   path = NULL,
@@ -14,7 +14,7 @@ smru_write_ssm(
 )
 }
 \arguments{
-\item{p_out}{SSM-predicted locations}
+\item{locs_out}{SSM-predicted locations}
 
 \item{meta}{metadata}
 

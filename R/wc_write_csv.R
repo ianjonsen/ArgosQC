@@ -93,7 +93,7 @@ wc_write_csv <- function(wc_ssm,
         group_by(AnimalAphiaID, ADRProjectID) |>
         group_split() |>
         walk( ~ suppressMessages(write_csv(
-          .x,
+          .x |> select(-AnimalAphiaID, -ADRProjectID),
           file = paste0(
             file.path(path, nms[i]),
             "_",

@@ -10,10 +10,10 @@ atn_smru_qc(
   meta.file = NULL,
   outdir = NULL,
   dropIDs = NULL,
+  proj = NULL,
   model = "rw",
   vmax = 3,
   time.step = 6,
-  proj = NULL,
   reroute = FALSE,
   dist = 1000,
   buffer = 0.5,
@@ -39,18 +39,18 @@ written (to be added to the \code{wd} path).}
 
 \item{dropIDs}{the SMRU ref ID's that are to be ignored during the QC process}
 
+\item{proj}{the proj4string to be used for the location data & for the SSM-estimated
+locations. The default (NULL) will result in one of 3 projections being used,
+depending on whether the centroid of the observed latitudes lie in N or S polar
+regions, temperate or equatorial regions, or if tracks straddle (or lie close to)
+-180,180 longitude.}
+
 \item{model}{the aniMotum SSM model to be used for the location QC - typically
 either \code{rw} or \code{crw}.}
 
 \item{vmax}{for SSM fitting; max travel rate (m/s) to identify implausible locations}
 
 \item{time.step}{the prediction interval (in hours) to be used by the SSM}
-
-\item{proj}{the proj4string to be used for the location data & for the SSM-estimated
-locations. The default (NULL) will result in one of 3 projections being used,
-depending on whether the centroid of the observed latitudes lie in N or S polar
-regions, temperate or equatorial regions, or if tracks straddle (or lie close to)
--180,180 longitude.}
 
 \item{reroute}{whether QC'd tracks should be re-routed off of land
 (default is FALSE). Note, in some circumstances this can substantially increase
@@ -82,7 +82,7 @@ results in a single large object return that can be useful for troubleshooting
 QC errors or undesirable results.}
 
 \item{...}{additional arguments to be passed to SSM model fitting, see
-\code{aniMotum::fit_ssm} for details.}
+\code{aniMotum::fit_ssm} & \code{aniMotum::route_path} for details.}
 }
 \description{
 Wrapper function that executes the complete workflow from data

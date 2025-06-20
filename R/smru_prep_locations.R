@@ -8,7 +8,9 @@
 ##' @param smru list of SMRU tables
 ##' @param meta metadata used to truncate start of diag data for each individual
 ##' @param dropIDs SMRU refs to be dropped (eg. tags were turned on but not deployed)
-##' @param crs a proj4string to re-project diag locations from longlat
+##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
+##' which results in one of 4 possible projections applied automatically, based on
+##' the centroid of the tracks. See `overview` vignette for details.
 ##' @param gps.tab if a GPS table exists in `smru` should location be merged into diag (default is FALSE)
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case diag is not right-truncated & date of first dive is used

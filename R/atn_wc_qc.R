@@ -44,7 +44,7 @@
 ##' results in a single large object return that can be useful for troubleshooting
 ##' QC errors or undesirable results.
 ##' @param ... additional arguments to be passed to SSM model fitting, see
-##' `aniMotum::fit_ssm` for details.
+##' `aniMotum::fit_ssm` & `aniMotum::route_path` for details.
 ##'
 ##' @importFrom stringr str_split str_length
 ##'
@@ -76,8 +76,10 @@ atn_wc_qc <- function(wd = NULL,
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
-  if(!file.exists(file.path(wd, outdir))) stop("Working QC output directory `outdir` does not exist")
-  if(is.null(proj))
+  if(!file.exists(file.path(wd, outdir))) {
+    dir.create(file.path(outdir), recursive = TRUE, showWarnings = FALSE)
+    message(paste(outdir, "directory created"))
+  }
 
   what <- "p"
   if(reroute) what <- "r"
@@ -115,7 +117,7 @@ atn_wc_qc <- function(wd = NULL,
   locs_sf <- wc_prep_loc(wc,
                          meta,
                          dropIDs = dropIDs,
-                         as_sf = TRUE,
+                         crs = NULL,
                          QCmode = QCmode)
 
 

@@ -20,7 +20,9 @@ smru_prep_loc(
 
 \item{dropIDs}{SMRU refs to be dropped (eg. tags were turned on but not deployed)}
 
-\item{crs}{a proj4string to re-project diag locations from longlat}
+\item{crs}{a proj4string to re-project diag locations from longlat. Default is NULL
+which results in one of 4 possible projections applied automatically, based on
+the centroid of the tracks. See \code{overview} vignette for details.}
 
 \item{gps.tab}{if a GPS table exists in \code{smru} should location be merged into diag (default is FALSE)}
 

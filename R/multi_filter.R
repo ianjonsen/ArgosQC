@@ -11,6 +11,7 @@
 ##' @param ts \code{foieGrsa} time.step
 ##' @param map params to fix
 ##' @param verbose turn on/off furrr::future_map progress indicator
+##' @param ... additional arguments to be passed to `aniMotum::fit_ssm`
 ##'
 ##' @importFrom dplyr %>% filter
 ##' @importFrom future plan
@@ -28,7 +29,8 @@ multi_filter <- function(x,
                          model = "crw",
                          ts = 2,
                          map = NULL,
-                         verbose = FALSE) {
+                         verbose = FALSE,
+                         ...) {
 
 
   plan("multisession")
@@ -42,7 +44,8 @@ multi_filter <- function(x,
       distlim = distlim,
       min.dt = min.dt,
       map = map,
-      control = ssm_control(verbose = 0)
+      control = ssm_control(verbose = 0),
+      ...
     ), silent = TRUE),
     .progress = verbose,
     .options = furrr_options(seed = TRUE)

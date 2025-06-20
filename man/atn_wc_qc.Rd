@@ -89,7 +89,7 @@ results in a single large object return that can be useful for troubleshooting
 QC errors or undesirable results.}
 
 \item{...}{additional arguments to be passed to SSM model fitting, see
-\code{aniMotum::fit_ssm} for details.}
+\code{aniMotum::fit_ssm} & \code{aniMotum::route_path} for details.}
 }
 \description{
 Wrapper function that executes the complete workflow from data

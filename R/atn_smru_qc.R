@@ -11,15 +11,15 @@
 ##' @param outdir the name of the QC output directory where CSV files will be
 ##' written (to be added to the `wd` path).
 ##' @param dropIDs the SMRU ref ID's that are to be ignored during the QC process
-##' @param model the aniMotum SSM model to be used for the location QC - typically
-##' either `rw` or `crw`.
-##' @param vmax for SSM fitting; max travel rate (m/s) to identify implausible locations
-##' @param time.step the prediction interval (in hours) to be used by the SSM
 ##' @param proj the proj4string to be used for the location data & for the SSM-estimated
 ##' locations. The default (NULL) will result in one of 3 projections being used,
 ##' depending on whether the centroid of the observed latitudes lie in N or S polar
 ##' regions, temperate or equatorial regions, or if tracks straddle (or lie close to)
 ##' -180,180 longitude.
+##' @param model the aniMotum SSM model to be used for the location QC - typically
+##' either `rw` or `crw`.
+##' @param vmax for SSM fitting; max travel rate (m/s) to identify implausible locations
+##' @param time.step the prediction interval (in hours) to be used by the SSM
 ##' @param reroute whether QC'd tracks should be re-routed off of land
 ##' (default is FALSE). Note, in some circumstances this can substantially increase
 ##' processing time. Default land polygon data are sourced from the
@@ -42,7 +42,7 @@
 ##' results in a single large object return that can be useful for troubleshooting
 ##' QC errors or undesirable results.
 ##' @param ... additional arguments to be passed to SSM model fitting, see
-##' `aniMotum::fit_ssm` for details.
+##' `aniMotum::fit_ssm` & `aniMotum::route_path` for details.
 ##'
 ##' @importFrom stringr str_split str_length
 ##'
@@ -54,10 +54,10 @@ atn_smru_qc <- function(wd = NULL,
                         meta.file = NULL,
                         outdir = NULL,
                         dropIDs = NULL,
+                        proj = NULL,
                         model = "rw",
                         vmax = 3,
                         time.step = 6,
-                        proj = NULL,
                         reroute = FALSE,
                         dist = 1000,
                         buffer = 0.5,
@@ -70,8 +70,10 @@ atn_smru_qc <- function(wd = NULL,
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
-  if(!file.exists(file.path(wd, outdir))) stop("Working QC output directory `outdir` does not exist")
-  if(is.null(proj))
+  if(!file.exists(file.path(wd, outdir))) {
+    dir.create(file.path(outdir), recursive = TRUE, showWarnings = FALSE)
+    message(paste(outdir, "directory created"))
+  }
 
   what <- "p"
   if(reroute) what <- "r"
@@ -93,7 +95,7 @@ atn_smru_qc <- function(wd = NULL,
                        tag_data = smru,
                        cids = mdbs,
                        dropIDs = dropIDs,
-                       file = meta.file,
+                       file = file.path(wd, meta.file),
                        enc = "latin1"
   ) )
 
@@ -161,8 +163,8 @@ atn_smru_qc <- function(wd = NULL,
   ## generate SSM fit diagnostics & SSM-predicted track map
   obs <- smru_clean_diag(smru, dropIDs = dropIDs)
 
-  dir.create(file.path("qc","maps"), showWarnings = FALSE)
-  dir.create(file.path("qc","diag"), showWarnings = FALSE)
+  dir.create(file.path(outdir, "maps"), showWarnings = FALSE)
+  dir.create(file.path(outdir, "diag"), showWarnings = FALSE)
   lapply(1:length(smru_ssm), function(i) {
     diagnostics(fit = fit2[[i]],
                 fit1 = fit1[[i]],
@@ -171,8 +173,8 @@ atn_smru_qc <- function(wd = NULL,
                 data = obs,
                 ssm = smru_ssm[[i]],
                 meta = meta,
-                mpath = file.path("qc", "maps"),
-                dpath = file.path("qc", "diag"),
+                mpath = file.path(outdir, "maps"),
+                dpath = file.path(outdir, "diag"),
                 QCmode = QCmode
     )
   })

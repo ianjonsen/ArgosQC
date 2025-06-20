@@ -4,7 +4,7 @@
 \alias{wc_prep_loc}
 \title{clean, truncate & convert WC Locations files to sf-tibbles}
 \usage{
-wc_prep_loc(wc, meta, dropIDs, as_sf = TRUE, program = "atn", QCmode = "nrt")
+wc_prep_loc(wc, meta, dropIDs, crs = NULL, program = "atn", QCmode = "nrt")
 }
 \arguments{
 \item{wc}{list of WC datafiles}
@@ -13,7 +13,9 @@ wc_prep_loc(wc, meta, dropIDs, as_sf = TRUE, program = "atn", QCmode = "nrt")
 
 \item{dropIDs}{WC DeploymentID's to be dropped (eg. tags were turned on but not deployed)}
 
-\item{as_sf}{specify whether lon,lat coords are to be projected (default = TRUE)}
+\item{crs}{a proj4string to re-project diag locations from longlat. Default is NULL
+which results in one of 4 possible projections applied automatically, based on
+the centroid of the tracks. See \code{overview} vignette for details.}
 
 \item{program}{specify the aniBOS program contributing data (currently: 'atn', 'irap')}
 

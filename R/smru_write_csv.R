@@ -57,7 +57,8 @@ smru_write_csv <- function(smru_ssm,
       select(-ctd_start, -ctd_end, -dive_start, -dive_end) |>
       rename(QCStartDateTime = qc_start_date, QCStopDateTime = qc_end_date) |>
       mutate(QCMethod = "ArgosQC",
-             QCVersion = as.character(packageVersion("ArgosQC")))
+             QCVersion = as.character(packageVersion("ArgosQC"))) |>
+      rename(QCproj4string = proj4string)
 
     now <- Sys.time()
     attr(now, "tzone") <- "UTC"
@@ -71,7 +72,7 @@ smru_write_csv <- function(smru_ssm,
 
   ## SSM predictions
   ssmoutputs <- smru_write_ssm(
-    p_out = ssm_out$p_out,
+    locs_out = ssm_out$locs_out,
     meta = meta,
     program = program,
     path = path,
@@ -210,7 +211,7 @@ smru_write_csv <- function(smru_ssm,
         group_by(AnimalAphiaID, ADRProjectID) |>
         group_split() |>
         walk(~ suppressMessages(write_csv(
-          .x,
+          .x |> select(-AnimalAphiaID, -ADRProjectID),
           file = paste0(
             file.path(path, nms[i]),
             "_",
@@ -1111,7 +1112,7 @@ smru_write_meta <- function(meta,
 ##'
 ##' @description write to .csv - format depends on program (IMOS, ATN)
 ##'
-##' @param p_out SSM-predicted locations
+##' @param locs_out SSM-predicted locations
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files
@@ -1125,15 +1126,14 @@ smru_write_meta <- function(meta,
 ##'
 ##' @keywords internal
 
-smru_write_ssm <- function(p_out,
+smru_write_ssm <- function(locs_out,
                            meta,
                            program = "imos",
                            path = NULL,
                            dropIDs = NULL,
                            suffix = "_nrt") {
 
-
-  p_out <- p_out |>
+  locs_out <- locs_out |>
     mutate(
       lon = round(lon, 6),
       lat = round(lat, 6),
@@ -1149,17 +1149,17 @@ smru_write_ssm <- function(p_out,
       s_se = round(s_se, 6)
     )
 
-  if (suffix != "_nrt" & "keep" %in% names(p_out)) {
+  if (suffix != "_nrt" & "keep" %in% names(locs_out)) {
     ## cut predicted locs from large data gaps
-    p_out <- p_out |>
+    locs_out <- locs_out |>
       filter(keep) |>
       select(-keep)
 
   }
 
   if (program == "atn") {
-    p_out <- left_join(
-      p_out,
+    locs_out <- left_join(
+      locs_out,
       meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = c("ref" = "DeploymentID")
     ) |>
@@ -1167,7 +1167,7 @@ smru_write_ssm <- function(p_out,
 
   }
 
-  return(p_out)
+  return(locs_out)
 }
 
 
