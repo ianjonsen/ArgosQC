@@ -41,6 +41,12 @@ where all metadata files are stored; and 3) the destination directory for QC out
 \item{outdir}{the name of the QC output directory where CSV files will be
 written (to be added to the \code{wd} path).}
 
+\item{collab.id}{the Wildlife Computers ID for a collaborator sharing data}
+
+\item{wc.akey}{a user's Access Key issued by Wildlife Computers for their API}
+
+\item{wc.skey}{a user's Secret Key issued by Wildlife Computers for their API}
+
 \item{dropIDs}{the ATN DeploymentID's that are to be ignored during the QC process}
 
 \item{model}{the aniMotum SSM model to be used for the location QC - typically

@@ -39,6 +39,10 @@ where all metadata files are stored; and 3) the destination directory for QC out
 
 \item{sp}{the species being QC'd - currently, either "sese" or "ortu"}
 
+\item{smru.usr}{SMRU data server username as a string}
+
+\item{smru.pwd}{SMRU data server password as a string}
+
 \item{datadir}{the name of the data directory (to be added to the \code{wd} path).}
 
 \item{meta.file}{the metadata filename. Must reside within the \code{wd}}

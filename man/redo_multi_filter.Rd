@@ -49,7 +49,7 @@ too much will make computation very slow.}
 
 \item{verbose}{turn on/off furrr::future_map progress indicator}
 
-\item{...}{arguments to \code{aniMotum::route_path}}
+\item{...}{additional arguments to \code{aniMotum::route_path}}
 }
 \description{
 re-apply SSM filter to diag data for id's that failed to converge. parallelized

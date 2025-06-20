@@ -10,6 +10,9 @@
 ##' @param meta.file the metadata filename. Must reside within the `wd`
 ##' @param outdir the name of the QC output directory where CSV files will be
 ##' written (to be added to the `wd` path).
+##' @param collab.id the Wildlife Computers ID for a collaborator sharing data
+##' @param wc.akey a user's Access Key issued by Wildlife Computers for their API
+##' @param wc.skey a user's Secret Key issued by Wildlife Computers for their API
 ##' @param dropIDs the ATN DeploymentID's that are to be ignored during the QC process
 ##' @param model the aniMotum SSM model to be used for the location QC - typically
 ##' either `rw` or `crw`.
@@ -109,7 +112,7 @@ atn_wc_qc <- function(wd = NULL,
                        tag_data = wc,
                        tag_mfr = "wc",
                        dropIDs = dropIDs,
-                       file = meta.file
+                       file = file.path(wd, meta.file)
   )
 
 

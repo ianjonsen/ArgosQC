@@ -8,6 +8,8 @@
 ##' where all metadata files are stored; and 3) the destination directory for QC output.
 ##' @param cids SMRU campaign (AODN sattag_program) ID's
 ##' @param sp the species being QC'd - currently, either "sese" or "ortu"
+##' @param smru.usr SMRU data server username as a string
+##' @param smru.pwd SMRU data server password as a string
 ##' @param datadir the name of the data directory (to be added to the `wd` path).
 ##' @param meta.file the metadata filename. Must reside within the `wd`
 ##' @param outdir the name of the QC output directory where CSV files will be

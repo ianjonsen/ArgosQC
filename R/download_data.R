@@ -19,7 +19,7 @@
 ##' @param pwd SMRU data server password as a quoted string
 ##' @param wc.akey an Access Key issued by Wildlife Computers for their API
 ##' @param wc.skey a Secret Key issued by Wildlife Computers for their API
-##' @param ... additional arguments passed to `get_smru_mdb` or `get_wc_files()`
+##' @param ... additional arguments passed to `smru_get_mdb` or `wc_get_files()`
 ##'
 ##' @importFrom utils unzip
 ##' @importFrom usethis create_download_url

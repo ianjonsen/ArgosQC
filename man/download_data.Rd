@@ -43,7 +43,7 @@ download_data(
 
 \item{wc.skey}{a Secret Key issued by Wildlife Computers for their API}
 
-\item{...}{additional arguments passed to \code{get_smru_mdb} or \code{get_wc_files()}}
+\item{...}{additional arguments passed to \code{smru_get_mdb} or \code{wc_get_files()}}
 }
 \description{
 Satellite tracking data, in a zipfile, are downloaded from a

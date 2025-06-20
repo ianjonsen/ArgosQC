@@ -34,4 +34,4 @@ utils::globalVariables(c("dt", "lon1", "lat1", "x1", "y1", "x.se1", "y,se1",
    "geometry", "iq",  "latest_argos_location", "latest_uplink","location", "long","m_est",
    "mass", "month",    "parameters",   "quantile", "read.csv", "read.delim",    "reference",
    "round_date",    "s.date",   "smru_ref", "start_date",    "std_l",    "tdeploy",  "tdr_ctdid",
-   "time", "unittype", "wmo", "x.se", "y.se", "year"))
+   "time", "unittype", "wmo", "x.se", "y.se", "year", "latest_gps"))
