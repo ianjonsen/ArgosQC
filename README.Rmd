@@ -41,7 +41,7 @@ pak::pak("ianjonsen/ArgosQC")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+ArgosQC workflows can be run via single functions, specific to the Program (ATN, IMOS, etc...) and the tag manufacturer - currently, SMRU (`smru`) or Wildlife Computers (`wc`):
 
 ```{r example, eval = FALSE}
 library(ArgosQC)
@@ -66,8 +66,8 @@ out <- atn_smru_qc(wd = "test",
 
 ### Financial support for the development of this software is provided by:
 
-### [LOCEAN, France](https://www.locean.ipsl.fr) via Laurent MORTIER & Jean-Benoît CHARRASSIN
+#### [LOCEAN, France](https://www.locean.ipsl.fr) via Laurent MORTIER & Jean-Benoît CHARRASSIN
 
-### [Armines, France](https://www.armines.net/fr) via Laurent MORTIER
+#### [Armines, France](https://www.armines.net/fr) via Laurent MORTIER
 
-### [IMOS, Australia](https://imos.org.au) & [SIMS, Australia](https://sims.org.au) via Robert HARCOURT & Clive MCMAHON
+#### [IMOS, Australia](https://imos.org.au) & [SIMS, Australia](https://sims.org.au) via Robert HARCOURT & Clive MCMAHON
