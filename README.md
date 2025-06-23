@@ -9,16 +9,23 @@
 
 An R package to conduct unsupervised location quality-control of
 IMOS-deployed SMRU SRDL-CTD tag data in near real-time. {ArgosQC}
-automatically does the following: 1. accesses SMRU tag data from the
-SMRU server 2. organizes the multi-file data structures 3. organizes
-associated deployment metadata 4. collates the tag data with deployment
-metadata 5. fits SSM’s to species-specific subsets of the data 6.
-appends SSM-estimated locations to every tag-measured event record (CTD,
-dive, haulout, raw Argos location, raw GPS location, etc) 7. writes
-appended tag files to .csv 8. pushes to an incoming server
+automatically does the following:
 
-The QC process is detailed in the IMOS [Best Practice
-Manual](https://repository.oceanbestpractices.org/handle/11329/2571)
+1.  accesses SMRU or WC tag data from a local file source or from
+    manufacturer’s Data portal
+2.  organizes the multi-file data structures
+3.  organizes associated deployment metadata
+4.  collates the tag data with deployment metadata
+5.  fits SSM’s to species-specific subsets of the data
+6.  appends SSM-estimated locations to every tag-measured event record
+    (CTD, dive, haulout, raw Argos location, raw GPS location, etc)
+7.  writes appended tag files to .csv in a user-specified output
+    directory
+
+The SMRU SRDL-CTD tag QC process is detailed in the IMOS [Best Practice
+Manual](https://repository.oceanbestpractices.org/handle/11329/2571).
+The Wildlife Computers tag QC process follows an analogous workflow that
+accommodates the manufacturer’s tag data file structures.
 
 ## Installation
 
@@ -33,8 +40,8 @@ pak::pak("ianjonsen/ArgosQC")
 ## Example
 
 ArgosQC workflows can be run via single functions, specific to the
-Program (ATN, IMOS, etc…) and the tag manufacturer - currently, SMRU
-(`smru`) or Wildlife Computers (`wc`):
+AniBOS Program (ATN, IMOS, etc…) and the tag manufacturer - currently,
+SMRU (`smru`) or Wildlife Computers (`wc`):
 
 ``` r
 library(ArgosQC)
