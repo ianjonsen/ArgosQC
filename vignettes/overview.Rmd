@@ -34,7 +34,7 @@ These single function workflows simplify the automated QC implementation. Additi
 
 ## Examples
 
-## 1. ATN SMRU SRDL-CTD tag workflow
+## 1. ATN SMRU SRDL-CTD tag data QC workflow
 ```{r fn call, eval=FALSE}
 out <- atn_smru_qc(wd = "test",
             datadir = "tagdata",
@@ -94,7 +94,7 @@ The map file shows the SSM-predicted tracks (blue) and current last estimated lo
 
 #### Output .CSV files
 
-The QC's main output, the .CSV files contain all records from the original SMRU data tables and are appended with the following additional columns: `ssm_lat`, `ssm_lon`, `ssm_x`, `ssm_y`, `ssm_x_se`, `ssm_y_se`. These are the QC'd locations and their uncertainty estimates interpolated to the time of each record. The `ssm_x`, `ssm_y` variables are the coordinates from the QC workflow projection (in km) and `ssm_x_se`, `ssm_y_se` are the associated standard errors (in km). Note that NA's may be present in the QC-appended location variables, particularly at the start and/or end of individual tracks. This is typically indicative of track portions prior to animals going to sea (at deployment start) and portions when either the CTD or pressure sensor failed, eg. due to biofouling or seawater ingress, but tag still transmitted locations (near deployment end).
+The QC's main outputs, the .CSV files contain all records from the original SMRU data tables and are appended with the following additional columns: `ssm_lat`, `ssm_lon`, `ssm_x`, `ssm_y`, `ssm_x_se`, `ssm_y_se`. These are the QC'd locations and their uncertainty estimates interpolated to the time of each record. The `ssm_x`, `ssm_y` variables are the coordinates from the QC workflow projection (in km) and `ssm_x_se`, `ssm_y_se` are the associated standard errors (in km). Note that NA's may be present in the QC-appended location variables, particularly at the start and/or end of individual tracks. This is typically indicative of track portions prior to animals going to sea (at deployment start) and portions when either the CTD or pressure sensor failed, eg. due to biofouling or seawater ingress, but tag still transmitted locations (near deployment end).
 
 #### Metadata .CSV file
 The metadata file contains all the original ATN metadata records plus the following additions describing the QC workflow applied to the data:
@@ -111,7 +111,7 @@ The SSMOutputs file contains the SSM-predicted locations at the `time.step` spec
 
 
 
-## 1. ATN WC tag workflow
+## 2. ATN Wildlife Computers tag data QC workflow
 ```{r fn2 call, eval=FALSE}
 out <- atn_wc_qc(wd = "test",
                  datadir = "tagdata",
@@ -125,7 +125,30 @@ out <- atn_wc_qc(wd = "test",
                  cut = FALSE,
                  QCmode = "dm",
                  output = TRUE,
-                 collab.id = "5b3fe9ccc820f756bb245707",
-                 wc.akey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
-                 wc.skey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=")
+                 collab.id = "...alphanumeric...",
+                 wc.akey = "...alphanumeric...",
+                 wc.skey = "...alphanumeric...")
 ```
+
+The arguments are similar to `atn_smru_qc()`, with the addition of Wildlife Computers API identifiers: `collab.id`, `wc.akey`, and `wc.skey`. These may be used to download data directly from the Wildlife Computers Portal, in this case, data are written to tag-specific directories within the specified `datadir` directory. The `collab.id` argument specifies the Wildlife Computers collaborator ID, which is required if the user does not own or otherwise does not have direct access to the data. Note, that data-sharing collaborations must be set up in the Wildlife Computers Portal prior to using this tool. `ArgosQC` who are Wildlife Computers data owners may access their data from the Portal simply by providing the `wc.akey` and `wc.skey` arguments. The `wc.akey` specifies the Wildlife Computers Access Key that all Portal users must have to access the API. The Access key is used in tandem with the `wc.skey`, the Wildlife Computers Secret Key. No data downloads from the Wildlife Computers Portal are possible without these key pairs. 
+
+Alternatively, `atn_wc_qc()` may be used with local copies of Wildlife Computers tag data, provided they are stored in tag-specific directories within the `datadir` directory.
+
+#### Output .CSV files
+The QC's main outputs are the Wildlife Computers tag data files appended with the same QC'd location variables as the SMRU tag QC output files: `ssm_lat`, `ssm_lon`, `ssm_x`, `ssm_y`, `ssm_x_se`, `ssm_y_se`. The output .CSV files necessarily depend on the specific type of Wildlife Computers tag(s) that is/are being QC'd. Currently, the `ArgosQC` workflow accommodates SPOT, SPLASH and SCOUT tag data. Combined across these tag types, the following output .CSV files (per Wildlife Computers) are provided:
+
+- `DSA`
+- `ECDHistos`
+- `FastGPS`
+- `Histos`
+- `Locations`
+- `MinMaxDepth`
+- `MixLayer`
+- `PDTs`
+- `SST`
+
+Where one of these files can have a data structure that differs between specific tag types, the file names are appended with the tag type. For example, `ECDHistos` file structure differ between SCOUT DSA and SCOUT TEMP 361A tags, so these file names appear as either `ECDHistos_SCOUT_DSA` or `ECDHistos_SCOUT_TEMP_361A`. Similar scenarios for other tag types/versions will be incorporated as required in future versions of `ArgosQC`.
+
+As with the SMRU QC output files, each of the WC QC output file names are appended with the species' AnimalAphiaID, the ATN ADRProjectID and the `QCmode` suffix - `_nrt` or `_dm`. The metadata structure and appended QC variables are the same as described for the SMRU QC workflow.
+
+ 
