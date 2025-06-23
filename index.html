@@ -80,8 +80,17 @@
 </h1></div>
 <!-- badges: start -->
 <!-- badges: end -->
-<p>An R package to conduct unsupervised location quality-control of IMOS-deployed SMRU SRDL-CTD tag data in near real-time. {ArgosQC} automatically does the following: 1. accesses SMRU tag data from the SMRU server 2. organizes the multi-file data structures 3. organizes associated deployment metadata 4. collates the tag data with deployment metadata 5. fits SSM’s to species-specific subsets of the data 6. appends SSM-estimated locations to every tag-measured event record (CTD, dive, haulout, raw Argos location, raw GPS location, etc) 7. writes appended tag files to .csv 8. pushes to an incoming server</p>
-<p>The QC process is detailed in the IMOS <a href="https://repository.oceanbestpractices.org/handle/11329/2571" class="external-link">Best Practice Manual</a></p>
+<p>An R package to conduct unsupervised location quality-control of IMOS-deployed SMRU SRDL-CTD tag data in near real-time. {ArgosQC} automatically does the following:</p>
+<ol style="list-style-type: decimal">
+<li>accesses SMRU or WC tag data from a local file source or from manufacturer’s Data portal</li>
+<li>organizes the multi-file data structures</li>
+<li>organizes associated deployment metadata</li>
+<li>collates the tag data with deployment metadata</li>
+<li>fits SSM’s to species-specific subsets of the data</li>
+<li>appends SSM-estimated locations to every tag-measured event record (CTD, dive, haulout, raw Argos location, raw GPS location, etc)</li>
+<li>writes appended tag files to .csv in a user-specified output directory</li>
+</ol>
+<p>The SMRU SRDL-CTD tag QC process is detailed in the IMOS <a href="https://repository.oceanbestpractices.org/handle/11329/2571" class="external-link">Best Practice Manual</a>. The Wildlife Computers tag QC process follows an analogous workflow that accommodates the manufacturer’s tag data file structures.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -93,7 +102,7 @@
 <div class="section level2">
 <h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
 </h2>
-<p>ArgosQC workflows can be run via single functions, specific to the Program (ATN, IMOS, etc…) and the tag manufacturer - currently, SMRU (<code>smru</code>) or Wildlife Computers (<code>wc</code>):</p>
+<p>ArgosQC workflows can be run via single functions, specific to the AniBOS Program (ATN, IMOS, etc…) and the tag manufacturer - currently, SMRU (<code>smru</code>) or Wildlife Computers (<code>wc</code>):</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ianjonsen/ArgosQC/" class="external-link">ArgosQC</a></span><span class="op">)</span></span>
 <span></span>
