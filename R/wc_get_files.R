@@ -16,8 +16,6 @@
 ##' @param unzip (logical) should deployment zipfile be unzipped into destination
 ##' directory.
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr select mutate bind_rows
 ##' @importFrom assertthat assert_that
 ##' @importFrom tidyr drop_na

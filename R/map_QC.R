@@ -28,13 +28,6 @@
 ##' polygons (default = 10000). If map extents are expanded by many factors then
 ##' the buffer distance may need to be increased, otherwise this should not be
 ##' used. Ignored if `map_type != "default"`.
-##' @param map_type background map type ("default" uses [rnaturalearth::ne_countries]
-##' to add land polygons). If the `rnaturalearthdata` package is installed then
-##' high-resolution land polygons will be used. If the `ggspatial`
-##' and `rosm` packages are installed then any tile map type returned by
-##' [rosm::osm.types] can be used for a potentially more detailed coastline at
-##' fine spatial scales, given appropriate zoom settings
-##' (see [ggspatial::annotation_map_tile] for details).
 ##' @param normalise logical; if output includes a move persistence estimate,
 ##' should g (the move persistence index) be normalised to have minimum = 0 and
 ##' maximum = 1 (default = TRUE).
@@ -42,7 +35,6 @@
 ##' a 'relative g', or separately to highlight regions of lowest and highest move
 ##' persistence along a track (default = FALSE).
 ##' @param silent logical; generate maps silently (default = FALSE).
-##' @param ... additional arguments passed to [ggspatial::annotation_map_tile]
 ##'
 ##' @return a map as a ggplot2 object
 ##'
@@ -58,17 +50,8 @@
 ##' @importFrom grDevices hcl.colors
 ##' @importFrom aniMotum aes_lst join
 ##'
-##' @examples
-##' # create an ssm fit object
-##'
-##' fit <- aniMotum::fit_ssm(ellie, model = "rw", time.step = 24, control = aniMotum::ssm_control(verbose = 0))
-##'
-##' # render default map
-##'
-##' map_QC(fit, what = "p", cut = TRUE)
 ##'
 ##' @export
-##' @md
 
 map_QC <- function(x,
                 y = NULL,
@@ -80,11 +63,9 @@ map_QC <- function(x,
                 crs = NULL,
                 ext.rng = c(0.05, 0.05),
                 buffer = 10000,
-                map_type = "default",
                 normalise = TRUE,
                 group = FALSE,
-                silent = FALSE,
-                ...) {
+                silent = FALSE) {
 
   what <- match.arg(what)
   stopifnot("x must be a aniMotum ssm fit object with class `ssm_df`" =
@@ -97,13 +78,6 @@ map_QC <- function(x,
     stopifnot("crs must be a proj4string with units=km,
               \n eg. `+proj=stere +lat_0=-90 +lon_0=0 +datum=WGS84 +units=km +no_defs`" =
                 is.character(crs))
-  }
-
-  if(map_type != "default" & !(requireNamespace("rosm", quietly = TRUE) |
-                               requireNamespace("ggspatial", quietly = TRUE))) {
-    cat("required packages `rosm` and/or `ggspatial` are not installed,
-        switching map_type to default\n")
-    map_type <- "default"
   }
 
   ## estimated locations in projected form
@@ -183,8 +157,8 @@ map_QC <- function(x,
                                            f = ext.rng[2])
 
   ## select appropriate mapping fn based on x, y inputs
-  if(all(nrow(x) == 1, any(!"g" %in% names(loc_sf), !aes$mp))) {
-    m <- aniMotum:::map_single_track_base(map_type,
+  if(all(nrow(x) == 1)) {
+    m <- aniMotum:::map_single_track_base(map_type = "default",
                                obs_sf,
                                conf_sf,
                                line_sf,
@@ -193,11 +167,10 @@ map_QC <- function(x,
                                extents,
                                buffer,
                                aes,
-                               silent,
-                               ...)
+                               silent)
   }
-  else if(all(nrow(x) > 1, any(!"g" %in% names(loc_sf), !aes$mp))) {
-    m <- aniMotum:::map_multi_track_base(map_type,
+  else if(all(nrow(x) > 1)) {
+    m <- aniMotum:::map_multi_track_base(map_type = "default",
                          obs_sf,
                          conf_sf,
                          line_sf,
@@ -207,32 +180,7 @@ map_QC <- function(x,
                          extents,
                          buffer,
                          aes,
-                         silent,
-                         ...)
-  }
-  else if(all(nrow(x) == 1, "g" %in% names(loc_sf), aes$mp)) {
-    m <- aniMotum:::map_single_track_mp(map_type,
-                             obs_sf,
-                             conf_sf,
-                             line_sf,
-                             loc_sf,
-                             extents,
-                             buffer,
-                             aes,
-                             silent,
-                             ...)
-  }
-  else if(all(nrow(x) > 1, "g" %in% names(loc_sf), aes$mp)) {
-    m <- aniMotum:::map_multi_track_mp(map_type,
-                            obs_sf,
-                            conf_sf,
-                            line_sf,
-                            loc_sf,
-                            extents,
-                            buffer,
-                            aes,
-                            silent,
-                            ...)
+                         silent)
   }
 
   return(m)

@@ -11,8 +11,6 @@
 ##' @param dropIDs SMRU DeploymentIDs to be dropped
 ##' @param crs CRS to be applied when interpolating SSM-estimated locations and re-projecting back from Cartesian coords to longlat
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr filter select mutate group_by summarise left_join
 ##' @importFrom dplyr distinct pull arrange ungroup
 ##' @importFrom tidyr unnest

@@ -8,12 +8,10 @@
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
 ##' @param path path to write .csv files
-##' @param drop.refs individual WC DeploymentID's to be dropped
+##' @param dropIDs individual WC DeploymentID's to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##' @param pred.int prediction interval to use for sub-sampling predicted locations
 ##' (default = 6 h)
-##'
-##' @examples
 ##'
 ##' @importFrom dplyr filter rename mutate select inner_join
 ##' @importFrom stringr str_replace
@@ -87,21 +85,26 @@ wc_write_csv <- function(wc_ssm,
 
   nms <- names(out)
 
-
   ## write tables to .csv files
   lapply(1:length(out), function(i) {
-    if(program == "atn") {
-      out[[i]] |>
+    if (program == "atn") {
+      if (all(c("TagID", "TagModel") %in% names(out[[i]]))) {
+        tmp <- out[[i]] |>
+          select(-TagID, -TagModel)
+      } else {
+        tmp <- out[[i]]
+      }
+      tmp |>
         group_by(AnimalAphiaID, ADRProjectID) |>
         group_split() |>
-        walk( ~ suppressMessages(write_csv(
-          .x,
+        walk(~ suppressMessages(write_csv(
+          .x |> select(-AnimalAphiaID, -ADRProjectID),
           file = paste0(
             file.path(path, nms[i]),
             "_",
             .x$AnimalAphiaID[1],
             "_",
-            str_replace(.x$ADRProjectID[1], "\\ ", ""),
+            .x$ADRProjectID[1],
             suffix,
             ".csv"
           )

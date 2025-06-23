@@ -13,7 +13,8 @@ multi_filter(
   model = "crw",
   ts = 2,
   map = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ multi_filter(
 \item{map}{params to fix}
 
 \item{verbose}{turn on/off furrr::future_map progress indicator}
+
+\item{...}{additional arguments to be passed to \code{aniMotum::fit_ssm}}
 }
 \description{
 apply SSM filter to diag data across multiple processors

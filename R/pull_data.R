@@ -23,17 +23,12 @@
 ##' @param tag_mfr either "smru or "wc", ignored if `source` != "local"
 ##' @param ... additional arguments passed to `pull_smru_tables`
 ##'
-##'
-##'
-##' @examples
-##'
 ##' @md
 ##' @export
 
 pull_data <- function(path2data,
                       source = "smru",
                       cids = NULL,
-                      datafiles = NULL,
                       tag_mfr = "smru",
                       ...) {
 
@@ -57,6 +52,7 @@ pull_data <- function(path2data,
   } else if(source == "local") {
 
     out <- pull_local_data(path2data,
+                           cids = cids,
                            tag_mfr)
   }
 

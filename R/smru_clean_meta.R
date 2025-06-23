@@ -8,10 +8,8 @@
 ##'
 ##' @param cids SMRU campaign ids
 ##' @param smru SMRU table
-##' @param drop.refs SMRU refs to be dropped
+##' @param dropIDs SMRU refs to be dropped
 ##' @param file path to metadata .csv file
-##'
-##' @examples
 ##'
 ##' @importFrom dplyr select rename mutate filter %>% bind_rows
 ##' @importFrom readr read_csv
@@ -20,12 +18,12 @@
 ##' @importFrom assertthat assert_that
 ##'
 ##' @md
-##' @export
+##' @keywords internal
 ##'
 
-clean_meta <- function(cids,
+smru_clean_meta <- function(cids,
                        smru,
-                       drop.refs = NULL,
+                       dropIDs = NULL,
                        file = NULL) {
 
   assert_that(!is.null(file))
@@ -111,10 +109,10 @@ clean_meta <- function(cids,
 
   meta <- suppressWarnings(meta %>% mutate(estimated_mass = as.integer(estimated_mass)))
 
-  ## subset to current campaigns & apply drop.refs
+  ## subset to current campaigns & apply dropIDs
   meta <- meta %>%
     filter(sattag_program %in% cids) %>%
-    filter(!device_id %in% drop.refs)
+    filter(!device_id %in% dropIDs)
 
   ## append dive start and end dates for (alternate) track truncation
   ##  to be used as alternate on final, delayed-mode (manual) QC

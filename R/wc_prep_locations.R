@@ -8,13 +8,13 @@
 ##' @param wc list of WC datafiles
 ##' @param meta metadata used to truncate start of diag data for each individual
 ##' @param dropIDs WC DeploymentID's to be dropped (eg. tags were turned on but not deployed)
-##' @param as_sf specify whether lon,lat coords are to be projected (default = TRUE)
+##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
+##' which results in one of 4 possible projections applied automatically, based on
+##' the centroid of the tracks. See `overview` vignette for details.
 ##' @param program specify the aniBOS program contributing data (currently: 'atn', 'irap')
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case wc is not right-truncated & date of first dive is used
 ##' for the track start date.
-##'
-##' @examples
 ##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
 ##' @importFrom dplyr ungroup rename select n lag
@@ -30,7 +30,7 @@
 wc_prep_loc <- function(wc,
                     meta,
                     dropIDs,
-                    as_sf = TRUE,
+                    crs = NULL,
                     program = "atn",
                     QCmode = "nrt") {
 
@@ -113,7 +113,7 @@ wc_prep_loc <- function(wc,
 
     locs <- lapply(locs.lst, function(x) {
       switch(QCmode, nrt = {
-        if (x$dive_start >= x$DeploymentStartDateTime) {
+        if (x$dive_start[1] >= x$DeploymentStartDateTime[1]) {
           x |> filter(date >= dive_start)
         } else {
           x |> filter(date >= DeploymentStartDateTime)
@@ -175,8 +175,9 @@ wc_prep_loc <- function(wc,
     filter((dist < 1000 & spd < 500 & test) | !test) |>
     select(-dist, -dt, -spd, -test)
 
-  if (as_sf) {
-    ## project lon,lat coords
+  if (is.null(crs)) {
+    ## project lon,lat coords - use different projections depending where
+    ##  centroid of tracks lies latitudinally
     proj.fn <- function(x) {
       if ((mean(x$lat, na.rm = T, trim=0.05) > 25 &
           mean(x$lat, na.rm = T, trim=0.05) <= 55) |
@@ -231,28 +232,28 @@ wc_prep_loc <- function(wc,
     }
 
   } else {
-    proj.fn <- function(x) x |> select(-DeploymentID)
+    proj.fn <- function(x) {
+      x |>
+        sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+        sf::st_transform(., crs = crs) |>
+        select(-DeploymentID)
+    }
+
   }
+
+  ## Reproject
+  locs <- locs |>
+    mutate(id = DeploymentID) |>
+    dplyr::select(DeploymentID, id, everything()) |>
+    group_by(DeploymentID) |>
+    do(d_sf = proj.fn(.)) |>
+    ungroup()
 
   if (program == "atn") {
     locs <- locs |>
-      mutate(id = DeploymentID) |>
-      dplyr::select(DeploymentID, id, everything()) |>
-      group_by(DeploymentID) |>
-      do(d_sf = proj.fn(.)) |>
-      ungroup() |>
-      left_join(meta |> select(DeploymentID, ADRProjectID), by = "DeploymentID")
+      left_join(meta |> select(DeploymentID, ADRProjectID),
+                by = "DeploymentID")
 
-  } else if (program == "irap") {
-    locs <- locs |>
-      mutate(id = DeploymentID) |>
-      dplyr::select(DeploymentID, id, everything()) |>
-      group_by(DeploymentID) |>
-      do(d_sf = proj.fn(.)) |>
-      ungroup()
-
-  } else {
-    stop("AniBOS program currently not supported")
   }
 
   ## add species code

@@ -1,0 +1,73 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# ArgosQC
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+An R package to conduct unsupervised location quality-control of IMOS-deployed SMRU SRDL-CTD tag data in near real-time. {ArgosQC} automatically does the following:
+1. accesses SMRU tag data from the SMRU server
+2. organizes the multi-file data structures
+3. organizes associated deployment metadata
+4. collates the tag data with deployment metadata
+5. fits SSM's to species-specific subsets of the data
+6. appends SSM-estimated locations to every tag-measured event record (CTD, dive, haulout, raw Argos location, raw GPS location, etc)
+7. writes appended tag files to .csv
+8. pushes to an incoming server
+
+The QC process is detailed in the IMOS [Best Practice Manual](https://repository.oceanbestpractices.org/handle/11329/2571)
+
+## Installation
+
+You can install the main version of ArgosQC from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("ianjonsen/ArgosQC")
+```
+
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example, eval = FALSE}
+library(ArgosQC)
+
+out <- atn_smru_qc(wd = "test",
+            datadir = "tagdata",
+            meta.file = "metadata/metadata.csv",
+            outdir = "smru/output",
+            proj = NULL,
+            model = "rw",
+            vmax = 3,
+            time.step = 6,
+            reroute = FALSE,
+            cut = FALSE,
+            QCmode = "dm",
+            output = TRUE)
+```
+
+
+
+# Acknowledgements:
+
+### Financial support for the development of this software is provided by:
+
+### [LOCEAN, France](https://www.locean.ipsl.fr) via Laurent MORTIER & Jean-Benoît CHARRASSIN
+
+### [Armines, France](https://www.armines.net/fr) via Laurent MORTIER
+
+### [IMOS, Australia](https://imos.org.au) & [SIMS, Australia](https://sims.org.au) via Robert HARCOURT & Clive MCMAHON

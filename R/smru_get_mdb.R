@@ -10,8 +10,6 @@
 ##' options(timeout = timeout) to avoid mdb.zip download error from SMRU server
 ##' @param verbose turn on/off progress indicator
 ##'
-##' @examples
-##'
 ##' @importFrom stringr str_split
 ##' @importFrom tibble as_tibble
 ##' @importFrom utils download.file unzip

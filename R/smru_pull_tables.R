@@ -10,8 +10,6 @@
 ##' homebrew-installed mdbtools @ /opt/homebrew/Cellar/mdbtools/1.0.0/bin/
 ##' @param verbose turn on/off progress indicator
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr select mutate bind_rows
 ##' @importFrom future plan
 ##' @importFrom furrr future_map

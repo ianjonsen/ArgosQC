@@ -11,18 +11,18 @@
 ##' cids SMRU campaign ids
 ##' @param tag_data a list of either `smru` data tables or `wc` files as output by
 ##' `pull_data`.
+##' @param cids SMRU campaign id(s) must be provided when the tag_mfr is `smru`
 ##' @param dropIDs SMRU refs or WC ids to be dropped
 ##' @param file path to metadata .csv file, if provided then metadata will be
-##' downloaded from the provided `source`
+##' read from the provided `source`
 ##' @param enc set locale encoding to handle special characters; default is "UTF-8"
 ##'
-##' @examples
 ##'
 ##'
 ##' @importFrom dplyr select rename mutate filter bind_rows
 ##' @importFrom rvest read_html html_nodes html_table
 ##' @importFrom stringr str_to_lower str_replace_all
-##' @importFrom lubridate mdy_hms
+##' @importFrom lubridate mdy_hms round_date
 ##' @importFrom assertthat assert_that
 ##' @importFrom readr read_csv cols locale
 ##'
@@ -39,11 +39,13 @@ get_metadata <- function(source = "smru",
 
   if(is.null(tag_data)) stop("a tag_data object must be supplied")
   if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
+  if(all((tag_mfr == "smru" | source == "smru"), is.null(cids))) stop("'cids' argument is empty, SMRU campaign id(s) must be specified")
   if(all(source == "atn", tag_mfr %in% c("smru", "wc"), is.null(file))) stop("an ATN .csv metadata file must be provided")
 
  if (source == "atn") {
     if(tag_mfr == "smru") {
-      meta <- readr::read_csv(file, locale = readr::locale(encoding = enc))
+      meta <- read_csv(file, locale = readr::locale(encoding = enc)) |>
+        suppressMessages()
 
       ## subset to current campaigns & apply drop.refs
       SMRUCampaignID <- str_split(meta$DeploymentID, "\\-", simplify = TRUE)[,1]
@@ -55,7 +57,7 @@ get_metadata <- function(source = "smru",
 
     } else if(tag_mfr == "wc") {
       ## read metadata & subset to ID's in current data to be QC'd
-      meta <- readr::read_csv(file,
+      meta <- read_csv(file,
                               col_types = c("iiccccccTccicccccTTcddcccicdccdccdcccdcTc")) |>
         filter(!DeploymentID %in% dropIDs)
 
@@ -68,9 +70,9 @@ get_metadata <- function(source = "smru",
    tag_meta <- lapply(1:length(cids), function(i) {
       url <- paste0("https://imos:imos@www.smru.st-andrews.ac.uk/protected/", cids[i], "/", cids[i], ".html")
       tm <- url |>
-        rvest::read_html() |>
-        rvest::html_nodes(xpath = '/html/body/ul[1]/table') |>
-        rvest::html_table()
+        read_html() |>
+        html_nodes(xpath = '/html/body/ul[1]/table') |>
+        html_table()
       tm
     }) |> bind_rows()
 
@@ -211,9 +213,9 @@ get_metadata <- function(source = "smru",
 ## if none of above sources apply then default to local IMOS metadata
 if(source == "imos") {
   if(tag_mfr == "smru") {
-    meta <- clean_meta(cids = cids,
+    meta <- smru_clean_meta(cids = cids,
                        smru = tag_data,
-                       drop.refs = dropIDs,
+                       dropIDs = dropIDs,
                        file = file)
 
   } else if(tag_mfr == "wc") {

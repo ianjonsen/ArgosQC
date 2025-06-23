@@ -119,6 +119,7 @@ wc_ssm_outputs <- function(fit,
 
 
   locs.lst <- split(locs, locs$DeploymentID)
+
   p4s <- lapply(fit$ssm, function(x) {
     data.frame(id = x$fitted$id[1], proj4string = st_crs(x$fitted)[[1]])
   }) |>

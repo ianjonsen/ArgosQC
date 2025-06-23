@@ -9,7 +9,7 @@ smru_write_summary(
   meta,
   program = "imos",
   path = NULL,
-  drop.refs = NULL,
+  dropIDs = NULL,
   suffix = "_nrt"
 )
 }
@@ -18,11 +18,11 @@ smru_write_summary(
 
 \item{meta}{metadata}
 
-\item{program}{Determines structure of output metadata. Currently, either `imos` or `atn`.}
+\item{program}{Determines structure of output metadata. Currently, either \code{imos} or \code{atn}.}
 
 \item{path}{path to write .csv files}
 
-\item{drop.refs}{individual ids to be dropped}
+\item{dropIDs}{individual ids to be dropped}
 
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 }

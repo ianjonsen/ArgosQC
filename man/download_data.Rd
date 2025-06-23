@@ -39,22 +39,15 @@ download_data(
 
 \item{pwd}{SMRU data server password as a quoted string}
 
-\item{...}{additional arguments passed to \code{get_smru_mdb} or \code{get_wc_files()}}
+\item{wc.akey}{an Access Key issued by Wildlife Computers for their API}
 
-\item{WC_AccessKey}{an Access Key issued by Wildlife Computers for their API}
+\item{wc.skey}{a Secret Key issued by Wildlife Computers for their API}
 
-\item{WC_SecretKey}{a Secret Key issued by Wildlife Computers for their API}
+\item{...}{additional arguments passed to \code{smru_get_mdb} or \code{wc_get_files()}}
 }
 \description{
 Satellite tracking data, in a zipfile, are downloaded from a
 user-specified URL (for accessing zipfiles on GoogleDrive or Dropbox),
 accessed from the SMRU data server, or accessed from the Wildlife Computers
 Portal API via the \code{source} argument.
-}
-\examples{
-# download a SMRU .mdb file from GitHub
-download_data(url = "https://github.com/ocean-tracking-network/rt-sat-to-obis/tree/c1d93742d3d996a0436315563fae9b51d7a6e3fd/input/ATN/ct169-594-21",
-dest = tempdir(),
-source = "github")
-
 }

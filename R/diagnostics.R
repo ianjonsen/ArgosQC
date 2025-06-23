@@ -15,14 +15,13 @@
 ##' @param dpath path to write all other diagnostic files
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case start end end of dive data are displayed rather than ctd data
-##' @param ... extra arguments for aniMotum::map - used to generate maps
 ##'
-##' @examples
 ##'
 ##' @importFrom dplyr %>% group_by summarise pull
 ##' @importFrom sf st_as_sf st_transform st_cast st_bbox
 ##' @importFrom rnaturalearth ne_countries
-##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes theme_minimal xlim ylim ggsave
+##' @importFrom ggplot2 ggplot geom_sf geom_point geom_rect facet_wrap aes
+##' @importFrom ggplot2 vars theme_minimal xlim ylim ggsave
 ##' @importFrom lubridate decimal_date
 ##' @importFrom aniMotum aes_lst
 ##' @importFrom kableExtra kable kable_styling
@@ -43,8 +42,7 @@ diagnostics <-
            obs = FALSE,
            mpath = NULL,
            dpath = NULL,
-           QCmode = "nrt",
-           ...) {
+           QCmode = "nrt") {
 
     if(is.null(mpath)) stop("A valid file path for the map must be provided")
     if(is.null(dpath)) stop("A valid file path for the diagnostics must be provided")
@@ -78,8 +76,7 @@ diagnostics <-
           what = what,
           by.id = FALSE,
           cut = cut,
-          aes = my.aes,
-          ...
+          aes = my.aes
         ) +
           geom_sf(
             data = end.locs,
@@ -119,8 +116,7 @@ diagnostics <-
         what = what,
         by.id = FALSE,
         cut = cut,
-        aes = my.aes,
-        ...
+        aes = my.aes
       ) +
         geom_sf(
           data = end.locs,
@@ -150,7 +146,9 @@ diagnostics <-
     if("DeploymentID" %in% names(meta)) {
       meta <- meta |>
         rename(device_id = DeploymentID)
+    }
 
+    if("DeploymentID" %in% names(data)) {
       olocs <- data |>
         rename(device_id = DeploymentID,
                lat = Latitude,
@@ -160,7 +158,6 @@ diagnostics <-
     } else {
       olocs <- data |>
         rename(device_id = ref)
-
     }
 
     flocs <- flocs |>
@@ -179,11 +176,16 @@ diagnostics <-
       geom_point(data = flocs,
                  aes(date, lat),
                  size = 0.25,
-                 col = 'red'))
+                 col = 'red') +
+      facet_wrap(vars(device_id),
+                 scales = "free",
+                 ncol = 6)
+    )
 
     if(QCmode == "nrt") {
       p.lat <- suppressWarnings(p.lat + geom_rect(
-        data = meta,
+        data = meta |> filter(!is.na(start_date),
+                              !is.na(ctd_start)),
         aes(
           xmin = start_date,
           xmax = ctd_start,
@@ -195,7 +197,8 @@ diagnostics <-
         colour = NA
       ) +
         geom_rect(
-          data = meta,
+          data = meta |> filter(!is.na(end_date),
+                                !is.na(ctd_end)),
           aes(
             xmin = ctd_end,
             xmax = end_date,
@@ -209,7 +212,8 @@ diagnostics <-
 
     } else if(QCmode == "dm") {
       p.lat <- suppressWarnings(p.lat + geom_rect(
-        data = meta,
+        data = meta |> filter(!is.na(start_date),
+                              !is.na(dive_start)),
         aes(
           xmin = start_date,
           xmax = dive_start,
@@ -221,7 +225,8 @@ diagnostics <-
         colour = NA
       ) +
         geom_rect(
-          data = meta,
+          data = meta |> filter(!is.na(end_date),
+                                !is.na(dive_end)),
           aes(
             xmin = dive_end,
             xmax = end_date,
@@ -233,13 +238,7 @@ diagnostics <-
           colour = NA
         ))
     }
-    p.lat <- suppressWarnings(p.lat +
-      facet_wrap(
-        ~ device_id,
-        scales = "free",
-        ncol = 6,
-        nrow = ceiling(length(unique(olocs$device_id)) / 6)
-      ))
+
 
     suppressWarnings(ggsave(
       file.path(dpath,
@@ -258,11 +257,16 @@ diagnostics <-
       geom_point(data = flocs,
                  aes(date, lon),
                  size = 0.25,
-                 col = 'red'))
+                 col = 'red') +
+        facet_wrap(vars(device_id),
+          scales = "free",
+          ncol = 6
+        ))
 
     if(QCmode == "nrt") {
       p.lon <- suppressWarnings(p.lon + geom_rect(
-        data = meta,
+        data = meta |> filter(!is.na(start_date),
+                              !is.na(ctd_start)),
         aes(
           xmin = start_date,
           xmax = ctd_start,
@@ -274,7 +278,8 @@ diagnostics <-
         colour = NA
       ) +
         geom_rect(
-          data = meta,
+          data = meta |> filter(!is.na(end_date),
+                                !is.na(ctd_end)),
           aes(
             xmin = ctd_end,
             xmax = end_date,
@@ -288,7 +293,8 @@ diagnostics <-
 
     } else if(QCmode == "dm") {
       p.lon <- suppressWarnings(p.lon + geom_rect(
-        data = meta,
+        data = meta |> filter(!is.na(start_date),
+                              !is.na(dive_start)),
         aes(
           xmin = start_date,
           xmax = dive_start,
@@ -300,7 +306,8 @@ diagnostics <-
         colour = NA
       ) +
         geom_rect(
-          data = meta,
+          data = meta |> filter(!is.na(end_date),
+                                !is.na(dive_end)),
           aes(
             xmin = dive_end,
             xmax = end_date,
@@ -312,13 +319,6 @@ diagnostics <-
           colour = NA
         ))
     }
-    p.lon <- suppressWarnings(p.lon +
-      facet_wrap(
-        ~ device_id,
-        scales = "free",
-        ncol = 6,
-        nrow = ceiling(length(unique(olocs$device_id)) / 6)
-      ))
 
     suppressWarnings(ggsave(
       file.path(dpath,

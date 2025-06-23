@@ -22,6 +22,10 @@ push_2_aodn(
 
 \item{user}{AODN incoming server username as a string}
 
+\item{host}{rsync server address}
+
+\item{dest}{destination directory on host server}
+
 \item{pwd}{AODN incoming server pwd as a string}
 
 \item{nopush}{zip files but don't push to AODN incoming server (for testing)}

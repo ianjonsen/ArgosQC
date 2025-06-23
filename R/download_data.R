@@ -17,16 +17,9 @@
 ##' @param cids SMRU tag deployment campaign id(s) to download, eg. "ct180"
 ##' @param user SMRU data server username as a quoted string
 ##' @param pwd SMRU data server password as a quoted string
-##' @param WC_AccessKey an Access Key issued by Wildlife Computers for their API
-##' @param WC_SecretKey a Secret Key issued by Wildlife Computers for their API
-##' @param ... additional arguments passed to `get_smru_mdb` or `get_wc_files()`
-##'
-##' @md
-##' @examples
-##'# download a SMRU .mdb file from GitHub
-##'download_data(url = "https://github.com/ocean-tracking-network/rt-sat-to-obis/tree/c1d93742d3d996a0436315563fae9b51d7a6e3fd/input/ATN/ct169-594-21",
-##'dest = tempdir(),
-##'source = "github")
+##' @param wc.akey an Access Key issued by Wildlife Computers for their API
+##' @param wc.skey a Secret Key issued by Wildlife Computers for their API
+##' @param ... additional arguments passed to `smru_get_mdb` or `wc_get_files()`
 ##'
 ##' @importFrom utils unzip
 ##' @importFrom usethis create_download_url
@@ -63,7 +56,7 @@ download_data <- function(path = NULL,
   if(!source %in% c("smru", "wc", "local")) {
     url <- create_download_url(path)
 
-    tidy_download(url, dest = dest)
+    tidy_download(url, destdir = dest)
 
     if(unzip)
       unzip(dest, exdir = dest)
@@ -99,7 +92,7 @@ download_data <- function(path = NULL,
 ##'
 ##' @importFrom fs file_temp file_move path path_file
 ##'
-##' @internal
+##' @keywords internal
 tidy_download <- function (url, destdir = getwd())
 {
   options(usethis.quiet = TRUE)

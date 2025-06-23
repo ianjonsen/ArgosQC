@@ -7,7 +7,7 @@
 ssm_mark_gaps(ssm, min.gap = 24, mark = TRUE)
 }
 \arguments{
-\item{ssm}{the SSM fit object from `redo_multi_filter()`}
+\item{ssm}{the SSM fit object from \code{redo_multi_filter()}}
 
 \item{min.gap}{the minimum data gap duration from which SSM estimates are
 removed (in hours)}

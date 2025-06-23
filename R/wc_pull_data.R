@@ -21,8 +21,6 @@
 ##'
 ##' @param path2data path to all WC tag data files.
 ##'
-##' @examples
-##'
 ##' @importFrom dplyr select mutate bind_rows everything case_when as_tibble
 ##' @importFrom lubridate dmy_hms
 ##' @importFrom readr read_csv cols

@@ -1,7 +1,10 @@
 .Rproj.user
+.Rproj
 .Rhistory
 .RData
 .Ruserdata
 .Rproj
 ArgosQC.Rproj
 .DS_Store
+docs
+inst/doc
