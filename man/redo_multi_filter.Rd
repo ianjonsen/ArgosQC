@@ -16,6 +16,7 @@ redo_multi_filter(
   map = NULL,
   reroute = TRUE,
   dist = 1500,
+  barrier = NULL,
   verbose = TRUE,
   ...
 )
@@ -46,6 +47,9 @@ land (default is TRUE)}
 buffer allows a larger portion of coastline to be selected for rerouting any
 locations that are on land. More coastline polygon data can help rerouting, but
 too much will make computation very slow.}
+
+\item{barrier}{add a custom POLYGON/MULTIPOLYGON shapefile to use as a land
+barrier. Default (NULL) reverts to the \code{aniMotum} default land barrier.}
 
 \item{verbose}{turn on/off furrr::future_map progress indicator}
 
