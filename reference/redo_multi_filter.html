@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.6-1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.6-2</span>
       </span>
     </div>
 
@@ -73,6 +73,7 @@
 <span>  map <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  reroute <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  dist <span class="op">=</span> <span class="fl">1500</span>,</span>
+<span>  barrier <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -128,6 +129,11 @@ land (default is TRUE)</p></dd>
 buffer allows a larger portion of coastline to be selected for rerouting any
 locations that are on land. More coastline polygon data can help rerouting, but
 too much will make computation very slow.</p></dd>
+
+
+<dt id="arg-barrier">barrier<a class="anchor" aria-label="anchor" href="#arg-barrier"></a></dt>
+<dd><p>add a custom POLYGON/MULTIPOLYGON shapefile to use as a land
+barrier. Default (NULL) reverts to the <code>aniMotum</code> default land barrier.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
