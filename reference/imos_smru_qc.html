@@ -18,7 +18,7 @@ download to SSM-appended tag data files output as CSV files."><!-- mathjax --><s
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.6-2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.6-3</span>
       </span>
     </div>
 
@@ -63,151 +63,66 @@ download to SSM-appended tag data files output as CSV files.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">imos_smru_qc</span><span class="op">(</span></span>
-<span>  wd <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  cids <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sp <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  smru.usr <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  smru.pwd <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  datadir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  meta.file <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  outdir <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  dropIDs <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  proj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"rw"</span>,</span>
-<span>  vmax <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  time.step <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>  reroute <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  dist <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>  buffer <span class="op">=</span> <span class="fl">0.5</span>,</span>
-<span>  centroids <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  cut <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  min.gap <span class="op">=</span> <span class="fl">72</span>,</span>
-<span>  QCmode <span class="op">=</span> <span class="st">"nrt"</span>,</span>
-<span>  output <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  dwnld <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">imos_smru_qc</span><span class="op">(</span><span class="va">wd</span>, <span class="va">config</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-wd">wd<a class="anchor" aria-label="anchor" href="#arg-wd"></a></dt>
-<dd><p>the path to the working directory that contains: 1) the data directory
-where tag data files are stored (if source = <code>local</code>); 2) the metadata directory
-where all metadata files are stored; and 3) the destination directory for QC output.</p></dd>
-
-
-<dt id="arg-cids">cids<a class="anchor" aria-label="anchor" href="#arg-cids"></a></dt>
-<dd><p>SMRU campaign (AODN sattag_program) ID's</p></dd>
-
-
-<dt id="arg-sp">sp<a class="anchor" aria-label="anchor" href="#arg-sp"></a></dt>
-<dd><p>the species being QC'd - currently, either "sese" or "ortu"</p></dd>
-
-
-<dt id="arg-smru-usr">smru.usr<a class="anchor" aria-label="anchor" href="#arg-smru-usr"></a></dt>
-<dd><p>SMRU data server username as a string</p></dd>
-
-
-<dt id="arg-smru-pwd">smru.pwd<a class="anchor" aria-label="anchor" href="#arg-smru-pwd"></a></dt>
-<dd><p>SMRU data server password as a string</p></dd>
-
-
-<dt id="arg-datadir">datadir<a class="anchor" aria-label="anchor" href="#arg-datadir"></a></dt>
-<dd><p>the name of the data directory (to be added to the <code>wd</code> path).</p></dd>
-
-
-<dt id="arg-meta-file">meta.file<a class="anchor" aria-label="anchor" href="#arg-meta-file"></a></dt>
-<dd><p>the metadata filename. Must reside within the <code>wd</code></p></dd>
-
-
-<dt id="arg-outdir">outdir<a class="anchor" aria-label="anchor" href="#arg-outdir"></a></dt>
-<dd><p>the name of the QC output directory where CSV files will be
-written (to be added to the <code>wd</code> path).</p></dd>
-
-
-<dt id="arg-dropids">dropIDs<a class="anchor" aria-label="anchor" href="#arg-dropids"></a></dt>
-<dd><p>the SMRU ref ID's that are to be ignored during the QC process</p></dd>
-
-
-<dt id="arg-proj">proj<a class="anchor" aria-label="anchor" href="#arg-proj"></a></dt>
-<dd><p>the proj4string to be used for the location data &amp; for the SSM-estimated
+<dl><dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
+<dd><p>a JSON configuration file containing the following parameters:</p><ul><li><p><code>datadir</code> the name of the data directory (to be added to the <code>wd</code> path).</p></li>
+<li><p><code>meta.file</code> the metadata filename. Must reside within the <code>wd</code>.</p></li>
+<li><p><code>maps.dir</code> the directory path to write diagnostic maps of QC'd tracks.</p></li>
+<li><p><code>diag.dir</code> the directory path to write diagnostic time-series plots of QC'd lon &amp; lat.</p></li>
+<li><p><code>outdir</code> the name of the QC output directory where CSV files will be
+written (to be added to the <code>wd</code> path).</p></li>
+<li><p><code>cid</code> SMRU campaign (AODN sattag_program) ID.</p></li>
+<li><p><code>sp</code> the species being QC'd - currently, either "sese" or "ortu".</p></li>
+<li><p><code>smru.usr</code> SMRU data server username as a string.</p></li>
+<li><p><code>smru.pwd</code> SMRU data server password as a string.</p></li>
+<li><p><code>dwnld.timeout</code> extends the download timeout period a specified number of seconds.</p></li>
+<li><p><code>dropIDs</code> the SMRU ref ID's that are to be ignored during the QC process.</p></li>
+<li><p><code>proj</code> the proj4string to be used for the location data &amp; for the SSM-estimated
 locations. The default (NULL) will result in one of 3 projections being used,
 depending on whether the centroid of the observed latitudes lie in N or S polar
 regions, temperate or equatorial regions, or if tracks straddle (or lie close to)
--180,180 longitude.</p></dd>
-
-
-<dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p>the aniMotum SSM model to be used for the location QC - typically
-either <code>rw</code> or <code>crw</code>.</p></dd>
-
-
-<dt id="arg-vmax">vmax<a class="anchor" aria-label="anchor" href="#arg-vmax"></a></dt>
-<dd><p>for SSM fitting; max travel rate (m/s) to identify implausible locations</p></dd>
-
-
-<dt id="arg-time-step">time.step<a class="anchor" aria-label="anchor" href="#arg-time-step"></a></dt>
-<dd><p>the prediction interval (in hours) to be used by the SSM</p></dd>
-
-
-<dt id="arg-reroute">reroute<a class="anchor" aria-label="anchor" href="#arg-reroute"></a></dt>
-<dd><p>whether QC'd tracks should be re-routed off of land
+-180,180 longitude.</p></li>
+<li><p><code>model</code> the aniMotum SSM model to be used for the location QC - typically
+either <code>rw</code> or <code>crw</code>.</p></li>
+<li><p><code>vmax</code> for SSM fitting; max travel rate (m/s) to identify implausible locations</p></li>
+<li><p><code>time.step</code> the prediction interval (in hours) to be used by the SSM</p></li>
+<li><p><code>reroute</code> whether QC'd tracks should be re-routed off of land
 (default is FALSE). Note, in some circumstances this can substantially increase
 processing time. Default land polygon data are sourced from the
-<code>ropensci/rnaturalearthhires</code> R package.</p></dd>
-
-
-<dt id="arg-dist">dist<a class="anchor" aria-label="anchor" href="#arg-dist"></a></dt>
-<dd><p>the distance in km from outside the convex hull of observed
+<code>ropensci/rnaturalearthhires</code> R package.</p></li>
+<li><p><code>dist</code> the distance in km from outside the convex hull of observed
 locations from which to select land polygon data for re-routing. Ignored if
-<code>reroute = FALSE</code>.</p></dd>
-
-
-<dt id="arg-buffer">buffer<a class="anchor" aria-label="anchor" href="#arg-buffer"></a></dt>
-<dd><p>the distance in km to buffer rerouted locations from the
-coastline. Ignored if <code>reroute = FALSE</code>.</p></dd>
-
-
-<dt id="arg-centroids">centroids<a class="anchor" aria-label="anchor" href="#arg-centroids"></a></dt>
-<dd><p>whether centroids are to be included in the visibility graph
+<code>reroute = FALSE</code>.</p></li>
+<li><p><code>buffer</code> the distance in km to buffer rerouted locations from the
+coastline. Ignored if <code>reroute = FALSE</code>.</p></li>
+<li><p><code>centroids</code> whether centroids are to be included in the visibility graph
 mesh used by the rerouting algorithm. See <code>?pathroutr::prt_visgraph</code> for
-details. Ignored if <code>reroute = FALSE</code>.</p></dd>
-
-
-<dt id="arg-cut">cut<a class="anchor" aria-label="anchor" href="#arg-cut"></a></dt>
-<dd><p>logical; should predicted locations be dropped if they lie within
-in a large data gap (default is FALSE).</p></dd>
-
-
-<dt id="arg-min-gap">min.gap<a class="anchor" aria-label="anchor" href="#arg-min-gap"></a></dt>
-<dd><p>the minimum data gap duration (h) to be used for cutting
-predicted locations (default is 72 h)</p></dd>
-
-
-<dt id="arg-qcmode">QCmode<a class="anchor" aria-label="anchor" href="#arg-qcmode"></a></dt>
-<dd><p>one of either <code>nrt</code> for Near Real-Time QC or <code>dm</code> for Delayed
-Mode QC.</p></dd>
-
-
-<dt id="arg-output">output<a class="anchor" aria-label="anchor" href="#arg-output"></a></dt>
-<dd><p>logical; should fn return a list of QC-generated objects. This
+details. Ignored if <code>reroute = FALSE</code>.</p></li>
+<li><p><code>cut</code> logical; should predicted locations be dropped if they lie within
+in a large data gap (default is FALSE).</p></li>
+<li><p><code>min.gap</code> the minimum data gap duration (h) to be used for cutting
+predicted locations (default is 72 h)</p></li>
+<li><p><code>QCmode</code> one of either <code>nrt</code> for Near Real-Time QC or <code>dm</code> for Delayed
+Mode QC.</p></li>
+<li><p><code>output</code> logical; should fn return a list of QC-generated objects. This
 results in a single large object return that can be useful for troubleshooting
-QC errors or undesirable results.</p></dd>
-
-
-<dt id="arg-dwnld">dwnld<a class="anchor" aria-label="anchor" href="#arg-dwnld"></a></dt>
-<dd><p>logical; should the tag data be downloaded from the SMRU server
+QC errors or undesirable results.</p></li>
+<li><p><code>dwnld</code> logical; should the tag data be downloaded from the SMRU server
 (default TRUE). Useful when testing so unnecessary load is not put on the
-SMRU server.</p></dd>
+SMRU server.</p></li>
+</ul></dd>
 
 
-<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>additional arguments to be passed to SSM model fitting, see
-<code><a href="https://ianjonsen.github.io/aniMotum/reference/fit_ssm.html" class="external-link">aniMotum::fit_ssm</a></code> for details.</p></dd>
+<dt id="arg--wd-">`wd`<a class="anchor" aria-label="anchor" href="#arg--wd-"></a></dt>
+<dd><p>the path to the working directory that contains: 1) the data directory
+where tag data files are stored (if source = <code>local</code>); 2) the metadata directory
+where all metadata files are stored; and 3) the destination directory for QC output.</p></dd>
 
 </dl></div>
 
