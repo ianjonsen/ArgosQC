@@ -158,8 +158,7 @@ imos_smru_qc <- function(wd, config) {
       diag_sf[[i]],
       vmax = as.numeric(conf$vmax),
       model = conf$model,
-      ts = as.numeric(conf$time.step),
-      ...
+      ts = as.numeric(conf$time.step)
     )
   })
 
@@ -175,8 +174,7 @@ imos_smru_qc <- function(wd, config) {
       reroute = as.logical(conf$reroute),
       dist = as.numeric(conf$dist),
       buffer = as.numeric(conf$buffer),
-      centroids = as.logical(conf$centroids),
-      ...
+      centroids = as.logical(conf$centroids)
     )
   })
   names(fit1) <- names(fit2) <- names(diag_sf)
