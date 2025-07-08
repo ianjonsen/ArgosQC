@@ -183,6 +183,12 @@ get_metadata <- function(source = "smru",
 
     })
 
+    if(any(meta$common_name %in% "olive ridley turtle")) {
+      meta <- meta |>
+        select(-latest_gps) |>
+        filter(!is.na(release_date), !is.na(ctd_start))
+    }
+
   } else if(tag_mfr == "wc") {
 
     dive_se1 <- tag_data$Histos |>

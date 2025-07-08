@@ -15,6 +15,7 @@
 ##' @param dpath path to write all other diagnostic files
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case start end end of dive data are displayed rather than ctd data
+##' @param cid SMRU campaign id (from config file)
 ##'
 ##'
 ##' @importFrom dplyr %>% group_by summarise pull
@@ -42,11 +43,11 @@ diagnostics <-
            obs = FALSE,
            mpath = NULL,
            dpath = NULL,
-           QCmode = "nrt") {
+           QCmode = "nrt",
+           cid) {
 
     if(is.null(mpath)) stop("A valid file path for the map must be provided")
     if(is.null(dpath)) stop("A valid file path for the diagnostics must be provided")
-
 
     my.aes <- aes_lst(conf = FALSE,
                       line = ifelse(lines, TRUE, FALSE),
@@ -89,7 +90,7 @@ diagnostics <-
 
         ggsave(
           file.path(mpath, paste0(
-            "map_", names(fit)[i], "_", Sys.Date(), ".png"
+            "map_", cid, "_", Sys.Date(), ".png"
           )),
           width = 8,
           height = 10,
@@ -129,7 +130,7 @@ diagnostics <-
 
       ggsave(
         file.path(mpath, paste0(
-          "map_", Sys.Date(), ".png"
+          "map_", cid, "_", Sys.Date(), ".png"
         )),
         width = 8,
         height = 10,
@@ -242,7 +243,7 @@ diagnostics <-
 
     suppressWarnings(ggsave(
       file.path(dpath,
-                paste0("lat_coverage", ".jpg")),
+                paste0("lat_coverage_", cid, ".jpg")),
       plot = p.lat,
       width = 15,
       height = 20,
@@ -322,7 +323,7 @@ diagnostics <-
 
     suppressWarnings(ggsave(
       file.path(dpath,
-                paste0("lon_coverage", ".jpg")),
+                paste0("lon_coverage_", cid, ".jpg")),
       plot = p.lon,
       width = 15,
       height = 20,

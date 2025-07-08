@@ -76,9 +76,12 @@ imos_smru_qc <- function(wd, config) {
   if(conf$dropIDs == "NULL") conf$dropIDs <- NULL
   if(conf$p2mdbtools == "NULL") conf$p2mdbtools <- NULL
 
-
   if(!file.exists(file.path(wd, conf$outdir))) stop("Working QC output directory `outdir` does not exist")
-  if(is.null(conf$dropIDs)) dropIDs <- c("")
+  if(is.null(conf$dropIDs)) {
+    dropIDs <- c("")
+  } else {
+    dropIDs <- conf$dropIDs
+  }
 
   what <- "p"
   if(conf$reroute) what <- "r"
@@ -104,49 +107,28 @@ imos_smru_qc <- function(wd, config) {
   }
 
   ## read SMRU tag file data from .mdb/source files
-  if (conf$sp == "sese") {
+  ## pull tables (diag, haulout, ctd, dive, & summary) from .mdb files
+  smru <- pull_data(
+    path2data = conf$datadir,
+    source = "smru",
+    cids = mdbs,
+    p2mdbtools = conf$p2mdbtools
+  )
 
-    ## pull tables (diag, haulout, ctd, dive, & summary) from .mdb files
-    smru <- pull_data(
-      path2data = conf$datadir,
-      source = "smru",
-      cids = mdbs,
-      p2mdbtools = conf$p2mdbtools
-    )
+  if (!"dive" %in% names(smru))
+    smru$dive <- NULL
 
-    if(!"dive" %in% names(smru)) smru$dive <- NULL
+  ## download SMRU metadata & generate QC metadata for IMOS-AODN
+  meta <- get_metadata(
+    source = meta.source,
+    tag_data = smru,
+    cids = mdbs,
+    dropIDs = dropIDs,
+    file = conf$meta.file,
+    meta.args = conf
+  ) |>
+    suppressMessages()
 
-    ## download SMRU metadata & generate QC metadata for IMOS-AODN
-    meta <- get_metadata(
-      source = meta.source,
-      tag_data = smru,
-      cids = mdbs,
-      dropIDs = dropIDs,
-      file = conf$meta.file,
-      meta.args = conf
-    ) |>
-      suppressMessages()
-
-  } else if (sp == "ortu") {
-    smru <- pull_data(
-      path2data = conf$datadir,
-      source = "smru",
-      cids = mdbs,
-      p2mdbtools = conf$p2mdbtools
-    )
-
-    meta <- get_metadata(
-      source = "smru",
-      tag_data = smru,
-      cids = mdbs,
-      dropIDs = dropIDs
-    ) |>
-      select(-latest_gps) |>
-      filter(!is.na(release_date), !is.na(ctd_start))
-
-  } else {
-    stop("species currently not implemented")
-  }
 
   ## prepare location data
   diag_sf <- smru_prep_loc(smru,
@@ -154,7 +136,6 @@ imos_smru_qc <- function(wd, config) {
                            dropIDs = dropIDs,
                            crs = conf$proj,
                            QCmode = conf$QCmode)
-
 
   fit1 <- fit2 <- vector("list", length = length(diag_sf))
 
@@ -165,7 +146,7 @@ imos_smru_qc <- function(wd, config) {
       vmax = as.numeric(conf$vmax),
       model = conf$model,
       ts = as.numeric(conf$time.step)
-    )
+    ) |> suppressWarnings()
   })
 
   ## Second pass SSM-filter - separately by species
@@ -181,7 +162,7 @@ imos_smru_qc <- function(wd, config) {
       dist = as.numeric(conf$dist),
       buffer = as.numeric(conf$buffer),
       centroids = as.logical(conf$centroids)
-    )
+    ) |> suppressWarnings()
   })
   names(fit1) <- names(fit2) <- names(diag_sf)
 
@@ -222,7 +203,8 @@ imos_smru_qc <- function(wd, config) {
                 meta = meta,
                 mpath = file.path(conf$maps.dir),
                 dpath = file.path(conf$diag.dir),
-                QCmode = conf$QCmode
+                QCmode = conf$QCmode,
+                cid = conf$cid
     )
   })
 
