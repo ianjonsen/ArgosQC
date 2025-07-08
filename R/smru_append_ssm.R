@@ -64,7 +64,6 @@ smru_append_ssm <- function(smru,
     filter(!ref %in% dropIDs)
   names(ssm_locs) <- to_snake_case(names(ssm_locs))
 
-
   if("device_id" %in% names(meta)) {
     deploy_meta <- meta |>
       select(device_id, release_date) |>
@@ -76,6 +75,9 @@ smru_append_ssm <- function(smru,
       filter(!device_id %in% dropIDs)
 
   }
+
+  idx <- rep(FALSE, 7)
+  out <- list()
 
   ## ctd table
   ctd <- smru$ctd |>
@@ -94,6 +96,8 @@ smru_append_ssm <- function(smru,
   ctd <- left_join(ctd, tmp, by = c("ref", c("end_date" = "date"))) |>
     distinct()
 
+  out[[1]] <- ctd
+  idx[1] <- TRUE
 
   ## dive table
   if(!is.null(smru$dive)) {
@@ -116,6 +120,9 @@ smru_append_ssm <- function(smru,
       unnest(cols = c(locs)) %>%
       left_join(dive, ., by = c("ref", c("de_date" = "date"))) |>
       suppressWarnings()
+
+    out[[2]] <- dive
+    idx[2] <- TRUE
   }
 
   ## haulout table
@@ -132,19 +139,26 @@ smru_append_ssm <- function(smru,
     left_join(haulout, ., by = c("ref", c("s_date" = "date"))) |>
     suppressWarnings()
 
-  ## cruise table
-  cruise <- smru$cruise |>
-    mutate(ref = as.character(ref)) |>
-    filter(!ref %in% dropIDs) |>
-    mutate(lon = round(lon, 6),
-           lat = round(lat, 6))
+  out[[3]] <- haulout
+  idx[3] <- TRUE
 
-  cruise <- ssm_locs %>%
-    group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = cruise, date.var = "s_date")) %>%
-    unnest(cols = c(locs)) %>%
-    left_join(cruise, ., by = c("ref", c("s_date" = "date"))) |>
-    suppressWarnings()
+  ## cruise table
+  if ("cruise" %in% names(smru)) {
+    cruise <- smru$cruise |>
+      mutate(ref = as.character(ref)) |>
+      filter(!ref %in% dropIDs) |>
+      mutate(lon = round(lon, 6), lat = round(lat, 6))
+
+    cruise <- ssm_locs %>%
+      group_by(ref) %>%
+      do(locs = approx.fn(., smru.table = cruise, date.var = "s_date")) %>%
+      unnest(cols = c(locs)) %>%
+      left_join(cruise, ., by = c("ref", c("s_date" = "date"))) |>
+      suppressWarnings()
+
+    out[[4]] <- cruise
+    idx[4] <- TRUE
+  }
 
   ## summary table
   ssummary <- smru$summary %>%
@@ -158,6 +172,8 @@ smru_append_ssm <- function(smru,
     left_join(ssummary, ., by = c("ref", c("e_date" = "date"))) |>
     suppressWarnings()
 
+  out[[5]] <- ssummary
+  idx[5] <- TRUE
 
   ## diag table
   diag <- smru$diag %>%
@@ -169,37 +185,18 @@ smru_append_ssm <- function(smru,
     select(-release_date) %>%
     filter(!ref %in% dropIDs)
 
-  diag <- f %>%
+  diag <- ssm_locs %>%
     group_by(ref) %>%
-    unnest(cols = c()) %>%
-    left_join(diag, ., by = c("ref", c("d_date" = "date"))) %>%
-    distinct() %>%
-    rename(
-      lat = lat.x,
-      lon = lon.x,
-      ssm_lon = lon.y,
-      ssm_lat = lat.y,
-      ssm_x = x,
-      ssm_y = y,
-      ssm_x_se = x_se,
-      ssm_y_se = y_se
-    ) %>%
-    mutate(ssm_lon = round(ssm_lon,6),
-           ssm_lat = round(ssm_lat,6),
-           ssm_x = round(ssm_x,6),
-           ssm_y = round(ssm_y,6),
-           ssm_x_se = round(ssm_x_se,6),
-           ssm_y_se = round(ssm_y_se,6)
-    )
-  ## remove CRW-specific model params from diag files
-  ##  these only need to appear in ssmoutputs files
-  if(all(c("u","u_se","v","v_se","s","s_se") %in% names(diag))) {
-    diag <- diag %>%
-      select(-c("u","u_se","v","v_se","s","s_se"))
-  }
+    do(locs = approx.fn(., smru.table = diag, date.var = "d_date")) %>%
+    unnest(cols = c(locs)) %>%
+    left_join(diag, ., by = c("ref", c("d_date" = "date"))) |>
+    suppressWarnings()
+
+  out[[6]] <- diag
+  idx[6] <- TRUE
 
 
-  if (!is.null(smru$gps)) {
+  if ("gps" %in% names(smru)) {
     ## gps table
     gps <- smru$gps %>%
       mutate(ref = as.character(ref)) %>%
@@ -210,42 +207,21 @@ smru_append_ssm <- function(smru,
       select(-release_date) %>%
       filter(!ref %in% dropIDs)
 
-    gps <- f %>%
+    gps <- ssm_locs %>%
       group_by(ref) %>%
-      unnest(cols = c()) %>%
-      left_join(gps, ., by = c("ref", c("d_date" = "date"))) %>%
-      distinct() %>%
-      rename(
-        lat = lat.x,
-        lon = lon.x,
-        ssm_lon = lon.y,
-        ssm_lat = lat.y,
-        ssm_x = x,
-        ssm_y = y,
-        ssm_x_se = x_se,
-        ssm_y_se = y_se
-      ) %>%
-      mutate(
-        ssm_lon = round(ssm_lon, 6),
-        ssm_lat = round(ssm_lat, 6),
-        ssm_x = round(ssm_x, 6),
-        ssm_y = round(ssm_y, 6),
-        ssm_x_se = round(ssm_x_se, 6),
-        ssm_y_se = round(ssm_y_se, 6)
-      )
-    ## remove CRW-specific model params from diag files
-    ##  these only need to appear in ssmoutputs files
-    if (all(c("u", "u_se", "v", "v_se", "s", "s_se") %in% names(gps))) {
-      gps <- gps %>%
-        select(-c("u", "u_se", "v", "v_se", "s", "s_se"))
-    }
+      do(locs = approx.fn(., smru.table = gps, date.var = "d_date")) %>%
+      unnest(cols = c(locs)) %>%
+      left_join(gps, ., by = c("ref", c("d_date" = "date"))) |>
+      suppressWarnings()
+
+    out[[7]] <- gps
+    idx[7] <- TRUE
   }
 
-  if(!is.null(smru$gps)) {
-    list(diag = diag, gps = gps, ctd = ctd, dive = dive, haulout = haulout, cruise = cruise, ssummary = ssummary)
-  } else if(!is.null(smru$dive)) {
-    list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, cruise = cruise, ssummary = ssummary)
-  } else {
-    list(diag = diag, ctd = ctd, haulout = haulout, cruise = cruise, ssummary = ssummary)
-  }
+  nms <- c("ctd", "dive", "haulout", "cruise", "summary","diag", "gps")
+  names(out) <- nms
+  out <- out[idx]
+
+  return(out)
+
 }

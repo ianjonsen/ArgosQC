@@ -55,7 +55,7 @@
 ##'
 ##'
 ##' @importFrom stringr str_split str_length
-##' @importFrom jsonlite fromJSON
+##' @importFrom jsonlite read_json
 ##'
 ##' @md
 ##' @export
@@ -66,41 +66,45 @@ imos_smru_qc <- function(wd, config) {
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
 
-  conf <- fromJSON(txt = config)
-  if(conf$meta.file == "NULL") {
-    conf$meta.file <- NULL
+  conf <- read_json(txt = config, simplifyVector = TRUE)
+
+  if(is.na(conf$setup$meta.file)) {
+    conf$setup$meta.file <- NULL
     meta.source <- "smru"
   } else {
     meta.source <- "imos"
   }
-  if(conf$dropIDs == "NULL") conf$dropIDs <- NULL
-  if(conf$p2mdbtools == "NULL") conf$p2mdbtools <- NULL
 
-  if(!file.exists(file.path(wd, conf$outdir))) stop("Working QC output directory `outdir` does not exist")
-  if(is.null(conf$dropIDs)) {
+  if(!file.exists(file.path(wd, conf$setup$outdir))) stop("Working QC output directory `outdir` does not exist")
+
+  if(is.na(conf$harvest$dropIDs)) conf$harvest$dropIDs <- NULL
+  if(is.na(conf$harvest$p2mdbtools)) conf$harvest$p2mdbtools <- NULL
+
+
+  if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")
   } else {
-    dropIDs <- conf$dropIDs
+    dropIDs <- conf$harvest$dropIDs
   }
 
   what <- "p"
-  if(conf$reroute) what <- "r"
+  if(conf$model$reroute) what <- "r"
 
-  if(conf$dwnld) {
-    system(paste0("rm ", file.path(conf$datadir, "*.mdb")))
+  if(conf$harvest$dwnld) {
+    system(paste0("rm ", file.path(conf$setup$datadir, "*.mdb")))
     ## download tag data from SMRU server
     download_data(
-      dest = conf$datadir,
+      dest = conf$setup$datadir,
       source = "smru",
-      cids = conf$cid,
-      user = conf$smru.usr,
-      pwd = conf$smru.pwd,
-      timeout = conf$dwnld.timeout
+      cids = conf$harvest$cid,
+      user = conf$harvest$smru.usr,
+      pwd = conf$harvest$smru.pwd,
+      timeout = conf$harvest$dwnld.timeout
     )
   }
 
   ## find which campaigns successfully downloaded from SMRU server
-  mdbs <- list.files(conf$datadir)
+  mdbs <- list.files(conf$setup$datadir)
   if(length(mdbs) > 0) {
     mdbs <- mdbs |> str_split("\\.", simplify = TRUE)
     mdbs <- mdbs[, 1]
@@ -109,10 +113,10 @@ imos_smru_qc <- function(wd, config) {
   ## read SMRU tag file data from .mdb/source files
   ## pull tables (diag, haulout, ctd, dive, & summary) from .mdb files
   smru <- pull_data(
-    path2data = conf$datadir,
+    path2data = conf$setup$datadir,
     source = "smru",
     cids = mdbs,
-    p2mdbtools = conf$p2mdbtools
+    p2mdbtools = conf$harvest$p2mdbtools
   )
 
   if (!"dive" %in% names(smru))
@@ -124,8 +128,8 @@ imos_smru_qc <- function(wd, config) {
     tag_data = smru,
     cids = mdbs,
     dropIDs = dropIDs,
-    file = conf$meta.file,
-    meta.args = conf
+    file = conf$setup$meta.file,
+    meta.args = conf$meta
   ) |>
     suppressMessages()
 
@@ -135,7 +139,7 @@ imos_smru_qc <- function(wd, config) {
                            meta,
                            dropIDs = dropIDs,
                            crs = conf$proj,
-                           QCmode = conf$QCmode)
+                           QCmode = conf$model$QCmode)
 
   fit1 <- fit2 <- vector("list", length = length(diag_sf))
 
@@ -143,9 +147,9 @@ imos_smru_qc <- function(wd, config) {
   fit1 <- lapply(1:length(fit1), function(i) {
     multi_filter(
       diag_sf[[i]],
-      vmax = as.numeric(conf$vmax),
+      vmax = conf$vmax,
       model = conf$model,
-      ts = as.numeric(conf$time.step)
+      ts = conf$time.step
     ) |> suppressWarnings()
   })
 
@@ -154,22 +158,22 @@ imos_smru_qc <- function(wd, config) {
     redo_multi_filter(
       fit1[[i]],
       diag_sf[[i]],
-      vmax = as.numeric(conf$vmax),
-      model = conf$model,
-      ts = as.numeric(conf$time.step),
+      vmax = conf$model$vmax,
+      model = conf$model$model,
+      ts = conf$model$time.step,
       map = list(psi = factor(NA)),
-      reroute = as.logical(conf$reroute),
-      dist = as.numeric(conf$dist),
-      buffer = as.numeric(conf$buffer),
-      centroids = as.logical(conf$centroids)
+      reroute = conf$model$reroute,
+      dist = conf$model$dist,
+      buffer = conf$model$buffer,
+      centroids = conf$model$centroids
     ) |> suppressWarnings()
   })
   names(fit1) <- names(fit2) <- names(diag_sf)
 
   ## Mark SSM track segments for removal in data gaps > min.gap hours long
-  if (as.logical(conf$cut)) {
+  if (as.logical(conf$model$cut)) {
     fit2 <- lapply(1:length(fit2), function(i) {
-      ssm_mark_gaps(fit2[[i]], min.gap = as.numeric(conf$min.gap))
+      ssm_mark_gaps(fit2[[i]], min.gap = conf$model$min.gap)
     })
 
     names(fit2) <- names(diag_sf)
@@ -182,7 +186,7 @@ imos_smru_qc <- function(wd, config) {
       fit = fit2[[i]],
       what = what,
       meta = meta,
-      cut = as.logical(conf$cut),
+      cut = conf$model$cut,
       dropIDs = dropIDs
     )
   })
@@ -197,14 +201,14 @@ imos_smru_qc <- function(wd, config) {
     diagnostics(fit = fit2[[i]],
                 fit1 = fit1[[i]],
                 what = what,
-                cut = as.logical(conf$cut),
+                cut = conf$model$cut,
                 data = obs,
                 ssm = smru_ssm[[i]],
                 meta = meta,
                 mpath = file.path(conf$maps.dir),
                 dpath = file.path(conf$diag.dir),
-                QCmode = conf$QCmode,
-                cid = conf$cid
+                QCmode = conf$model$QCmode,
+                cid = conf$harvest$cid
     )
   })
 
@@ -215,9 +219,9 @@ imos_smru_qc <- function(wd, config) {
                    what = what,
                    meta = meta,
                    program = "imos",
-                   path = file.path(wd, conf$outdir),
+                   path = file.path(wd, conf$setup$outdir),
                    dropIDs = dropIDs,
-                   suffix = paste0("_", conf$QCmode)
+                   suffix = paste0("_", conf$model$QCmode)
     )
   })
 
