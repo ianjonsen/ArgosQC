@@ -966,58 +966,18 @@ smru_write_meta <- function(meta,
 
     meta <- meta |>
       mutate(
-        state_country = ifelse(
-          release_site == "Dumont d'Urville",
-          "French Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Dumont D'Urville",
-          "French Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Iles Kerguelen",
-          "French Overseas Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Scott Base",
-          "New Zealand Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(state_country = ifelse(
-        release_site == "Campbell Island",
-        "New Zealand",
-        state_country
-      )) |>
-      mutate(state_country = ifelse(release_site == "Montague Island", "Australia", state_country)) |>
-      mutate(state_country = ifelse(
-        release_site == "Macquarie Island",
-        "Australia",
-        state_country
-      )) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Casey",
-          "Australian Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Davis",
-          "Australian Antarctic Territory",
-          state_country
-        )
-      ) |>
+        state_country = case_when(
+          release_site == "Dumont d'Urville" ~ "French Antarctic Territory",
+          release_site == "Dumont D'Urville" ~ "French Antarctic Territory",
+          release_site == "Iles Kerguelen" ~ "French Overseas Territory",
+          release_site == "Scott Base" ~ "New Zealand Antarctic Territory",
+          release_site == "Campbell Island" ~ "New Zealand",
+          release_site == "Macquarie Island" ~ "Australia",
+          release_site == "Montague Island" ~ "Australia",
+          release_site == "Tiwi Islands" ~ "Australia",
+          release_site == "Casey" ~ "Australian Antarctic Territory",
+          release_site == "Davis" ~ "Australian Antarctic Territory"
+        )) |>
       mutate(state_country = ifelse(is.na(state_country), "Unknown", state_country))
 
     meta <- meta |>
@@ -1083,13 +1043,13 @@ smru_write_meta <- function(meta,
           unique(age_class) %in% c("adult", "subadult", "juvenille", "juvenile", "weaner", NA)
         ),
         all(unique(sex) %in% c("female", "male", "f", "m", NA)),
-        all(is.double(length), (length > 0 |
-                                  is.na(length))),
-        all(is.integer(estimated_mass), (
-          estimated_mass > 0 | is.na(estimated_mass)
-        )),
-        all(is.double(actual_mass), (actual_mass > 0 |
-                                       is.na(actual_mass))),
+        any((is.double(length) & length > 0),
+                                  is.na(length)),
+        any((is.integer(estimated_mass) &
+          estimated_mass > 0), is.na(estimated_mass)
+        ),
+        any((is.double(actual_mass) & actual_mass > 0),
+                                       is.na(actual_mass)),
         is.character(state_country),
         any(inherits(qc_start_date, "POSIXct"), is.na(qc_start_date)),
         any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date))

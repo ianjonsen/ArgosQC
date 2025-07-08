@@ -21,13 +21,12 @@
 ##' @keywords internal
 ##'
 
-smru_clean_meta <- function(cids,
+smru_clean_imos_meta <- function(cids,
                        smru,
                        dropIDs = NULL,
                        file = NULL) {
 
   assert_that(!is.null(file))
-
   meta <- suppressWarnings(read_csv(file)) %>%
     select(
       Species,
@@ -76,13 +75,23 @@ smru_clean_meta <- function(cids,
       length = std_l,
       estimated_mass = m_est,
       actual_mass = mass
-    )
+    ) |>
+    mutate(state_country = case_when(
+      release_site == "Macquarie Island" ~ "Australia",
+      release_site == "Casey" ~ "Australian Antarctic Territory",
+      release_site == "Davis" ~ "Australian Antarctic Territory",
+      release_site == "Scott Base" ~ "New Zealand Antarctic Territory",
+      release_site == "Campbell Island" ~ "New Zealand",
+      release_site == "Iles Keguelen" ~ "French Overseas Territory",
+      release_site == "Dumont D'Urville" ~ "French Antarctic Territory",
+    ))
 
   meta <- meta %>%
     mutate(release_date = lubridate::ymd(paste(year, month, day, sep = "-"), tz = "UTC")) %>%
     mutate(sattag_program = str_extract(device_id, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE))) %>%
     mutate(recovery_date = NA) %>%
-    mutate(common_name = ifelse((species == "Leptonychotes weddellii" & common_name != "Weddell seal"), "Weddell seal", common_name)) %>%
+    mutate(common_name = ifelse((species == "Leptonychotes weddellii" & common_name != "Weddell seal"),
+                                "Weddell seal", common_name)) %>%
     select(
       sattag_program,
       device_id,
@@ -95,7 +104,7 @@ smru_clean_meta <- function(cids,
       release_longitude,
       release_latitude,
       release_site,
-      #    state_country,
+      state_country,
       release_date,
       recovery_date,
       age_class,

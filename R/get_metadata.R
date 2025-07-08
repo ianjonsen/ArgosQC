@@ -222,7 +222,7 @@ get_metadata <- function(source = "smru",
 ## if none of above sources apply then default to local IMOS metadata
 if(source == "imos") {
   if(tag_mfr == "smru" & !is.null(file)) {
-    meta <- smru_clean_meta(cids = cids,
+    meta <- smru_clean_imos_meta(cids = cids,
                        smru = tag_data,
                        dropIDs = dropIDs,
                        file = file)

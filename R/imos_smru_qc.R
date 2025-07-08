@@ -67,9 +67,15 @@ imos_smru_qc <- function(wd, config) {
   else setwd(wd)
 
   conf <- fromJSON(txt = config)
-  if(conf$meta.file == "NULL") conf$meta.file <- NULL
+  if(conf$meta.file == "NULL") {
+    conf$meta.file <- NULL
+    meta.source <- "smru"
+  } else {
+    meta.source <- "imos"
+  }
   if(conf$dropIDs == "NULL") conf$dropIDs <- NULL
   if(conf$p2mdbtools == "NULL") conf$p2mdbtools <- NULL
+
 
   if(!file.exists(file.path(wd, conf$outdir))) stop("Working QC output directory `outdir` does not exist")
   if(is.null(conf$dropIDs)) dropIDs <- c("")
@@ -112,7 +118,7 @@ imos_smru_qc <- function(wd, config) {
 
     ## download SMRU metadata & generate QC metadata for IMOS-AODN
     meta <- get_metadata(
-      source = "smru",
+      source = meta.source,
       tag_data = smru,
       cids = mdbs,
       dropIDs = dropIDs,
