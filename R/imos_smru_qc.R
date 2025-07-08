@@ -105,7 +105,7 @@ imos_smru_qc <- function(wd, config) {
       path2data = conf$datadir,
       source = "smru",
       cids = mdbs,
-      p2mdbtools = args$p2mdbtools
+      p2mdbtools = conf$p2mdbtools
     )
 
     if(!"dive" %in% names(smru)) smru$dive <- NULL
@@ -126,7 +126,7 @@ imos_smru_qc <- function(wd, config) {
       path2data = conf$datadir,
       source = "smru",
       cids = mdbs,
-      p2mdbtools = args$p2mdbtools
+      p2mdbtools = conf$p2mdbtools
     )
 
     meta <- get_metadata(
