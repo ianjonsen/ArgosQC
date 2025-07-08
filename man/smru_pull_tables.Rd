@@ -7,7 +7,7 @@
 smru_pull_tables(
   cids,
   path2mdb,
-  tables = c("diag", "haulout", "ctd", "dive", "summary"),
+  tables = c("diag", "gps", "haulout", "ctd", "dive", "cruise", "summary"),
   p2mdbtools = NULL,
   verbose = FALSE
 )

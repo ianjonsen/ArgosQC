@@ -35,10 +35,11 @@ get_metadata <- function(source = "smru",
                        cids = NULL,
                        dropIDs = NULL,
                        file = NULL,
+                       meta.args,
                        enc = "UTF-8") {
 
   if(is.null(tag_data)) stop("a tag_data object must be supplied")
-  if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
+#  if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
   if(all((tag_mfr == "smru" | source == "smru"), is.null(cids))) stop("'cids' argument is empty, SMRU campaign id(s) must be specified")
   if(all(source == "atn", tag_mfr %in% c("smru", "wc"), is.null(file))) stop("an ATN .csv metadata file must be provided")
 
@@ -103,16 +104,16 @@ get_metadata <- function(source = "smru",
 
     meta <- suppressWarnings(left_join(tag_meta, meta_loc, by = c("device_id"="ref")) |>
       mutate(sattag_program = str_split(device_id, "\\-", simplify = TRUE)[,1]) |>
-      mutate(common_name = "southern elephant seal",
-             species = "Mirounga leonina") |>
-      mutate(release_site = "Iles Kerguelen") |>
+      mutate(common_name = meta.args$meta.common_name,
+             species = meta.args$meta.species) |>
+      mutate(release_site = meta.args$meta.release_site) |>
       mutate(recovery_date = NA,
              age_class = NA,
              sex = NA,
              length = NA,
              estimated_mass = NA,
              actual_mass = NA) |>
-      mutate(state_country = "French Overseas Territory") |>
+      mutate(state_country = meta.args$meta.state_country) |>
       select(sattag_program,
              device_id,
              ptt,
@@ -145,14 +146,16 @@ get_metadata <- function(source = "smru",
   if (tag_mfr == "smru") {
     ## append dive start and end dates for (alternate) track truncation
     ##  to be used as alternate on final, delayed-mode (manual) QC
-    dive_se <- tag_data$dive |>
-      mutate(ref = as.character(ref)) |>
-      select(ref, de_date, max_dep) |>
-      group_by(ref) |>
-      summarise(
-        dive_start = min(de_date, na.rm = TRUE),
-        dive_end = max(de_date, na.rm = TRUE)
-      )
+    if (!is.null(tag_data$dive)) {
+      dive_se <- tag_data$dive |>
+        mutate(ref = as.character(ref)) |>
+        select(ref, de_date, max_dep) |>
+        group_by(ref) |>
+        summarise(
+          dive_start = min(de_date, na.rm = TRUE),
+          dive_end = max(de_date, na.rm = TRUE)
+        )
+    }
 
     ## append CTD start and end dates for track truncation
     ctd_se <- tag_data$ctd |>
@@ -169,9 +172,15 @@ get_metadata <- function(source = "smru",
         left_join(dive_se, by = c("DeploymentID" = "ref")) |>
         left_join(ctd_se, by = c("DeploymentID" = "ref"))
     }, smru = {
-      meta |>
-        left_join(dive_se, by = c("device_id" = "ref")) |>
-        left_join(ctd_se, by = c("device_id" = "ref"))
+      if(!is.null(tag_data$dive)) {
+        meta |>
+          left_join(dive_se, by = c("device_id" = "ref")) |>
+          left_join(ctd_se, by = c("device_id" = "ref"))
+      } else {
+        meta |>
+          left_join(ctd_se, by = c("device_id" = "ref"))
+      }
+
     })
 
   } else if(tag_mfr == "wc") {
@@ -212,7 +221,7 @@ get_metadata <- function(source = "smru",
 
 ## if none of above sources apply then default to local IMOS metadata
 if(source == "imos") {
-  if(tag_mfr == "smru") {
+  if(tag_mfr == "smru" & !is.null(file)) {
     meta <- smru_clean_meta(cids = cids,
                        smru = tag_data,
                        dropIDs = dropIDs,

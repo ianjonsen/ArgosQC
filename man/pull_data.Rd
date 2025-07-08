@@ -16,7 +16,7 @@ the directory or filenames present in the \code{path2data} directory.}
 
 \item{tag_mfr}{either "smru or "wc", ignored if \code{source} != "local"}
 
-\item{...}{additional arguments passed to \code{pull_smru_tables}}
+\item{...}{additional arguments passed to \code{smru_pull_tables}}
 }
 \description{
 extracts specified data files from SMRU .mdb files or WC zipfiles.

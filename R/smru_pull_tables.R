@@ -21,7 +21,7 @@
 
 smru_pull_tables <- function(cids,
                              path2mdb,
-                             tables = c("diag", "haulout", "ctd", "dive", "summary"),
+                             tables = c("diag", "gps", "haulout", "ctd", "dive", "cruise", "summary"),
                              p2mdbtools = NULL,
                              verbose = FALSE
 ) {
@@ -37,22 +37,19 @@ smru_pull_tables <- function(cids,
   }
 
   get.fn <- function(file, tab) {
+
     f <- tempfile()
+    ## read tables present in .mdb file
+    tmp <- system(paste0(p2mdbtools, "mdb-tables ", file), intern = TRUE) |>
+      str_split("\\ ", simplify = TRUE) |>
+      as.vector()
+
+    tab <- tmp[tmp %in% tab]
     D <- vector("list", length(tab))
     names(D) <- tab
 
+    ## read data from tables
     for(i in tab) {
-      if(i == "gps") {
-        tmp <- system(paste0(p2mdbtools, "mdb-tables ", file), intern = TRUE)
-        if(length(tmp) == 1) {
-          tmp <- str_split(tmp, "\\ ", simplify = TRUE) |>
-            as.vector()
-        }
-        if(!"gps" %in% tmp) {
-          next
-        }
-      }
-
       system(paste0(p2mdbtools, "mdb-export -b strip ", file, " ", shQuote(i), " > ", f))
       d <- read.csv(f)
       names(d) <- casefold(names(d))
@@ -66,20 +63,27 @@ smru_pull_tables <- function(cids,
     D
   }
 
+  if(length(cids) > 1) {
     plan("multisession")
 
     smru_t <- cids |>
       future_map( ~ try(get.fn(paste0(file.path(path2mdb, .x), ".mdb"),
-                                       tab = tables),
+                               tab = tables),
                         silent = TRUE), .progress = verbose
       )
 
-  smru <- smru_t |>
-    pmap(dplyr::bind_rows)
+    smru <- smru_t |>
+      pmap(dplyr::bind_rows)
+
+  } else {
+    smru <- try(get.fn(paste0(file.path(path2mdb, cids), ".mdb"),
+                       tab = tables))
+
+  }
 
   ## drop empty table(s)
-  idx <- as.numeric(which(sapply(smru, nrow) == 0))
-  if(length(idx) > 0) smru <- smru[-idx]
+  # idx <- as.numeric(which(sapply(smru, nrow) == 0))
+  # if(length(idx) > 0) smru <- smru[-idx]
 
   if(any(names(smru) %in% "diag")) {
     smru$diag <- smru$diag |>

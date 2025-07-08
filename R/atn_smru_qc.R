@@ -63,7 +63,8 @@ atn_smru_qc <- function(wd = NULL,
                         cut = FALSE,
                         min.gap = 72,
                         QCmode = "nrt",
-                        output = FALSE) {
+                        output = FALSE,
+                        ...) {
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
@@ -93,7 +94,7 @@ atn_smru_qc <- function(wd = NULL,
                        cids = mdbs,
                        dropIDs = dropIDs,
                        file = file.path(wd, meta.file),
-                       enc = "latin1"
+                       ... #enc = "latin1"
   ) )
 
   ## prepare location data

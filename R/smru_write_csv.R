@@ -45,8 +45,15 @@ smru_write_csv <- function(smru_ssm,
     meta <- meta |>
       filter(!device_id %in% dropIDs)
 
-    meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
-      select(-ctd_start, -ctd_end, -dive_start, -dive_end)
+    if ("dive" %in% names(smru_ssm)) {
+      meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
+        select(-ctd_start, -ctd_end, -dive_start, -dive_end)
+
+    } else {
+      meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
+        select(-ctd_start, -ctd_end)
+
+    }
 
   } else if (program == "atn") {
 
@@ -881,14 +888,15 @@ smru_write_haulout <- function(smru_ssm,
                     any(inherits(e_date_tag, "POSIXct") | is.na(e_date_tag)),
                     is.integer(end_number)))
 
-    if(any(!tests[8:12])) {
+    if(any(!tests[7:12])) {
       haulout <- haulout |>
-        mutate(wet_n = as.integer(wet_n, na.rm = TRUE),
+        mutate(phosi_secs = as.integer(phosi_secs, na.rm = TRUE),
+              wet_n = as.integer(wet_n, na.rm = TRUE),
                wet_min = as.double(wet_min, na.rm = TRUE),
                wet_max = as.double(wet_max, na.rm = TRUE),
                wet_mean = as.double(wet_mean, na.rm = TRUE),
                wet_sd = as.double(wet_sd, na.rm = TRUE))
-      tests[8:12] <- TRUE
+      tests[7:12] <- TRUE
     }
 
   }

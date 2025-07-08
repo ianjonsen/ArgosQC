@@ -6,7 +6,6 @@
 ##' @param fit final \code{foieGras} fit object
 ##' @param what choose which locations to use for annotating SMRU tables (default = "predicted")
 ##' @param meta metadata used to truncate start of diag data for each individual
-##' @param gps.tab logical; does a SMRU GPS table exist, if so append to this as well
 ##' @param cut drop predicted locations if keep = FALSE, ie. locations in a large data gap
 ##' @param dropIDs SMRU refs to be dropped
 ##'
@@ -24,7 +23,6 @@ smru_append_ssm <- function(smru,
                           fit,
                           what = "p",
                           meta,
-                          gps.tab = FALSE,
                           cut = FALSE,
                           dropIDs = NULL) {
 
@@ -90,31 +88,35 @@ smru_append_ssm <- function(smru,
   tmp <- ssm_locs |>
     group_by(ref) |>
     do(locs = approx.fn(., smru.table = ctd, date.var = "end_date")) |>
-    unnest(cols = c(locs))
+    unnest(cols = c(locs)) |>
+    suppressWarnings()
 
   ctd <- left_join(ctd, tmp, by = c("ref", c("end_date" = "date"))) |>
     distinct()
 
 
   ## dive table
-  dive <- smru$dive %>%
-    mutate(ref = as.character(ref)) %>%
-    mutate(ds_date = ifelse(str_detect(ds_date, regex("[a-z]", TRUE)),
-                            ymd_hms(ds_date, tz = "UTC"),
-                            mdy_hms(ds_date, tz = "UTC"))) %>%
-    mutate(ds_date = as.POSIXct(ds_date, tz = "UTC", origin = "1970-01-01")) %>%
-    filter(!ref %in% dropIDs) %>%
-    mutate(lon = round(lon,6),
-           lat = round(lat,6))
+  if(!is.null(smru$dive)) {
+    dive <- smru$dive %>%
+      mutate(ref = as.character(ref)) %>%
+      mutate(ds_date = ifelse(
+        str_detect(ds_date, regex("[a-z]", TRUE)),
+        ymd_hms(ds_date, tz = "UTC"),
+        mdy_hms(ds_date, tz = "UTC")
+      )) %>%
+      mutate(ds_date = as.POSIXct(ds_date, tz = "UTC", origin = "1970-01-01")) %>%
+      filter(!ref %in% dropIDs) %>%
+      mutate(lon = round(lon, 6), lat = round(lat, 6))
 
-  class(dive$ds_date) <- c("POSIXct","POSIXt")
+    class(dive$ds_date) <- c("POSIXct", "POSIXt")
 
-  dive <- ssm_locs %>%
-    group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) %>%
-    unnest(cols = c(locs)) %>%
-    left_join(dive, ., by = c("ref", c("de_date" = "date")))
-
+    dive <- ssm_locs %>%
+      group_by(ref) %>%
+      do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) %>%
+      unnest(cols = c(locs)) %>%
+      left_join(dive, ., by = c("ref", c("de_date" = "date"))) |>
+      suppressWarnings()
+  }
 
   ## haulout table
   haulout <- smru$haulout %>%
@@ -127,8 +129,22 @@ smru_append_ssm <- function(smru,
     group_by(ref) %>%
     do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) %>%
     unnest(cols = c(locs)) %>%
-    left_join(haulout, ., by = c("ref", c("s_date" = "date")))
+    left_join(haulout, ., by = c("ref", c("s_date" = "date"))) |>
+    suppressWarnings()
 
+  ## cruise table
+  cruise <- smru$cruise |>
+    mutate(ref = as.character(ref)) |>
+    filter(!ref %in% dropIDs) |>
+    mutate(lon = round(lon, 6),
+           lat = round(lat, 6))
+
+  cruise <- ssm_locs %>%
+    group_by(ref) %>%
+    do(locs = approx.fn(., smru.table = cruise, date.var = "s_date")) %>%
+    unnest(cols = c(locs)) %>%
+    left_join(cruise, ., by = c("ref", c("s_date" = "date"))) |>
+    suppressWarnings()
 
   ## summary table
   ssummary <- smru$summary %>%
@@ -139,7 +155,8 @@ smru_append_ssm <- function(smru,
     group_by(ref) %>%
     do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) %>%
     unnest(cols = c(locs)) %>%
-    left_join(ssummary, ., by = c("ref", c("e_date" = "date")))
+    left_join(ssummary, ., by = c("ref", c("e_date" = "date"))) |>
+    suppressWarnings()
 
 
   ## diag table
@@ -182,7 +199,7 @@ smru_append_ssm <- function(smru,
   }
 
 
-  if (gps.tab) {
+  if (!is.null(smru$gps)) {
     ## gps table
     gps <- smru$gps %>%
       mutate(ref = as.character(ref)) %>%
@@ -224,9 +241,11 @@ smru_append_ssm <- function(smru,
     }
   }
 
-  if(gps.tab) {
-    list(diag = diag, gps = gps, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
+  if(!is.null(smru$gps)) {
+    list(diag = diag, gps = gps, ctd = ctd, dive = dive, haulout = haulout, cruise = cruise, ssummary = ssummary)
+  } else if(!is.null(smru$dive)) {
+    list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, cruise = cruise, ssummary = ssummary)
   } else {
-  list(diag = diag, ctd = ctd, dive = dive, haulout = haulout, ssummary = ssummary)
+    list(diag = diag, ctd = ctd, haulout = haulout, cruise = cruise, ssummary = ssummary)
   }
 }

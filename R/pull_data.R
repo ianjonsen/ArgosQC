@@ -21,7 +21,7 @@
 ##' @param cids SMRU campaign ids. If not specified then the cids are built from
 ##' the directory or filenames present in the `path2data` directory.
 ##' @param tag_mfr either "smru or "wc", ignored if `source` != "local"
-##' @param ... additional arguments passed to `pull_smru_tables`
+##' @param ... additional arguments passed to `smru_pull_tables`
 ##'
 ##' @md
 ##' @export

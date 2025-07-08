@@ -11,6 +11,7 @@ get_metadata(
   cids = NULL,
   dropIDs = NULL,
   file = NULL,
+  meta.args,
   enc = "UTF-8"
 )
 }

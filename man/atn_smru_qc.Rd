@@ -21,7 +21,8 @@ atn_smru_qc(
   cut = FALSE,
   min.gap = 72,
   QCmode = "nrt",
-  output = FALSE
+  output = FALSE,
+  ...
 )
 }
 \arguments{

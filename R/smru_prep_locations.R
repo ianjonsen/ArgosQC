@@ -99,21 +99,36 @@ smru_prep_loc <- function(smru,
 
   ## truncate & convert to sf geometry steps
   if("device_id" %in% names(meta)) {
-    deploy_meta <- meta |>
-      dplyr::select(device_id, ctd_start, dive_start, ctd_end, dive_end)
+    if("dive_start" %in% names(meta)) {
+      deploy_meta <- meta |>
+        dplyr::select(device_id, ctd_start, dive_start, ctd_end, dive_end)
+
+    } else {
+      deploy_meta <- meta |>
+        dplyr::select(device_id, ctd_start, ctd_end)
+    }
+
 
     if(QCmode == "nrt") {
       ## left- and right-truncate tracks
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "device_id")) |>
         filter(date >= ctd_start & date <= ctd_end) |>
-        dplyr::select(-ctd_start, -ctd_end, -dive_end)
+        dplyr::select(-ctd_start, -ctd_end)
     } else {
+      if("dive_start" %in% names(meta)) {
       ## only left-truncate tracks with date of first dive
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "device_id")) |>
         filter(date >= dive_start) |>
         dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
+
+      } else {
+        diag <- diag |>
+          left_join(deploy_meta, by = c("ref" = "device_id")) |>
+          filter(date >= ctd_start) |>
+          dplyr::select(-ctd_start, -ctd_end)
+      }
     }
 
   } else if ("DeploymentID" %in% names(meta)) {
