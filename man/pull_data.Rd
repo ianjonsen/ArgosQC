@@ -4,14 +4,14 @@
 \alias{pull_data}
 \title{Pull SMRU or WC data from downloaded data files}
 \usage{
-pull_data(path2data, source = "smru", cids = NULL, tag_mfr = "smru", ...)
+pull_data(path2data, source = "smru", cid = NULL, tag_mfr = "smru", ...)
 }
 \arguments{
 \item{path2data}{path to data file(s)}
 
 \item{source}{one of "smru", "wc", or "local"}
 
-\item{cids}{SMRU campaign ids. If not specified then the cids are built from
+\item{cid}{SMRU campaign ids. If not specified then the cid are built from
 the directory or filenames present in the \code{path2data} directory.}
 
 \item{tag_mfr}{either "smru or "wc", ignored if \code{source} != "local"}

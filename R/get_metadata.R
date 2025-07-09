@@ -8,10 +8,10 @@
 ##' @param source the source of the metadata, current options are `imos`, `smru`,
 ##' `atn`.
 ##' @param tag_mfr the tag manufacturer, current options are `smru` or `wc`
-##' cids SMRU campaign ids
+##' cid SMRU campaign ids
 ##' @param tag_data a list of either `smru` data tables or `wc` files as output by
 ##' `pull_data`.
-##' @param cids SMRU campaign id(s) must be provided when the tag_mfr is `smru`
+##' @param cid SMRU campaign id must be provided when the tag_mfr is `smru`
 ##' @param dropIDs SMRU refs or WC ids to be dropped
 ##' @param file path to metadata .csv file, if provided then metadata will be
 ##' read from the provided `source`
@@ -32,7 +32,7 @@
 get_metadata <- function(source = "smru",
                        tag_mfr = "smru",
                        tag_data = NULL,
-                       cids = NULL,
+                       cid = NULL,
                        dropIDs = NULL,
                        file = NULL,
                        meta.args,
@@ -40,7 +40,7 @@ get_metadata <- function(source = "smru",
 
   if(is.null(tag_data)) stop("a tag_data object must be supplied")
 #  if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")
-  if(all((tag_mfr == "smru" | source == "smru"), is.null(cids))) stop("'cids' argument is empty, SMRU campaign id(s) must be specified")
+  if(all((tag_mfr == "smru" | source == "smru"), is.null(cid))) stop("'cid' argument is empty, SMRU campaign id(s) must be specified")
   if(all(source == "atn", tag_mfr %in% c("smru", "wc"), is.null(file))) stop("an ATN .csv metadata file must be provided")
 
  if (source == "atn") {
@@ -52,7 +52,7 @@ get_metadata <- function(source = "smru",
       SMRUCampaignID <- str_split(meta$DeploymentID, "\\-", simplify = TRUE)[,1]
       meta <- meta |>
         mutate(SMRUCampaignID = SMRUCampaignID) |>
-        filter(SMRUCampaignID %in% cids) |>
+        filter(SMRUCampaignID %in% cid) |>
         filter(!DeploymentID %in% dropIDs) |>
         select(-SMRUCampaignID)
 
@@ -68,8 +68,8 @@ get_metadata <- function(source = "smru",
     tag_mfr <- "smru"
 
     ## download SMRU metadata & generate QC metadata for IMOS-AODN
-   tag_meta <- lapply(1:length(cids), function(i) {
-      url <- paste0("https://imos:imos@www.smru.st-andrews.ac.uk/protected/", cids[i], "/", cids[i], ".html")
+   tag_meta <- lapply(1:length(cid), function(i) {
+      url <- paste0("https://imos:imos@www.smru.st-andrews.ac.uk/protected/", cid[i], "/", cid[i], ".html")
       tm <- url |>
         read_html() |>
         html_nodes(xpath = '/html/body/ul[1]/table') |>
@@ -104,16 +104,16 @@ get_metadata <- function(source = "smru",
 
     meta <- suppressWarnings(left_join(tag_meta, meta_loc, by = c("device_id"="ref")) |>
       mutate(sattag_program = str_split(device_id, "\\-", simplify = TRUE)[,1]) |>
-      mutate(common_name = meta.args$meta.common_name,
-             species = meta.args$meta.species) |>
-      mutate(release_site = meta.args$meta.release_site) |>
+      mutate(common_name = meta.args$common_name,
+             species = meta.args$species) |>
+      mutate(release_site = meta.args$release_site) |>
       mutate(recovery_date = NA,
              age_class = NA,
              sex = NA,
              length = NA,
              estimated_mass = NA,
              actual_mass = NA) |>
-      mutate(state_country = meta.args$meta.state_country) |>
+      mutate(state_country = meta.args$state_country) |>
       select(sattag_program,
              device_id,
              ptt,
@@ -139,14 +139,14 @@ get_metadata <- function(source = "smru",
 
     ## subset to current campaigns & apply drop.refs
     meta <- meta |>
-      filter(sattag_program %in% cids) |>
+      filter(sattag_program %in% cid) |>
       filter(!device_id %in% dropIDs)
     }
 
   if (tag_mfr == "smru") {
     ## append dive start and end dates for (alternate) track truncation
     ##  to be used as alternate on final, delayed-mode (manual) QC
-    if (!is.null(tag_data$dive)) {
+    if ("dive" %in% names(tag_data)) {
       dive_se <- tag_data$dive |>
         mutate(ref = as.character(ref)) |>
         select(ref, de_date, max_dep) |>
@@ -158,36 +158,44 @@ get_metadata <- function(source = "smru",
     }
 
     ## append CTD start and end dates for track truncation
-    ctd_se <- tag_data$ctd |>
-      mutate(ref = as.character(ref)) |>
-      select(ref, end_date) |>
-      group_by(ref) |>
-      summarise(
-        ctd_start = min(end_date, na.rm = TRUE),
-        ctd_end = max(end_date, na.rm = TRUE)
-      )
+    if ("ctd" %in% names(tag_data)) {
+      ctd_se <- tag_data$ctd |>
+        mutate(ref = as.character(ref)) |>
+        select(ref, end_date) |>
+        group_by(ref) |>
+        summarise(
+          ctd_start = min(end_date, na.rm = TRUE),
+          ctd_end = max(end_date, na.rm = TRUE)
+        )
+    }
 
     meta <- switch(source, atn = {
-      meta |>
-        left_join(dive_se, by = c("DeploymentID" = "ref")) |>
-        left_join(ctd_se, by = c("DeploymentID" = "ref"))
+      if("dive" %in% names(tag_data)) {
+        meta <- meta |>
+          left_join(dive_se, by = c("DeploymentID" = "ref"))
+      }
+      if("ctd" %in% names(tag_data)) {
+        meta <- meta |>
+          left_join(ctd_se, by = c("DeploymentID" = "ref"))
+      }
+      meta
     }, smru = {
-      if(!is.null(tag_data$dive)) {
-        meta |>
-          left_join(dive_se, by = c("device_id" = "ref")) |>
-          left_join(ctd_se, by = c("device_id" = "ref"))
-      } else {
-        meta |>
+      if("dive" %in% names(tag_data)) {
+        meta <- meta |>
+          left_join(dive_se, by = c("device_id" = "ref"))
+      }
+      if("ctd" %in% names(tag_data)) {
+        meta <- meta |>
           left_join(ctd_se, by = c("device_id" = "ref"))
       }
-
+      meta
     })
 
-    if(any(meta$common_name %in% "olive ridley turtle")) {
-      meta <- meta |>
-        select(-latest_gps) |>
-        filter(!is.na(release_date), !is.na(ctd_start))
-    }
+    # if(any(meta$common_name %in% "olive ridley turtle")) {
+    #   meta <- meta |>
+    #     select(-latest_gps) |>
+    #     filter(!is.na(release_date), !is.na(ctd_start))
+    # }
 
   } else if(tag_mfr == "wc") {
 
@@ -228,7 +236,7 @@ get_metadata <- function(source = "smru",
 ## if none of above sources apply then default to local IMOS metadata
 if(source == "imos") {
   if(tag_mfr == "smru" & !is.null(file)) {
-    meta <- smru_clean_imos_meta(cids = cids,
+    meta <- smru_clean_imos_meta(cid = cid,
                        smru = tag_data,
                        dropIDs = dropIDs,
                        file = file)

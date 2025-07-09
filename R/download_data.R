@@ -14,7 +14,7 @@
 ##' * `dropbox` - a url link to a zipfile shared on Dropbox;
 ##' * `local` - a local filepath to a zipfile containing SMRU or WC tag datafiles.
 ##' @param unzip (logical) should the downloaded zipfile be unzipped.
-##' @param cids SMRU tag deployment campaign id(s) to download, eg. "ct180"
+##' @param cid SMRU tag deployment campaign id(s) to download, eg. "ct180"
 ##' @param user SMRU data server username as a quoted string
 ##' @param pwd SMRU data server password as a quoted string
 ##' @param wc.akey an Access Key issued by Wildlife Computers for their API
@@ -30,7 +30,7 @@ download_data <- function(path = NULL,
                      dest = NULL,
                      source = "smru",
                      unzip = FALSE,
-                     cids = NULL,
+                     cid = NULL,
                      user = NULL,
                      pwd = NULL,
                      wc.akey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
@@ -63,7 +63,7 @@ download_data <- function(path = NULL,
 
   } else if(source == "smru") {
 
-    smru_get_mdb(dest = dest, cids = cids, user = user, pwd = pwd, ...)
+    smru_get_mdb(dest = dest, cid = cid, user = user, pwd = pwd, ...)
 
   } else if(source == "wc") {
 

@@ -74,8 +74,17 @@ smru_write_csv <- function(smru_ssm,
 
   }
 
-  idx <- rep(FALSE, 8)
-  out <- list()
+
+  out <- list(ssmoutputs = NULL,
+              diag=NULL,
+              gps=NULL,
+              haulout=NULL,
+              ctd=NULL,
+              dive=NULL,
+              cruise=NULL,
+              summary=NULL,
+              metadata=NULL
+              )
 
   ## SSM predictions
   ssmoutputs <- smru_write_ssm(
@@ -86,21 +95,22 @@ smru_write_csv <- function(smru_ssm,
     dropIDs = dropIDs,
     suffix = suffix
   )
-  out[[1]] <- ssmoutputs
-  idx[1] <- TRUE
+  out$ssmoutputs <- ssmoutputs
+
 
   ## Diag data
-  diag <- smru_write_diag(
-    smru_ssm = smru_ssm,
-    meta = meta,
-    program = program,
-    test = test,
-    path = path,
-    dropIDs = dropIDs,
-    suffix = suffix
-  )
-  out[[2]] <- diag
-  idx[2] <- TRUE
+  if ("diag" %in% names(smru_ssm)) {
+    diag <- smru_write_diag(
+      smru_ssm = smru_ssm,
+      meta = meta,
+      program = program,
+      test = test,
+      path = path,
+      dropIDs = dropIDs,
+      suffix = suffix
+    )
+    out$diag <- diag
+  }
 
   ## GPS data (if present)
   if ("gps" %in% names(smru_ssm)) {
@@ -113,8 +123,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[3]] <- gps
-    idx[3] <- TRUE
+    out$gps <- gps
   }
 
   ## Haulout data
@@ -128,8 +137,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[4]] <- haulout
-    idx[4] <- TRUE
+    out$haulout <- haulout
   }
 
   ## CTD data
@@ -143,8 +151,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[5]] <- ctd
-    idx[5] <- TRUE
+    out$ctd <- ctd
   }
 
   ## dive data
@@ -157,8 +164,20 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[6]] <- dive
-    idx[6] <- TRUE
+    out$dive <- dive
+  }
+
+  ## cruise data
+  if ("cruise" %in% names(smru_ssm)) {
+    cruise <- smru_write_cruise(
+      smru_ssm = smru_ssm,
+      meta = meta,
+      program = program,
+      path = path,
+      dropIDs = dropIDs,
+      suffix = suffix
+    )
+    out$cruise <- cruise
   }
 
   ## summary data
@@ -171,8 +190,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[7]] <- ssummary
-    idx[7] <- TRUE
+    out$summary <- ssummary
   }
 
 ## Metadata
@@ -184,24 +202,23 @@ smru_write_csv <- function(smru_ssm,
     dropIDs = dropIDs,
     suffix = suffix
   )
-  out[[8]] <- meta
-  idx[8] <- TRUE
+  out$metadata <- meta
 
-  nms <- c("ssmoutputs","diag","gps","haulout","ctd","dive","summary","metadata")
-  names(out) <- nms
-  out <- out[idx]
-  nms <- nms[idx]
+  out <- list_drop_empty(out)
+  nms <- names(out)
 
   ## write tables to .csv
   if (program == "imos") {
     lapply(1:length(out), function(i) {
       if (nms[i] != "metadata") {
+        if(nms[i] != "gps") { ## required as AODN currently will not accept gps data tables
         out[[i]] |>
           group_by(cid) |>
           group_split() |>
           walk(~ suppressMessages(write_csv(
             .x, file = paste0(file.path(path, nms[i]), "_", .x$cid[1], suffix, ".csv")
           )))
+        }
       } else {
         out[[i]] |>
           group_by(sattag_program) |>
@@ -1073,6 +1090,66 @@ smru_write_meta <- function(meta,
 
   return(meta)
 }
+
+
+##' @title SMRU cruise table - write to .csv
+##'
+##' @description Write SMRU cruise table to .csv - non-IMOS only
+##'
+##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
+##' @param meta metadata
+##' @param program Determines structure of output metadata. Currently, either
+##' `imos` or `atn`. If `imos` then function returns nothing as cruise table is
+##' not currently accepted by AODN.
+##' @param path path to write .csv files
+##' @param dropIDs individual ids to be dropped
+##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
+##'
+##'
+##' @importFrom dplyr filter mutate select
+##' @importFrom stringr str_extract regex
+##'
+##' @keywords internal
+
+smru_write_cruise <- function(smru_ssm,
+                            meta,
+                            program = "atn",
+                            path = NULL,
+                            dropIDs = NULL,
+                            suffix = "_nrt") {
+
+  stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
+
+  cruise <- smru_ssm$cruise |>
+    filter(!ref %in% dropIDs) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+
+  if(program == "imos") {
+    cruise <- cruise |>
+      filter(ref %in% meta$device_id)
+  }
+
+  if (program == "atn") {
+
+    cruise <- left_join(
+      cruise,
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
+      by = c("ref" = "DeploymentID")
+    ) |>
+      select(-cid)
+  }
+
+  ## strip out any records that are all NA's
+  cruise <- cruise |>
+    filter(!is.na(ref))
+
+  if(program != "imos"){
+    return(cruise)
+  }
+
+}
+
 
 
 

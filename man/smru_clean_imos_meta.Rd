@@ -4,10 +4,10 @@
 \alias{smru_clean_imos_meta}
 \title{clean metadata}
 \usage{
-smru_clean_imos_meta(cids, smru, dropIDs = NULL, file = NULL)
+smru_clean_imos_meta(cid, smru, dropIDs = NULL, file = NULL)
 }
 \arguments{
-\item{cids}{SMRU campaign ids}
+\item{cid}{SMRU campaign ids}
 
 \item{smru}{SMRU table}
 

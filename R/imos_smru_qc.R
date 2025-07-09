@@ -66,7 +66,7 @@ imos_smru_qc <- function(wd, config) {
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
 
-  conf <- read_json(txt = config, simplifyVector = TRUE)
+  conf <- read_json(config, simplifyVector = TRUE)
 
   if(is.na(conf$setup$meta.file)) {
     conf$setup$meta.file <- NULL
@@ -91,12 +91,12 @@ imos_smru_qc <- function(wd, config) {
   if(conf$model$reroute) what <- "r"
 
   if(conf$harvest$dwnld) {
-    system(paste0("rm ", file.path(conf$setup$datadir, "*.mdb")))
+ #   system(paste0("rm ", file.path(conf$setup$datadir, "*.mdb")))
     ## download tag data from SMRU server
     download_data(
       dest = conf$setup$datadir,
       source = "smru",
-      cids = conf$harvest$cid,
+      cid = conf$harvest$cid,
       user = conf$harvest$smru.usr,
       pwd = conf$harvest$smru.pwd,
       timeout = conf$harvest$dwnld.timeout
@@ -104,29 +104,26 @@ imos_smru_qc <- function(wd, config) {
   }
 
   ## find which campaigns successfully downloaded from SMRU server
-  mdbs <- list.files(conf$setup$datadir)
-  if(length(mdbs) > 0) {
-    mdbs <- mdbs |> str_split("\\.", simplify = TRUE)
-    mdbs <- mdbs[, 1]
-  }
+  # mdbs <- list.files(conf$setup$datadir)
+  # if(length(mdbs) > 0) {
+  #   mdbs <- mdbs |> str_split("\\.", simplify = TRUE)
+  #   mdbs <- mdbs[, 1]
+  # }
 
   ## read SMRU tag file data from .mdb/source files
   ## pull tables (diag, haulout, ctd, dive, & summary) from .mdb files
   smru <- pull_data(
     path2data = conf$setup$datadir,
     source = "smru",
-    cids = mdbs,
+    cid = conf$harvest$cid,
     p2mdbtools = conf$harvest$p2mdbtools
   )
-
-  if (!"dive" %in% names(smru))
-    smru$dive <- NULL
 
   ## download SMRU metadata & generate QC metadata for IMOS-AODN
   meta <- get_metadata(
     source = meta.source,
     tag_data = smru,
-    cids = mdbs,
+    cid = conf$harvest$cid,
     dropIDs = dropIDs,
     file = conf$setup$meta.file,
     meta.args = conf$meta
@@ -147,9 +144,9 @@ imos_smru_qc <- function(wd, config) {
   fit1 <- lapply(1:length(fit1), function(i) {
     multi_filter(
       diag_sf[[i]],
-      vmax = conf$vmax,
-      model = conf$model,
-      ts = conf$time.step
+      vmax = conf$model$vmax,
+      model = conf$model$model,
+      ts = conf$model$time.step
     ) |> suppressWarnings()
   })
 
@@ -191,12 +188,11 @@ imos_smru_qc <- function(wd, config) {
     )
   })
 
-
   ## generate SSM fit diagnostics & SSM-predicted track map
   obs <- smru_clean_diag(smru, dropIDs = dropIDs)
 
-  dir.create(conf$maps.dir, showWarnings = FALSE)
-  dir.create(conf$diag.dir, showWarnings = FALSE)
+  dir.create(conf$setup$maps.dir, showWarnings = FALSE)
+  dir.create(conf$setup$diag.dir, showWarnings = FALSE)
   lapply(1:length(smru_ssm), function(i) {
     diagnostics(fit = fit2[[i]],
                 fit1 = fit1[[i]],
@@ -205,8 +201,8 @@ imos_smru_qc <- function(wd, config) {
                 data = obs,
                 ssm = smru_ssm[[i]],
                 meta = meta,
-                mpath = file.path(conf$maps.dir),
-                dpath = file.path(conf$diag.dir),
+                mpath = file.path(conf$setup$maps.dir),
+                dpath = file.path(conf$setup$diag.dir),
                 QCmode = conf$model$QCmode,
                 cid = conf$harvest$cid
     )

@@ -12,6 +12,7 @@
 ##' @importFrom dplyr filter select mutate group_by %>% summarise left_join
 ##' @importFrom dplyr distinct pull arrange ungroup
 ##' @importFrom tidyr unnest
+##' @importFrom vctrs list_drop_empty
 ##' @importFrom stringr str_detect regex
 ##' @importFrom lubridate mdy_hms ymd_hms
 ##' @importFrom sf st_as_sf st_coordinates st_transform st_geometry<-
@@ -76,31 +77,37 @@ smru_append_ssm <- function(smru,
 
   }
 
-  idx <- rep(FALSE, 7)
-  out <- list()
+  out <- list(ctd=NULL,
+              dive=NULL,
+              haulout=NULL,
+              cruise=NULL,
+              ssummary=NULL,
+              diag=NULL,
+              gps=NULL)
 
   ## ctd table
-  ctd <- smru$ctd |>
-    mutate(ref = as.character(ref)) |>
-    filter(!ref %in% dropIDs) |>
-    group_by(ref) |>
-    arrange(end_date, .by_group = TRUE) |>
-    ungroup()
+  if ("ctd" %in% names(smru)) {
+    ctd <- smru$ctd |>
+      mutate(ref = as.character(ref)) |>
+      filter(!ref %in% dropIDs) |>
+      group_by(ref) |>
+      arrange(end_date, .by_group = TRUE) |>
+      ungroup()
 
-  tmp <- ssm_locs |>
-    group_by(ref) |>
-    do(locs = approx.fn(., smru.table = ctd, date.var = "end_date")) |>
-    unnest(cols = c(locs)) |>
-    suppressWarnings()
+    tmp <- ssm_locs |>
+      group_by(ref) |>
+      do(locs = approx.fn(., smru.table = ctd, date.var = "end_date")) |>
+      unnest(cols = c(locs)) |>
+      suppressWarnings()
 
-  ctd <- left_join(ctd, tmp, by = c("ref", c("end_date" = "date"))) |>
-    distinct()
+    ctd <- left_join(ctd, tmp, by = c("ref", c("end_date" = "date"))) |>
+      distinct()
 
-  out[[1]] <- ctd
-  idx[1] <- TRUE
+    out$ctd <- ctd
+  }
 
   ## dive table
-  if(!is.null(smru$dive)) {
+  if("dive" %in% names(smru)) {
     dive <- smru$dive %>%
       mutate(ref = as.character(ref)) %>%
       mutate(ds_date = ifelse(
@@ -121,26 +128,25 @@ smru_append_ssm <- function(smru,
       left_join(dive, ., by = c("ref", c("de_date" = "date"))) |>
       suppressWarnings()
 
-    out[[2]] <- dive
-    idx[2] <- TRUE
+    out$dive <- dive
   }
 
   ## haulout table
-  haulout <- smru$haulout %>%
-    mutate(ref = as.character(ref)) %>%
-    filter(!ref %in% dropIDs) %>%
-    mutate(lon = round(lon,6),
-           lat = round(lat,6))
+  if ("haulout" %in% names(smru)) {
+    haulout <- smru$haulout %>%
+      mutate(ref = as.character(ref)) %>%
+      filter(!ref %in% dropIDs) %>%
+      mutate(lon = round(lon, 6), lat = round(lat, 6))
 
-  haulout <- ssm_locs %>%
-    group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) %>%
-    unnest(cols = c(locs)) %>%
-    left_join(haulout, ., by = c("ref", c("s_date" = "date"))) |>
-    suppressWarnings()
+    haulout <- ssm_locs %>%
+      group_by(ref) %>%
+      do(locs = approx.fn(., smru.table = haulout, date.var = "s_date")) %>%
+      unnest(cols = c(locs)) %>%
+      left_join(haulout, ., by = c("ref", c("s_date" = "date"))) |>
+      suppressWarnings()
 
-  out[[3]] <- haulout
-  idx[3] <- TRUE
+    out$haulout <- haulout
+  }
 
   ## cruise table
   if ("cruise" %in% names(smru)) {
@@ -156,48 +162,48 @@ smru_append_ssm <- function(smru,
       left_join(cruise, ., by = c("ref", c("s_date" = "date"))) |>
       suppressWarnings()
 
-    out[[4]] <- cruise
-    idx[4] <- TRUE
+    out$cruise <- cruise
   }
 
   ## summary table
-  ssummary <- smru$summary %>%
-    mutate(ref = as.character(ref)) %>%
-    filter(!ref %in% dropIDs)
+  if ("summary" %in% names(smru)) {
+    ssummary <- smru$summary %>%
+      mutate(ref = as.character(ref)) %>%
+      filter(!ref %in% dropIDs)
 
-  ssummary <- ssm_locs %>%
-    group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) %>%
-    unnest(cols = c(locs)) %>%
-    left_join(ssummary, ., by = c("ref", c("e_date" = "date"))) |>
-    suppressWarnings()
+    ssummary <- ssm_locs %>%
+      group_by(ref) %>%
+      do(locs = approx.fn(., smru.table = ssummary, date.var = "e_date")) %>%
+      unnest(cols = c(locs)) %>%
+      left_join(ssummary, ., by = c("ref", c("e_date" = "date"))) |>
+      suppressWarnings()
 
-  out[[5]] <- ssummary
-  idx[5] <- TRUE
+    out$ssummary <- ssummary
+  }
 
   ## diag table
-  diag <- smru$diag %>%
-    mutate(ref = as.character(ref)) %>%
-    left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
-    mutate(release_date = ifelse(is.na(release_date), d_date, release_date)) %>%
-    mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
-    filter(d_date >= release_date) %>%
-    select(-release_date) %>%
-    filter(!ref %in% dropIDs)
+  if ("diag" %in% names(smru)) {
+    diag <- smru$diag %>%
+      mutate(ref = as.character(ref)) %>%
+      left_join(., deploy_meta, by = c("ref" = "device_id")) %>%
+      mutate(release_date = ifelse(is.na(release_date), d_date, release_date)) %>%
+      mutate(release_date = as.POSIXct(release_date, origin = "1970-01-01", tz = "UTC")) %>%
+      filter(d_date >= release_date) %>%
+      select(-release_date) %>%
+      filter(!ref %in% dropIDs)
 
-  diag <- ssm_locs %>%
-    group_by(ref) %>%
-    do(locs = approx.fn(., smru.table = diag, date.var = "d_date")) %>%
-    unnest(cols = c(locs)) %>%
-    left_join(diag, ., by = c("ref", c("d_date" = "date"))) |>
-    suppressWarnings()
+    diag <- ssm_locs %>%
+      group_by(ref) %>%
+      do(locs = approx.fn(., smru.table = diag, date.var = "d_date")) %>%
+      unnest(cols = c(locs)) %>%
+      left_join(diag, ., by = c("ref", c("d_date" = "date"))) |>
+      suppressWarnings()
 
-  out[[6]] <- diag
-  idx[6] <- TRUE
+    out$diag <- diag
+  }
 
-
+  ## gps table
   if ("gps" %in% names(smru)) {
-    ## gps table
     gps <- smru$gps %>%
       mutate(ref = as.character(ref)) %>%
       left_join(. , deploy_meta, by = c("ref" = "device_id")) %>%
@@ -214,13 +220,10 @@ smru_append_ssm <- function(smru,
       left_join(gps, ., by = c("ref", c("d_date" = "date"))) |>
       suppressWarnings()
 
-    out[[7]] <- gps
-    idx[7] <- TRUE
+    out$gps <- gps
   }
 
-  nms <- c("ctd", "dive", "haulout", "cruise", "summary","diag", "gps")
-  names(out) <- nms
-  out <- out[idx]
+  out <- list_drop_empty(out)
 
   return(out)
 

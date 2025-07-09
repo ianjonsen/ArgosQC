@@ -9,7 +9,7 @@ download_data(
   dest = NULL,
   source = "smru",
   unzip = FALSE,
-  cids = NULL,
+  cid = NULL,
   user = NULL,
   pwd = NULL,
   wc.akey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
@@ -33,7 +33,7 @@ download_data(
 
 \item{unzip}{(logical) should the downloaded zipfile be unzipped.}
 
-\item{cids}{SMRU tag deployment campaign id(s) to download, eg. "ct180"}
+\item{cid}{SMRU tag deployment campaign id(s) to download, eg. "ct180"}
 
 \item{user}{SMRU data server username as a quoted string}
 

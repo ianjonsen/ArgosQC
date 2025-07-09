@@ -5,7 +5,7 @@
 \title{sync to AODN}
 \usage{
 push_2_aodn(
-  cids,
+  cid,
   path = NULL,
   user = NULL,
   host = NULL,
@@ -16,7 +16,7 @@ push_2_aodn(
 )
 }
 \arguments{
-\item{cids}{campaign ids to zip and sync}
+\item{cid}{campaign ids to zip and sync}
 
 \item{path}{path to write .csv files}
 
