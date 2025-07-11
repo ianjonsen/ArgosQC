@@ -61,18 +61,7 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">multi_filter</span><span class="op">(</span></span>
-<span>  <span class="va">x</span>,</span>
-<span>  vmax <span class="op">=</span> <span class="fl">4</span>,</span>
-<span>  ang <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">25</span><span class="op">)</span>,</span>
-<span>  distlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2500</span>, <span class="fl">5000</span><span class="op">)</span>,</span>
-<span>  min.dt <span class="op">=</span> <span class="fl">60</span>,</span>
-<span>  model <span class="op">=</span> <span class="st">"crw"</span>,</span>
-<span>  ts <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  map <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  <span class="va">...</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">multi_filter</span><span class="op">(</span><span class="va">x</span>, vmax <span class="op">=</span> <span class="fl">4</span>, model <span class="op">=</span> <span class="st">"crw"</span>, ts <span class="op">=</span> <span class="fl">2</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -87,28 +76,12 @@
 <dd><p>for prefilter</p></dd>
 
 
-<dt id="arg-ang">ang<a class="anchor" aria-label="anchor" href="#arg-ang"></a></dt>
-<dd><p>for prefilter</p></dd>
-
-
-<dt id="arg-distlim">distlim<a class="anchor" aria-label="anchor" href="#arg-distlim"></a></dt>
-<dd><p>for prefilter</p></dd>
-
-
-<dt id="arg-min-dt">min.dt<a class="anchor" aria-label="anchor" href="#arg-min-dt"></a></dt>
-<dd><p>for prefilter</p></dd>
-
-
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
 <dd><p><code>aniMotum</code> model ("rw" orr "crw)</p></dd>
 
 
 <dt id="arg-ts">ts<a class="anchor" aria-label="anchor" href="#arg-ts"></a></dt>
 <dd><p><code>foieGrsa</code> time.step</p></dd>
-
-
-<dt id="arg-map">map<a class="anchor" aria-label="anchor" href="#arg-map"></a></dt>
-<dd><p>params to fix</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
