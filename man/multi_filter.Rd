@@ -4,7 +4,7 @@
 \alias{multi_filter}
 \title{multi-filter}
 \usage{
-multi_filter(x, vmax = 4, model = "crw", ts = 2, verbose = FALSE, ...)
+multi_filter(x, vmax = 4, model = "rw", ts = 6, verbose = FALSE)
 }
 \arguments{
 \item{x}{\code{sf}-projected diag file of locations to be filtered}
@@ -16,8 +16,6 @@ multi_filter(x, vmax = 4, model = "crw", ts = 2, verbose = FALSE, ...)
 \item{ts}{\code{foieGrsa} time.step}
 
 \item{verbose}{turn on/off furrr::future_map progress indicator}
-
-\item{...}{additional arguments to be passed to \code{aniMotum::fit_ssm}}
 }
 \description{
 apply SSM filter to diag data across multiple processors

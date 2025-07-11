@@ -11,9 +11,6 @@ atn_smru_qc(wd, config, ...)
 where tag data files are stored (if source = \code{local}); 2) the metadata directory
 where all metadata files are stored; and 3) the destination directory for QC output.}
 
-\item{...}{additional arguments to \code{multi_filter} for finer control of SSM
-fitting process}
-
 \item{datadir}{the name of the data directory (to be added to the \code{wd} path).}
 
 \item{meta.file}{the metadata filename. Must reside within the \code{wd}}

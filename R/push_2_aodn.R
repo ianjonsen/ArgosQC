@@ -2,7 +2,7 @@
 ##'
 ##' @description zip .csv files by campaign id & sync with AODN incoming server via rsync
 ##'
-##' @param cid campaign ids to zip and sync
+##' @param cids campaign ids to zip and sync
 ##' @param path path to write .csv files
 ##' @param user AODN incoming server username as a string
 ##' @param host rsync server address
@@ -17,7 +17,7 @@
 ##'
 ##' @export
 
-push_2_aodn <- function(cid,
+push_2_aodn <- function(cids,
                         path = NULL,
                         user = NULL,
                         host = NULL,
@@ -38,7 +38,7 @@ push_2_aodn <- function(cid,
   }
 
   ## zip files by cid
-  cid %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), suffix, ".zip ",
+  cids %>% walk( ~ system(paste0("zip -j ", file.path(path, .x), suffix, ".zip ",
                                file.path(path, "*_"), .x, suffix, ".csv")))
 
 
