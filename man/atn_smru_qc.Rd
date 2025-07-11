@@ -4,31 +4,15 @@
 \alias{atn_smru_qc}
 \title{ATN SMRU SRDL QC workflow}
 \usage{
-atn_smru_qc(
-  wd = NULL,
-  datadir = NULL,
-  meta.file = NULL,
-  outdir = NULL,
-  dropIDs = NULL,
-  proj = NULL,
-  model = "rw",
-  vmax = 3,
-  time.step = 6,
-  reroute = FALSE,
-  dist = 1000,
-  buffer = 0.5,
-  centroids = TRUE,
-  cut = FALSE,
-  min.gap = 72,
-  QCmode = "nrt",
-  output = FALSE,
-  ...
-)
+atn_smru_qc(wd, config, ...)
 }
 \arguments{
 \item{wd}{the path to the working directory that contains: 1) the data directory
 where tag data files are stored (if source = \code{local}); 2) the metadata directory
 where all metadata files are stored; and 3) the destination directory for QC output.}
+
+\item{...}{additional arguments to \code{multi_filter} for finer control of SSM
+fitting process}
 
 \item{datadir}{the name of the data directory (to be added to the \code{wd} path).}
 

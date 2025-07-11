@@ -79,7 +79,7 @@ imos_smru_qc <- function(wd, config) {
 
   if(is.na(conf$harvest$dropIDs)) conf$harvest$dropIDs <- NULL
   if(is.na(conf$harvest$p2mdbtools)) conf$harvest$p2mdbtools <- NULL
-
+  if(is.na(conf$proj)) conf$proj <- NULL
 
   if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")

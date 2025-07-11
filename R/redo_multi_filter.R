@@ -42,7 +42,7 @@ redo_multi_filter <-
            min.dt = 180,
            map = NULL,
            reroute = TRUE,
-           dist = 1500,
+           dist = 500,
            barrier = NULL,
            verbose = TRUE,
            ...) {

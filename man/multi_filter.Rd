@@ -4,35 +4,16 @@
 \alias{multi_filter}
 \title{multi-filter}
 \usage{
-multi_filter(
-  x,
-  vmax = 4,
-  ang = c(15, 25),
-  distlim = c(2500, 5000),
-  min.dt = 60,
-  model = "crw",
-  ts = 2,
-  map = NULL,
-  verbose = FALSE,
-  ...
-)
+multi_filter(x, vmax = 4, model = "crw", ts = 2, verbose = FALSE, ...)
 }
 \arguments{
 \item{x}{\code{sf}-projected diag file of locations to be filtered}
 
 \item{vmax}{for prefilter}
 
-\item{ang}{for prefilter}
-
-\item{distlim}{for prefilter}
-
-\item{min.dt}{for prefilter}
-
 \item{model}{\code{aniMotum} model ("rw" orr "crw)}
 
 \item{ts}{\code{foieGrsa} time.step}
-
-\item{map}{params to fix}
 
 \item{verbose}{turn on/off furrr::future_map progress indicator}
 
