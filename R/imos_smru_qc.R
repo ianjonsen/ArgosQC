@@ -136,6 +136,7 @@ imos_smru_qc <- function(wd, config) {
                            meta,
                            dropIDs = dropIDs,
                            crs = conf$proj,
+                           species.code = conf$harvest$species.code,
                            QCmode = conf$model$QCmode)
 
   fit1 <- fit2 <- vector("list", length = length(diag_sf))
@@ -222,7 +223,7 @@ imos_smru_qc <- function(wd, config) {
   })
 
   if (as.logical(conf$output)) {
-    return(list(mdbs=mdbs,
+    return(list(cid=cid,
                 dropIDs=dropIDs,
                 smru=smru,
                 meta=meta,
