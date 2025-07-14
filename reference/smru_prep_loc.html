@@ -72,8 +72,8 @@ diag files by species.</p>
 <span>  <span class="va">meta</span>,</span>
 <span>  dropIDs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  crs <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  gps.tab <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  QCmode <span class="op">=</span> <span class="st">"nrt"</span></span>
+<span>  species.code <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  QCmode <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -99,8 +99,8 @@ which results in one of 4 possible projections applied automatically, based on
 the centroid of the tracks. See <code>overview</code> vignette for details.</p></dd>
 
 
-<dt id="arg-gps-tab">gps.tab<a class="anchor" aria-label="anchor" href="#arg-gps-tab"></a></dt>
-<dd><p>if a GPS table exists in <code>smru</code> should location be merged into diag (default is FALSE)</p></dd>
+<dt id="arg-species-code">species.code<a class="anchor" aria-label="anchor" href="#arg-species-code"></a></dt>
+<dd><p>the 4-letter code for the species being QC'd - from config file.</p></dd>
 
 
 <dt id="arg-qcmode">QCmode<a class="anchor" aria-label="anchor" href="#arg-qcmode"></a></dt>
