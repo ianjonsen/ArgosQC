@@ -230,8 +230,7 @@ imos_smru_qc <- function(wd, config) {
                 diag_sf=diag_sf,
                 fit1=fit1,
                 fit2=fit2,
-                smru_ssm=smru_ssm,
-                obs=obs))
+                smru_ssm=smru_ssm))
   }
 }
 

@@ -11,7 +11,6 @@
 ##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
 ##' which results in one of 4 possible projections applied automatically, based on
 ##' the centroid of the tracks. See `overview` vignette for details.
-##' @param species.code the 4-letter code for the species being QC'd - from config file.
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case diag is not right-truncated & date of first dive is used
 ##' for the track start date
@@ -30,11 +29,9 @@ smru_prep_loc <- function(smru,
                           meta,
                           dropIDs = NULL,
                           crs = NULL,
-                          species.code = NULL,
                           QCmode = NULL) {
 
   assert_that(is.list(smru))
-  if(is.null(species.code)) stop("species.code not provided in config file")
   if(is.null(QCmode)) stop("QCmode not specified in config file")
 
   ## clean step
@@ -268,31 +265,10 @@ smru_prep_loc <- function(smru,
     do(d_sf = proj.fn(.)) |>
     ungroup() |>
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
-
-  ## add species code
-  load(system.file("extdata/spcodes.rda", package = "ArgosQC"))
-
-
-
-  if("device_id" %in% names(meta)) {
-    msp <- meta |>
-      select(device_id, species) |>
-      mutate(sp = species.code)
-
-    diag_sf <- diag_sf |>
-      left_join(msp, by = c("ref" = "device_id"))
-
-  } else if ("DeploymentID" %in% names(meta)) {
-
-    msp <- meta |> select(DeploymentID, AnimalScientificName)
-    msp <- left_join(msp, spcodes, by = c("AnimalScientificName" = "species"))
-    diag_sf <- diag_sf |>
-      left_join(msp, by = c("ref" = "DeploymentID"))
-  }
+  # }
 
   diag_sf <- diag_sf |>
-    dplyr::select(ref, cid, sp, d_sf)
-  diag_sf <- split(diag_sf, diag_sf$sp)
+    dplyr::select(ref, cid, d_sf)
 
   return(diag_sf)
 
