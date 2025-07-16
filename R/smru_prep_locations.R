@@ -269,10 +269,6 @@ smru_prep_loc <- function(smru,
     ungroup() |>
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
 
-  ## add species code
-  load(system.file("extdata/spcodes.rda", package = "ArgosQC"))
-
-
 
   if("device_id" %in% names(meta)) {
     msp <- meta |>
