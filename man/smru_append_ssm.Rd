@@ -4,15 +4,7 @@
 \alias{smru_append_ssm}
 \title{append SMRU tables with SSM-estimated locations}
 \usage{
-smru_append_ssm(
-  smru,
-  fit,
-  what = "p",
-  meta,
-  gps.tab = FALSE,
-  cut = FALSE,
-  dropIDs = NULL
-)
+smru_append_ssm(smru, fit, what = "p", meta, cut = FALSE, dropIDs = NULL)
 }
 \arguments{
 \item{smru}{SMRU table file - output of \code{pull_smru_tables}}
@@ -22,8 +14,6 @@ smru_append_ssm(
 \item{what}{choose which locations to use for annotating SMRU tables (default = "predicted")}
 
 \item{meta}{metadata used to truncate start of diag data for each individual}
-
-\item{gps.tab}{logical; does a SMRU GPS table exist, if so append to this as well}
 
 \item{cut}{drop predicted locations if keep = FALSE, ie. locations in a large data gap}
 

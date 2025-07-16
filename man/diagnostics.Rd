@@ -16,7 +16,8 @@ diagnostics(
   obs = FALSE,
   mpath = NULL,
   dpath = NULL,
-  QCmode = "nrt"
+  QCmode = "nrt",
+  cid
 )
 }
 \arguments{
@@ -44,6 +45,8 @@ diagnostics(
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
 in latter case start end end of dive data are displayed rather than ctd data}
+
+\item{cid}{SMRU campaign id (from config file)}
 }
 \description{
 produces a map of all QC'd tracks and generates various diagnostics to assess QC run

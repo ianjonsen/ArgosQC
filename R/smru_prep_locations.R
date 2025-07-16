@@ -11,7 +11,7 @@
 ##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
 ##' which results in one of 4 possible projections applied automatically, based on
 ##' the centroid of the tracks. See `overview` vignette for details.
-##' @param gps.tab if a GPS table exists in `smru` should location be merged into diag (default is FALSE)
+##' @param species.code the 4-letter code for the species being QC'd - from config file.
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case diag is not right-truncated & date of first dive is used
 ##' for the track start date
@@ -27,13 +27,15 @@
 ##'
 
 smru_prep_loc <- function(smru,
-                      meta,
-                      dropIDs = NULL,
-                      crs = NULL,
-                      gps.tab = FALSE,
-                      QCmode = "nrt") {
+                          meta,
+                          dropIDs = NULL,
+                          crs = NULL,
+                          species.code = NULL,
+                          QCmode = NULL) {
 
   assert_that(is.list(smru))
+  if(is.null(species.code)) stop("species.code not provided in config file")
+  if(is.null(QCmode)) stop("QCmode not specified in config file")
 
   ## clean step
   if("semi_major_axis" %in% names(smru$diag)) {
@@ -80,7 +82,7 @@ smru_prep_loc <- function(smru,
            smin = as.numeric(smin),
            eor = as.numeric(eor))
 
-  if(all(gps.tab, "gps" %in% names(smru))) {
+  if("gps" %in% names(smru)) {
    gps <- smru$gps |>
      rename(date = d_date) |>
       aniMotum::format_data(id = "ref",
@@ -99,21 +101,36 @@ smru_prep_loc <- function(smru,
 
   ## truncate & convert to sf geometry steps
   if("device_id" %in% names(meta)) {
-    deploy_meta <- meta |>
-      dplyr::select(device_id, ctd_start, dive_start, ctd_end, dive_end)
+    if("dive_start" %in% names(meta)) {
+      deploy_meta <- meta |>
+        dplyr::select(device_id, ctd_start, dive_start, ctd_end, dive_end)
+
+    } else {
+      deploy_meta <- meta |>
+        dplyr::select(device_id, ctd_start, ctd_end)
+    }
+
 
     if(QCmode == "nrt") {
       ## left- and right-truncate tracks
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "device_id")) |>
         filter(date >= ctd_start & date <= ctd_end) |>
-        dplyr::select(-ctd_start, -ctd_end, -dive_end)
+        dplyr::select(-ctd_start, -ctd_end)
     } else {
+      if("dive_start" %in% names(meta)) {
       ## only left-truncate tracks with date of first dive
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "device_id")) |>
         filter(date >= dive_start) |>
         dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
+
+      } else {
+        diag <- diag |>
+          left_join(deploy_meta, by = c("ref" = "device_id")) |>
+          filter(date >= ctd_start) |>
+          dplyr::select(-ctd_start, -ctd_end)
+      }
     }
 
   } else if ("DeploymentID" %in% names(meta)) {
@@ -255,9 +272,13 @@ smru_prep_loc <- function(smru,
   ## add species code
   load(system.file("extdata/spcodes.rda", package = "ArgosQC"))
 
+
+
   if("device_id" %in% names(meta)) {
-    msp <- meta |> select(device_id, species)
-    msp <- left_join(msp, spcodes, by = "species")
+    msp <- meta |>
+      select(device_id, species) |>
+      mutate(sp = species.code)
+
     diag_sf <- diag_sf |>
       left_join(msp, by = c("ref" = "device_id"))
 
@@ -270,9 +291,6 @@ smru_prep_loc <- function(smru,
   }
 
   diag_sf <- diag_sf |>
-    rename(sp = code) |>
-    mutate(sp = factor(sp, levels = spcodes$code, ordered = TRUE)) |>
-    mutate(sp = droplevels(sp)) |>
     dplyr::select(ref, cid, sp, d_sf)
   diag_sf <- split(diag_sf, diag_sf$sp)
 

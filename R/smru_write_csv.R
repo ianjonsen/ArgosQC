@@ -45,8 +45,15 @@ smru_write_csv <- function(smru_ssm,
     meta <- meta |>
       filter(!device_id %in% dropIDs)
 
-    meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
-      select(-ctd_start, -ctd_end, -dive_start, -dive_end)
+    if ("dive" %in% names(smru_ssm)) {
+      meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
+        select(-ctd_start, -ctd_end, -dive_start, -dive_end)
+
+    } else {
+      meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
+        select(-ctd_start, -ctd_end)
+
+    }
 
   } else if (program == "atn") {
 
@@ -67,8 +74,17 @@ smru_write_csv <- function(smru_ssm,
 
   }
 
-  idx <- rep(FALSE, 8)
-  out <- list()
+
+  out <- list(ssmoutputs = NULL,
+              diag=NULL,
+              gps=NULL,
+              haulout=NULL,
+              ctd=NULL,
+              dive=NULL,
+              cruise=NULL,
+              summary=NULL,
+              metadata=NULL
+              )
 
   ## SSM predictions
   ssmoutputs <- smru_write_ssm(
@@ -79,21 +95,22 @@ smru_write_csv <- function(smru_ssm,
     dropIDs = dropIDs,
     suffix = suffix
   )
-  out[[1]] <- ssmoutputs
-  idx[1] <- TRUE
+  out$ssmoutputs <- ssmoutputs
+
 
   ## Diag data
-  diag <- smru_write_diag(
-    smru_ssm = smru_ssm,
-    meta = meta,
-    program = program,
-    test = test,
-    path = path,
-    dropIDs = dropIDs,
-    suffix = suffix
-  )
-  out[[2]] <- diag
-  idx[2] <- TRUE
+  if ("diag" %in% names(smru_ssm)) {
+    diag <- smru_write_diag(
+      smru_ssm = smru_ssm,
+      meta = meta,
+      program = program,
+      test = test,
+      path = path,
+      dropIDs = dropIDs,
+      suffix = suffix
+    )
+    out$diag <- diag
+  }
 
   ## GPS data (if present)
   if ("gps" %in% names(smru_ssm)) {
@@ -106,8 +123,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[3]] <- gps
-    idx[3] <- TRUE
+    out$gps <- gps
   }
 
   ## Haulout data
@@ -121,8 +137,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[4]] <- haulout
-    idx[4] <- TRUE
+    out$haulout <- haulout
   }
 
   ## CTD data
@@ -136,8 +151,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[5]] <- ctd
-    idx[5] <- TRUE
+    out$ctd <- ctd
   }
 
   ## dive data
@@ -150,8 +164,20 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[6]] <- dive
-    idx[6] <- TRUE
+    out$dive <- dive
+  }
+
+  ## cruise data
+  if ("cruise" %in% names(smru_ssm)) {
+    cruise <- smru_write_cruise(
+      smru_ssm = smru_ssm,
+      meta = meta,
+      program = program,
+      path = path,
+      dropIDs = dropIDs,
+      suffix = suffix
+    )
+    out$cruise <- cruise
   }
 
   ## summary data
@@ -164,8 +190,7 @@ smru_write_csv <- function(smru_ssm,
       dropIDs = dropIDs,
       suffix = suffix
     )
-    out[[7]] <- ssummary
-    idx[7] <- TRUE
+    out$summary <- ssummary
   }
 
 ## Metadata
@@ -177,24 +202,23 @@ smru_write_csv <- function(smru_ssm,
     dropIDs = dropIDs,
     suffix = suffix
   )
-  out[[8]] <- meta
-  idx[8] <- TRUE
+  out$metadata <- meta
 
-  nms <- c("ssmoutputs","diag","gps","haulout","ctd","dive","summary","metadata")
-  names(out) <- nms
-  out <- out[idx]
-  nms <- nms[idx]
+  out <- list_drop_empty(out)
+  nms <- names(out)
 
   ## write tables to .csv
   if (program == "imos") {
     lapply(1:length(out), function(i) {
       if (nms[i] != "metadata") {
+        if(nms[i] != "gps") { ## required as AODN currently will not accept gps data tables
         out[[i]] |>
           group_by(cid) |>
           group_split() |>
           walk(~ suppressMessages(write_csv(
             .x, file = paste0(file.path(path, nms[i]), "_", .x$cid[1], suffix, ".csv")
           )))
+        }
       } else {
         out[[i]] |>
           group_by(sattag_program) |>
@@ -881,14 +905,15 @@ smru_write_haulout <- function(smru_ssm,
                     any(inherits(e_date_tag, "POSIXct") | is.na(e_date_tag)),
                     is.integer(end_number)))
 
-    if(any(!tests[8:12])) {
+    if(any(!tests[7:12])) {
       haulout <- haulout |>
-        mutate(wet_n = as.integer(wet_n, na.rm = TRUE),
+        mutate(phosi_secs = as.integer(phosi_secs, na.rm = TRUE),
+              wet_n = as.integer(wet_n, na.rm = TRUE),
                wet_min = as.double(wet_min, na.rm = TRUE),
                wet_max = as.double(wet_max, na.rm = TRUE),
                wet_mean = as.double(wet_mean, na.rm = TRUE),
                wet_sd = as.double(wet_sd, na.rm = TRUE))
-      tests[8:12] <- TRUE
+      tests[7:12] <- TRUE
     }
 
   }
@@ -958,58 +983,18 @@ smru_write_meta <- function(meta,
 
     meta <- meta |>
       mutate(
-        state_country = ifelse(
-          release_site == "Dumont d'Urville",
-          "French Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Dumont D'Urville",
-          "French Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Iles Kerguelen",
-          "French Overseas Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Scott Base",
-          "New Zealand Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(state_country = ifelse(
-        release_site == "Campbell Island",
-        "New Zealand",
-        state_country
-      )) |>
-      mutate(state_country = ifelse(release_site == "Montague Island", "Australia", state_country)) |>
-      mutate(state_country = ifelse(
-        release_site == "Macquarie Island",
-        "Australia",
-        state_country
-      )) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Casey",
-          "Australian Antarctic Territory",
-          state_country
-        )
-      ) |>
-      mutate(
-        state_country = ifelse(
-          release_site == "Davis",
-          "Australian Antarctic Territory",
-          state_country
-        )
-      ) |>
+        state_country = case_when(
+          release_site == "Dumont d'Urville" ~ "French Antarctic Territory",
+          release_site == "Dumont D'Urville" ~ "French Antarctic Territory",
+          release_site == "Iles Kerguelen" ~ "French Overseas Territory",
+          release_site == "Scott Base" ~ "New Zealand Antarctic Territory",
+          release_site == "Campbell Island" ~ "New Zealand",
+          release_site == "Macquarie Island" ~ "Australia",
+          release_site == "Montague Island" ~ "Australia",
+          release_site == "Tiwi Islands" ~ "Australia",
+          release_site == "Casey" ~ "Australian Antarctic Territory",
+          release_site == "Davis" ~ "Australian Antarctic Territory"
+        )) |>
       mutate(state_country = ifelse(is.na(state_country), "Unknown", state_country))
 
     meta <- meta |>
@@ -1075,13 +1060,13 @@ smru_write_meta <- function(meta,
           unique(age_class) %in% c("adult", "subadult", "juvenille", "juvenile", "weaner", NA)
         ),
         all(unique(sex) %in% c("female", "male", "f", "m", NA)),
-        all(is.double(length), (length > 0 |
-                                  is.na(length))),
-        all(is.integer(estimated_mass), (
-          estimated_mass > 0 | is.na(estimated_mass)
-        )),
-        all(is.double(actual_mass), (actual_mass > 0 |
-                                       is.na(actual_mass))),
+        any((is.double(length) & length > 0),
+                                  is.na(length)),
+        any((is.integer(estimated_mass) &
+          estimated_mass > 0), is.na(estimated_mass)
+        ),
+        any((is.double(actual_mass) & actual_mass > 0),
+                                       is.na(actual_mass)),
         is.character(state_country),
         any(inherits(qc_start_date, "POSIXct"), is.na(qc_start_date)),
         any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date))
@@ -1105,6 +1090,66 @@ smru_write_meta <- function(meta,
 
   return(meta)
 }
+
+
+##' @title SMRU cruise table - write to .csv
+##'
+##' @description Write SMRU cruise table to .csv - non-IMOS only
+##'
+##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
+##' @param meta metadata
+##' @param program Determines structure of output metadata. Currently, either
+##' `imos` or `atn`. If `imos` then function returns nothing as cruise table is
+##' not currently accepted by AODN.
+##' @param path path to write .csv files
+##' @param dropIDs individual ids to be dropped
+##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
+##'
+##'
+##' @importFrom dplyr filter mutate select
+##' @importFrom stringr str_extract regex
+##'
+##' @keywords internal
+
+smru_write_cruise <- function(smru_ssm,
+                            meta,
+                            program = "atn",
+                            path = NULL,
+                            dropIDs = NULL,
+                            suffix = "_nrt") {
+
+  stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
+
+  cruise <- smru_ssm$cruise |>
+    filter(!ref %in% dropIDs) |>
+    mutate(cid = str_extract(ref,
+                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+
+  if(program == "imos") {
+    cruise <- cruise |>
+      filter(ref %in% meta$device_id)
+  }
+
+  if (program == "atn") {
+
+    cruise <- left_join(
+      cruise,
+      meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
+      by = c("ref" = "DeploymentID")
+    ) |>
+      select(-cid)
+  }
+
+  ## strip out any records that are all NA's
+  cruise <- cruise |>
+    filter(!is.na(ref))
+
+  if(program != "imos"){
+    return(cruise)
+  }
+
+}
+
 
 
 

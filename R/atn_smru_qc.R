@@ -41,67 +41,66 @@
 ##' @param output logical; should fn return a list of QC-generated objects. This
 ##' results in a single large object return that can be useful for troubleshooting
 ##' QC errors or undesirable results.
-##'
 ##' @importFrom stringr str_split str_length
+##' @importFrom jsonlite read_json
 ##'
 ##' @md
 ##' @export
 
-atn_smru_qc <- function(wd = NULL,
-                        datadir = NULL,
-                        meta.file = NULL,
-                        outdir = NULL,
-                        dropIDs = NULL,
-                        proj = NULL,
-                        model = "rw",
-                        vmax = 3,
-                        time.step = 6,
-                        reroute = FALSE,
-                        dist = 1000,
-                        buffer = 0.5,
-                        centroids = TRUE,
-                        cut = FALSE,
-                        min.gap = 72,
-                        QCmode = "nrt",
-                        output = FALSE) {
+atn_smru_qc <- function(wd,
+                        config,
+                        ...) {
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
-  if(!file.exists(file.path(wd, outdir))) {
-    dir.create(file.path(outdir), recursive = TRUE, showWarnings = FALSE)
-    message(paste(outdir, "directory created"))
+
+  conf <- read_json(config, simplifyVector = TRUE)
+
+  if(is.na(conf$setup$meta.file)) {
+    conf$setup$meta.file <- NULL
+    meta.source <- "smru"
+  } else {
+    meta.source <- "imos"
   }
 
-  what <- "p"
-  if(reroute) what <- "r"
+  if(!file.exists(file.path(wd, conf$setup$outdir))) {
+    stop("Working QC output directory `outdir` does not exist")
+  }
 
-  mdbs <- list.dirs(file.path(wd, datadir), full.names = FALSE, recursive = FALSE)
-  mdbs <- str_split(mdbs, pattern = "\\-", simplify = TRUE)[,1]
-  mdbs <- unique(mdbs)
-  ## filter out non-SMRU campaign ids
-  mdbs <- mdbs[str_length(mdbs) <= 5]
+  if(is.na(conf$harvest$dropIDs)) conf$harvest$dropIDs <- NULL
+  if(is.na(conf$harvest$p2mdbtools)) conf$harvest$p2mdbtools <- NULL
+  if(is.na(conf$proj)) conf$proj <- NULL
+
+  if(is.null(conf$harvest$dropIDs)) {
+    dropIDs <- c("")
+  } else {
+    dropIDs <- conf$harvest$dropIDs
+  }
+
+
+  what <- "p"
+  if(conf$model$reroute) what <- "r"
 
   ## read SMRU tag file data from .mdb/source files
-  smru <- pull_data(file.path(wd, datadir),
+  smru <- pull_data(file.path(wd, conf$setup$datadir),
                     source = "local",
-                    cids = mdbs,
+                    cid = conf$harvest$cid,
                     tag_mfr = "smru")
 
   ## get metadata
   meta <- suppressMessages(get_metadata(source = "atn",
                        tag_data = smru,
-                       cids = mdbs,
+                       cid = conf$harvest$cid,
                        dropIDs = dropIDs,
-                       file = file.path(wd, meta.file),
-                       enc = "latin1"
+                       file = file.path(wd, conf$setup$meta.file)
   ) )
 
   ## prepare location data
   diag_sf <- smru_prep_loc(smru,
                        meta,
                        dropIDs = dropIDs,
-                       crs = proj,
-                       QCmode = QCmode)
+                       crs = conf$proj,
+                       QCmode = conf$model$QCmode)
 
 
   fit1 <- fit2 <- vector("list", length = length(diag_sf))
@@ -110,9 +109,9 @@ atn_smru_qc <- function(wd = NULL,
   fit1 <- lapply(1:length(fit1), function(i) {
     multi_filter(
       diag_sf[[i]],
-      vmax = vmax,
-      model = model,
-      ts = time.step
+      vmax = conf$model$vmax,
+      model = conf$model$model,
+      ts = conf$model$time.step
     )
   })
 
@@ -121,22 +120,22 @@ atn_smru_qc <- function(wd = NULL,
     redo_multi_filter(
       fit1[[i]],
       diag_sf[[i]],
-      vmax = vmax,
-      model = model,
-      ts = time.step,
+      vmax = conf$model$vmax,
+      model = conf$model$model,
+      ts = conf$model$time.step,
       map = list(psi = factor(NA)),
-      reroute = TRUE,
-      dist = dist,
-      buffer = buffer,
-      centroids = centroids
+      reroute = conf$model$reroute,
+      dist = conf$model$dist,
+      buffer = conf$model$buffer,
+      centroids = conf$model$centroids
     )
   })
   names(fit1) <- names(fit2) <- names(diag_sf)
 
   ## Mark SSM track segments for removal in data gaps > min.gap hours long
-  if (cut) {
+  if (conf$model$cut) {
     fit2 <- lapply(1:length(fit2), function(i) {
-      ssm_mark_gaps(fit2[[i]], min.gap = min.gap)
+      ssm_mark_gaps(fit2[[i]], min.gap = conf$model$min.gap)
     })
 
     names(fit2) <- names(diag_sf)
@@ -149,7 +148,7 @@ atn_smru_qc <- function(wd = NULL,
       fit = fit2[[i]],
       what = what,
       meta = meta,
-      cut = cut,
+      cut = conf$model$cut,
       dropIDs = dropIDs
     )
   })
@@ -158,19 +157,20 @@ atn_smru_qc <- function(wd = NULL,
   ## generate SSM fit diagnostics & SSM-predicted track map
   obs <- smru_clean_diag(smru, dropIDs = dropIDs)
 
-  dir.create(file.path(outdir, "maps"), showWarnings = FALSE)
-  dir.create(file.path(outdir, "diag"), showWarnings = FALSE)
+  dir.create(conf$setup$maps.dir, showWarnings = FALSE)
+  dir.create(conf$setup$diag.dir, showWarnings = FALSE)
   lapply(1:length(smru_ssm), function(i) {
     diagnostics(fit = fit2[[i]],
                 fit1 = fit1[[i]],
                 what = what,
-                cut = cut,
+                cut = conf$model$cut,
                 data = obs,
                 ssm = smru_ssm[[i]],
                 meta = meta,
-                mpath = file.path(outdir, "maps"),
-                dpath = file.path(outdir, "diag"),
-                QCmode = QCmode
+                mpath = file.path(conf$setup$maps.dir),
+                dpath = file.path(conf$setup$diag.dir),
+                QCmode = conf$model$QCmode,
+                cid = conf$harvest$cid
     )
   })
 
@@ -181,13 +181,13 @@ atn_smru_qc <- function(wd = NULL,
                    what = what,
                    meta = meta,
                    program = "atn",
-                   path = file.path(wd, outdir),
+                   path = file.path(wd, conf$setup$outdir),
                    dropIDs = dropIDs,
-                   suffix = paste0("_", QCmode)
+                   suffix = paste0("_", conf$model$QCmode)
     )
   })
 
-  if (output) {
+  if (conf$output) {
     return(list(mdbs=mdbs,
                 dropIDs=dropIDs,
                 smru=smru,

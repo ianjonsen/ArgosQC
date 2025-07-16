@@ -8,9 +8,10 @@ get_metadata(
   source = "smru",
   tag_mfr = "smru",
   tag_data = NULL,
-  cids = NULL,
+  cid = NULL,
   dropIDs = NULL,
   file = NULL,
+  meta.args,
   enc = "UTF-8"
 )
 }
@@ -19,12 +20,12 @@ get_metadata(
 \code{atn}.}
 
 \item{tag_mfr}{the tag manufacturer, current options are \code{smru} or \code{wc}
-cids SMRU campaign ids}
+cid SMRU campaign ids}
 
 \item{tag_data}{a list of either \code{smru} data tables or \code{wc} files as output by
 \code{pull_data}.}
 
-\item{cids}{SMRU campaign id(s) must be provided when the tag_mfr is \code{smru}}
+\item{cid}{SMRU campaign id must be provided when the tag_mfr is \code{smru}}
 
 \item{dropIDs}{SMRU refs or WC ids to be dropped}
 

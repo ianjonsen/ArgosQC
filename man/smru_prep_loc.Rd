@@ -9,8 +9,8 @@ smru_prep_loc(
   meta,
   dropIDs = NULL,
   crs = NULL,
-  gps.tab = FALSE,
-  QCmode = "nrt"
+  species.code = NULL,
+  QCmode = NULL
 )
 }
 \arguments{
@@ -24,7 +24,7 @@ smru_prep_loc(
 which results in one of 4 possible projections applied automatically, based on
 the centroid of the tracks. See \code{overview} vignette for details.}
 
-\item{gps.tab}{if a GPS table exists in \code{smru} should location be merged into diag (default is FALSE)}
+\item{species.code}{the 4-letter code for the species being QC'd - from config file.}
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
 in latter case diag is not right-truncated & date of first dive is used

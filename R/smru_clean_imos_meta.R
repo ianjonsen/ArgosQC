@@ -6,7 +6,7 @@
 ##' release_longitude/latitude's with the first best quality (lc 3,2, or 1)
 ##' Argos location after release_datetime
 ##'
-##' @param cids SMRU campaign ids
+##' @param cid SMRU campaign ids
 ##' @param smru SMRU table
 ##' @param dropIDs SMRU refs to be dropped
 ##' @param file path to metadata .csv file
@@ -21,13 +21,12 @@
 ##' @keywords internal
 ##'
 
-smru_clean_meta <- function(cids,
+smru_clean_imos_meta <- function(cid,
                        smru,
                        dropIDs = NULL,
                        file = NULL) {
 
   assert_that(!is.null(file))
-
   meta <- suppressWarnings(read_csv(file)) %>%
     select(
       Species,
@@ -76,13 +75,23 @@ smru_clean_meta <- function(cids,
       length = std_l,
       estimated_mass = m_est,
       actual_mass = mass
-    )
+    ) |>
+    mutate(state_country = case_when(
+      release_site == "Macquarie Island" ~ "Australia",
+      release_site == "Casey" ~ "Australian Antarctic Territory",
+      release_site == "Davis" ~ "Australian Antarctic Territory",
+      release_site == "Scott Base" ~ "New Zealand Antarctic Territory",
+      release_site == "Campbell Island" ~ "New Zealand",
+      release_site == "Iles Keguelen" ~ "French Overseas Territory",
+      release_site == "Dumont D'Urville" ~ "French Antarctic Territory",
+    ))
 
   meta <- meta %>%
     mutate(release_date = lubridate::ymd(paste(year, month, day, sep = "-"), tz = "UTC")) %>%
     mutate(sattag_program = str_extract(device_id, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE))) %>%
     mutate(recovery_date = NA) %>%
-    mutate(common_name = ifelse((species == "Leptonychotes weddellii" & common_name != "Weddell seal"), "Weddell seal", common_name)) %>%
+    mutate(common_name = ifelse((species == "Leptonychotes weddellii" & common_name != "Weddell seal"),
+                                "Weddell seal", common_name)) %>%
     select(
       sattag_program,
       device_id,
@@ -95,7 +104,7 @@ smru_clean_meta <- function(cids,
       release_longitude,
       release_latitude,
       release_site,
-      #    state_country,
+      state_country,
       release_date,
       recovery_date,
       age_class,
@@ -111,29 +120,44 @@ smru_clean_meta <- function(cids,
 
   ## subset to current campaigns & apply dropIDs
   meta <- meta %>%
-    filter(sattag_program %in% cids) %>%
+    filter(sattag_program %in% cid) %>%
     filter(!device_id %in% dropIDs)
 
   ## append dive start and end dates for (alternate) track truncation
   ##  to be used as alternate on final, delayed-mode (manual) QC
-  dive_se <- smru$dive %>%
-    mutate(ref = as.character(ref)) %>%
-    select(ref, de_date, max_dep) %>%
-    group_by(ref) %>%
-    summarise(dive_start = min(de_date, na.rm = TRUE),
-              dive_end = max(de_date, na.rm = TRUE))
+  if ("dive" %in% names(smru)) {
+    dive_se <- smru$dive %>%
+      mutate(ref = as.character(ref)) %>%
+      select(ref, de_date, max_dep) %>%
+      group_by(ref) %>%
+      summarise(
+        dive_start = min(de_date, na.rm = TRUE),
+        dive_end = max(de_date, na.rm = TRUE)
+      )
+  }
 
   ## append CTD start and end dates for track truncation
-  ctd_se <- smru$ctd %>%
-    mutate(ref = as.character(ref)) %>%
-    select(ref, end_date) %>%
-    group_by(ref) %>%
-    summarise(ctd_start = min(end_date, na.rm = TRUE),
-              ctd_end = max(end_date, na.rm = TRUE))
+  if ("ctd" %in% names(smru)) {
+    ctd_se <- smru$ctd %>%
+      mutate(ref = as.character(ref)) %>%
+      select(ref, end_date) %>%
+      group_by(ref) %>%
+      summarise(
+        ctd_start = min(end_date, na.rm = TRUE),
+        ctd_end = max(end_date, na.rm = TRUE)
+      )
+  }
 
-  meta <- meta %>%
-    left_join(., dive_se, by = c("device_id" = "ref")) %>%
-    left_join(., ctd_se, by = c("device_id" = "ref"))
+  if("dive" %in% names(smru)) {
+    meta <- meta %>%
+      left_join(., dive_se, by = c("device_id" = "ref"))
+
+  }
+  if("ctd" %in% names(smru)) {
+    meta <- meta %>%
+      left_join(., ctd_se, by = c("device_id" = "ref"))
+  }
+
 
   ## if absent, fill in missing release_longitude/latitude's with the
   ##   most recent lc = 3 | 2 Argos location (after or on release_date)0

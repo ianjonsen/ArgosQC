@@ -4,25 +4,7 @@
 \alias{atn_smru_qc}
 \title{ATN SMRU SRDL QC workflow}
 \usage{
-atn_smru_qc(
-  wd = NULL,
-  datadir = NULL,
-  meta.file = NULL,
-  outdir = NULL,
-  dropIDs = NULL,
-  proj = NULL,
-  model = "rw",
-  vmax = 3,
-  time.step = 6,
-  reroute = FALSE,
-  dist = 1000,
-  buffer = 0.5,
-  centroids = TRUE,
-  cut = FALSE,
-  min.gap = 72,
-  QCmode = "nrt",
-  output = FALSE
-)
+atn_smru_qc(wd, config, ...)
 }
 \arguments{
 \item{wd}{the path to the working directory that contains: 1) the data directory

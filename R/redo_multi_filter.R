@@ -17,6 +17,8 @@
 ##' buffer allows a larger portion of coastline to be selected for rerouting any
 ##' locations that are on land. More coastline polygon data can help rerouting, but
 ##' too much will make computation very slow.
+##' @param barrier add a custom POLYGON/MULTIPOLYGON shapefile to use as a land
+##' barrier. Default (NULL) reverts to the `aniMotum` default land barrier.
 ##' @param verbose turn on/off furrr::future_map progress indicator
 ##' @param ... additional arguments to `aniMotum::route_path`
 ##'
@@ -40,7 +42,8 @@ redo_multi_filter <-
            min.dt = 180,
            map = NULL,
            reroute = TRUE,
-           dist = 1500,
+           dist = 500,
+           barrier = NULL,
            verbose = TRUE,
            ...) {
 
@@ -128,6 +131,7 @@ redo_multi_filter <-
         aniMotum::route_path(what = "predicted",
                              map_scale = 10,
                              dist = dist,
+                             barrier = barrier,
                              ...)
     }
 
