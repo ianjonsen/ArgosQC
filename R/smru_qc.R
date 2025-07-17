@@ -133,7 +133,7 @@ smru_qc <- function(wd,
   dir.create(file.path(wd, conf$setup$diag.dir),
              showWarnings = FALSE,
              recursive = TRUE)
-  dir.create(file.path(wd, conf$setup$out.dir),
+  dir.create(file.path(wd, conf$setup$output.dir),
              showWarnings = FALSE,
              recursive = TRUE)
 
@@ -286,7 +286,7 @@ smru_write_csv(
   what = what,
   meta = meta,
   program = conf$setup$program,
-  path = file.path(wd, conf$setup$out.dir),
+  path = file.path(wd, conf$setup$output.dir),
   dropIDs = dropIDs,
   suffix = paste0("_", conf$model$QCmode)
 )
