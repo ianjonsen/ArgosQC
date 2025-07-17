@@ -32,7 +32,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.6-5</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.7-0</span>
       </span>
     </div>
 
@@ -118,11 +118,11 @@ written to .CSV files in a user-specified directory:</p>
 <tbody>
 <tr class="odd">
 <td align="center">IMOS - AODN SMRU SRDL-CTD (and related) tags</td>
-<td align="center"><code><a href="../reference/imos_smru_qc.html">imos_smru_qc()</a></code></td>
+<td align="center"><code>imos_smru_qc()</code></td>
 </tr>
 <tr class="even">
 <td align="center">ATN SMRU SRDL-CTD (and related) tags</td>
-<td align="center"><code><a href="../reference/atn_smru_qc.html">atn_smru_qc()</a></code></td>
+<td align="center"><code>atn_smru_qc()</code></td>
 </tr>
 <tr class="odd">
 <td align="center">ATN Wildlife Computers SPOT, SPLASH, and SCOUT
@@ -149,7 +149,7 @@ highlighted in examples below.</p>
 <h2 id="atn-smru-srdl-ctd-tag-data-qc-workflow">1. ATN SMRU SRDL-CTD tag data QC workflow<a class="anchor" aria-label="anchor" href="#atn-smru-srdl-ctd-tag-data-qc-workflow"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/atn_smru_qc.html">atn_smru_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>,</span>
+<code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">atn_smru_qc</span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>,</span>
 <span>            datadir <span class="op">=</span> <span class="st">"tagdata"</span>,</span>
 <span>            meta.file <span class="op">=</span> <span class="st">"metadata/metadata.csv"</span>,</span>
 <span>            outdir <span class="op">=</span> <span class="st">"smru/output"</span>,</span>
@@ -166,7 +166,7 @@ directory <code>wd</code>, the tag data directory <code>datadir</code>,
 the metadata file path <code>meta.file</code>, and the QC output
 directory <code>outdir</code>. The paths provided can have arbitrary
 names but the assumption is that all paths lie within the outer working
-directory <code>wd</code>. <code><a href="../reference/atn_smru_qc.html">atn_smru_qc()</a></code> will also generate
+directory <code>wd</code>. <code>atn_smru_qc()</code> will also generate
 two additional directories: <code>maps</code> and <code>diag</code>,
 inside the <code>output</code> directory, for a map of all QC’d tracks
 and diagnostic plots of the state-space model (SSM) fits to the
@@ -369,7 +369,7 @@ coordinate projection is provided in the metadata .CSV file
 <span>                 collab.id <span class="op">=</span> <span class="st">"...alphanumeric..."</span>,</span>
 <span>                 wc.akey <span class="op">=</span> <span class="st">"...alphanumeric..."</span>,</span>
 <span>                 wc.skey <span class="op">=</span> <span class="st">"...alphanumeric..."</span><span class="op">)</span></span></code></pre></div>
-<p>The arguments are similar to <code><a href="../reference/atn_smru_qc.html">atn_smru_qc()</a></code>, with the
+<p>The arguments are similar to <code>atn_smru_qc()</code>, with the
 addition of Wildlife Computers API identifiers: <code>collab.id</code>,
 <code>wc.akey</code>, and <code>wc.skey</code>. These may be used to
 download data directly from the Wildlife Computers Portal, in this case,

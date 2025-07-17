@@ -9,13 +9,11 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/news/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/approx_ssm.html</loc></url>
-<url><loc>https://ianjonsen.github.io/ArgosQC/reference/atn_smru_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/atn_wc_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/diagnostics.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/download_data.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/get_metadata.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/grab_QC.html</loc></url>
-<url><loc>https://ianjonsen.github.io/ArgosQC/reference/imos_smru_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/map_QC.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/multi_filter.html</loc></url>
@@ -29,6 +27,7 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_get_mdb.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_prep_loc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_pull_tables.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_ssm_outputs.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_truncate_ssm.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_write_cruise.html</loc></url>
