@@ -40,6 +40,7 @@ download_data <- function(path = NULL,
   source <- match.arg(source, choices = c("smru", "wc", "googledrive", "dropbox", "local"))
   if(all(source == "local", (is.null(path) | is.null(dest)))) stop("A filepath containing a zipfile name must be provided")
 
+
   if(is.null(dest)) {
 
     dest <- tempdir()

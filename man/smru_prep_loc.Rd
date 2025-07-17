@@ -4,14 +4,7 @@
 \alias{smru_prep_loc}
 \title{clean, truncate & convert diag files to sf-tibbles}
 \usage{
-smru_prep_loc(
-  smru,
-  meta,
-  dropIDs = NULL,
-  crs = NULL,
-  species.code = NULL,
-  QCmode = NULL
-)
+smru_prep_loc(smru, meta, dropIDs = NULL, crs = NULL, QCmode = NULL)
 }
 \arguments{
 \item{smru}{list of SMRU tables}
@@ -23,8 +16,6 @@ smru_prep_loc(
 \item{crs}{a proj4string to re-project diag locations from longlat. Default is NULL
 which results in one of 4 possible projections applied automatically, based on
 the centroid of the tracks. See \code{overview} vignette for details.}
-
-\item{species.code}{the 4-letter code for the species being QC'd - from config file.}
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
 in latter case diag is not right-truncated & date of first dive is used
