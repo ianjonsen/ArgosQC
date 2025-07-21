@@ -46,18 +46,7 @@ SMRU (`smru`) or Wildlife Computers (`wc`):
 ``` r
 library(ArgosQC)
 
-out <- atn_smru_qc(wd = "test",
-            datadir = "tagdata",
-            meta.file = "metadata/metadata.csv",
-            outdir = "smru/output",
-            proj = NULL,
-            model = "rw",
-            vmax = 3,
-            time.step = 6,
-            reroute = FALSE,
-            cut = FALSE,
-            QCmode = "dm",
-            output = TRUE)
+smru_qc(wd = "test", config = "test_conf.json")
 ```
 
 # Acknowledgements:
