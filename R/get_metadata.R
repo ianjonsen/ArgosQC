@@ -15,6 +15,8 @@
 ##' @param dropIDs SMRU refs or WC ids to be dropped
 ##' @param file path to metadata .csv file, if provided then metadata will be
 ##' read from the provided `source`
+##' @param meta.args optional metadata fields to be passed from config file when
+##' downloading tag metadata from SMRU server.
 ##' @param enc set locale encoding to handle special characters; default is "UTF-8"
 ##'
 ##'

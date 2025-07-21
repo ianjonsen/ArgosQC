@@ -32,6 +32,9 @@ cid SMRU campaign ids}
 \item{file}{path to metadata .csv file, if provided then metadata will be
 read from the provided \code{source}}
 
+\item{meta.args}{optional metadata fields to be passed from config file when
+downloading tag metadata from SMRU server.}
+
 \item{enc}{set locale encoding to handle special characters; default is "UTF-8"}
 }
 \description{
