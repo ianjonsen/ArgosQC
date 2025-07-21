@@ -86,9 +86,9 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ianjonsen/ArgosQC/" class="external-link">ArgosQC</a></span><span class="op">)</span></span></code></pre></div>
-<div class="section level2">
-<h2 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
-</h2>
+<div class="section level3">
+<h3 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
+</h3>
 <p><code>ArgosQC</code> provides automated workflows for quality
 controlling Argos &amp; GPS (when present) locations obtained from
 either SMRU SRDL or Wildlife Computers animal telemetry tags. Workflows
@@ -97,15 +97,16 @@ for SMRU tags is documented in <a href="https://repository.oceanbestpractices.or
 et al. 2024</a>. The workflow for Wildlife Computers tags is analogous,
 with differences due to the various tag data structures.</p>
 </div>
-<div class="section level2">
-<h2 id="workflows">Workflows<a class="anchor" aria-label="anchor" href="#workflows"></a>
-</h2>
+<div class="section level3">
+<h3 id="workflows">Workflows<a class="anchor" aria-label="anchor" href="#workflows"></a>
+</h3>
 <p>Several automated QC workflows have been set up for SMRU SRDL-CTD
 (and related) tags, and for Wildlife Computers SPOT, SPLASH and SCOUT
 tags. The workflows are specific to IMOS - AODN and ATN metadata and QC
 output data structure requirements. The following QC workflows can be
-implement from a single <code>ArgosQC</code> function, with output
-written to .CSV files in a user-specified directory:</p>
+implement from a single <code>ArgosQC</code> function &amp; a required
+config JSON file, with output written to .CSV files in a user-specified
+directory:</p>
 <table class="table">
 <colgroup>
 <col width="72%">
@@ -118,11 +119,11 @@ written to .CSV files in a user-specified directory:</p>
 <tbody>
 <tr class="odd">
 <td align="center">IMOS - AODN SMRU SRDL-CTD (and related) tags</td>
-<td align="center"><code>imos_smru_qc()</code></td>
+<td align="center"><code><a href="../reference/smru_qc.html">smru_qc()</a></code></td>
 </tr>
 <tr class="even">
 <td align="center">ATN SMRU SRDL-CTD (and related) tags</td>
-<td align="center"><code>atn_smru_qc()</code></td>
+<td align="center"><code><a href="../reference/smru_qc.html">smru_qc()</a></code></td>
 </tr>
 <tr class="odd">
 <td align="center">ATN Wildlife Computers SPOT, SPLASH, and SCOUT
@@ -138,43 +139,227 @@ well as organisational metadata and output data formatting requirements.
 The QC workflows can also be implemented by calling individual
 <code>ArgosQC</code> functions in series as required. This latter
 approach allows greater flexibility as intermediate &amp; final output
-data and metadata can be re-structured as needed. Both approaches are
-highlighted in examples below.</p>
+data and metadata can be re-structured as needed. The single function
+SMRU tag QC &amp; ATN Wildlife Computers tag workflows are highlighted
+below.</p>
 </div>
-<div class="section level2">
-<h2 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
-</h2>
+<div class="section level3">
+<h3 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h3>
 </div>
-<div class="section level2">
-<h2 id="atn-smru-srdl-ctd-tag-data-qc-workflow">1. ATN SMRU SRDL-CTD tag data QC workflow<a class="anchor" aria-label="anchor" href="#atn-smru-srdl-ctd-tag-data-qc-workflow"></a>
-</h2>
+<div class="section level3">
+<h3 id="smru-srdl-ctd-tag-data-qc-workflow">1. SMRU SRDL-CTD tag data QC workflow<a class="anchor" aria-label="anchor" href="#smru-srdl-ctd-tag-data-qc-workflow"></a>
+</h3>
+<p>The first step to initiate any ArgosQC workflow is to construct a
+JSON config file. The file is hierarchical in structure with as many as
+4 blocks: <code>setup</code>, <code>harvest</code>, <code>model</code>,
+and <code>meta</code>. The <code>meta</code> block is only required if
+no metadata file is provided in the <code>setup</code> block. These
+files can be constructed manually or programmatically and provide the
+ability to define certain aspects of the QC workflow. Below is the
+config file for an IMOS QC workflow on SMRU GPS SRDL-CTD tags deployed
+on olive ridley turtles on the Tiwi Islands, Australia.</p>
+<center>
+<img src="images/IMOS_config_JSON.png" style="width:70.0%">
+</center>
+The block-specific parameters are as follows:
+<ul><li>
+<code>setup</code> config block specifies the program overseeing data
+assembly &amp; paths to required data, metadata &amp; output
+directories:
+<ul>
+<li>
+<code>program</code> the national (or other) program of which the data
+is a part. Current options are: <code>imos</code>, <code>atn</code>, or
+<code>otn</code>.
+</li>
+<li>
+<code>data.dir</code> the name of the data directory. Must reside within
+the <code>wd</code>.
+</li>
+<li>
+<code>meta.file</code> the metadata filename. Must reside within the
+<code>wd</code>. Can be NULL, in which case, the <code>meta</code>
+config block (see below) must be present &amp; tag-specific metadata are
+scraped from the SMRU data server.
+</li>
+<li>
+<code>maps.dir</code> the directory path to write diagnostic maps of
+QC’d tracks.
+</li>
+<li>
+<code>diag.dir</code> the directory path to write diagnostic time-series
+plots of QC’d lon &amp; lat.
+</li>
+<li>
+<code>output.dir</code> the directory path to write QC output CSV files.
+Must reside within the <code>wd</code>.
+</li>
+<li>
+<code>return.R</code> a logical indicating whether the function should
+return a list of QC-generated, internal R objects. This results in a
+single large object returned to the R work space containing the
+following elements:
+<ul>
+<li>
+<code>cid</code> the SMRU campaign ID
+</li>
+<li>
+<code>dropIDs</code> the SMRU Reference ID’s dropped from the QC process
+</li>
+<li>
+<code>smru</code> the SMRU tag data tables extracted from the downloaded
+.mdb file
+</li>
+<li>
+<code>meta</code> the working metadata
+</li>
+<li>
+<code>locs_sf</code> the projected location data to be passed as input
+to the SSM
+</li>
+<li>
+<code>fit1</code> the initial SSM output fit object
+</li>
+<li>
+<code>fit2</code> the final SSM output fit object including re-routed
+locations if specified.
+</li>
+<li>
+<code>smru_ssm</code> the SSM-annotated SMRU tag data tables. This
+output object can be useful for troubleshooting undesirable results
+during delayed-mode (supervised) QC workflows.<br>
+</li>
+</ul>
+</li>
+</ul>
+</li></ul>
+<ul><li>
+<code>harvest</code> config block specifies data harvesting parameters:
+<ul>
+<li>
+<code>download</code> a logical indicating whether tag data are to be
+downloaded from the SMRU data server or read from the local
+<code>data.dir</code>.
+</li>
+<li>
+<code>cid</code> SMRU campaign ID.
+</li>
+<li>
+<code>smru.usr</code> SMRU data server username as a string.
+</li>
+<li>
+<code>smru.pwd</code> SMRU data server password as a string.
+</li>
+<li>
+<code>timeout</code> extends the download timeout period a specified
+number of seconds for slower internet connections.
+</li>
+<li>
+<code>dropIDs</code> the SMRU ref ID’s that are to be ignored during the
+QC process. Can be NULL.
+</li>
+<li>
+<code>p2mdbtools</code> (optional) provides the path to the mdbtools
+library if it is installed in a non-standard location (e.g., on Macs
+when installed via Homebrew).<br>
+</li>
+</ul>
+</li></ul>
+<ul><li>
+<code>model</code> config block specifies model- and data-specific
+parameters:
+<ul>
+<li>
+<code>model</code> the aniMotum SSM model to be used for the location QC
+- typically either <code>rw</code> or <code>crw</code>.
+</li>
+<li>
+<code>vmax</code> for SSM fitting; max travel rate (m/s) to identify
+implausible locations
+</li>
+<li>
+<code>time.step</code> the prediction interval (in decimal hours) to be
+used by the SSM
+</li>
+<li>
+<code>proj</code> the proj4string to be used for the location data &amp;
+for the SSM-estimated locations. Can be NULL, which will result in one
+of 5 projections being used, depending on whether the centroid of the
+observed latitudes lies in N or S polar regions, temperate or equatorial
+regions, or if tracks straddle (or lie close to) -180,180 longitude.
+</li>
+<li>
+<code>reroute</code> a logical; whether QC’d tracks should be re-routed
+off of land (default is FALSE). Note, in some circumstances this can
+substantially increase processing time. Default land polygon data are
+sourced from the <code>ropensci/rnaturalearthhires</code> R package.
+</li>
+<li>
+<code>dist</code> the distance in km from outside the convex hull of
+observed locations from which to select land polygon data for
+re-routing. Ignored if <code>reroute = FALSE</code>.
+</li>
+<li>
+<code>buffer</code> the distance in km to buffer rerouted locations from
+the coastline. Ignored if <code>reroute = FALSE</code>.
+</li>
+<li>
+<code>centroids</code> whether centroids are to be included in the
+visibility graph mesh used by the rerouting algorithm. See
+<code>?pathroutr::prt_visgraph</code> for details. Ignored if
+<code>reroute = FALSE</code>.
+</li>
+<li>
+<code>cut</code> logical; should predicted locations be dropped if they
+lie within in a large data gap (default is FALSE).
+</li>
+<li>
+<code>min.gap</code> the minimum data gap duration (h) to be used for
+cutting predicted locations (default is 72 h)
+</li>
+<li>
+<code>QCmode</code> one of either <code>nrt</code> for Near Real-Time QC
+or <code>dm</code> for Delayed Mode QC.
+</li>
+</ul>
+</li></ul>
+<ul><li>
+<code>meta</code> config block specifies species and deployment location
+information. This config block is only necessary when no metadata file
+is provided in the <code>setup</code> block.
+<ul>
+<li>
+<code>common_name</code> the species common name (e.g., “southern
+elephant seal”)
+</li>
+<li>
+<code>species</code> the species scientific name (e.g., “Mirounga
+leonina”)
+</li>
+<li>
+<code>release_site</code> the location where tags were deployed (e.g.,
+“Iles Kerguelen”)
+</li>
+<li>
+<code>state_country</code> the country/territory name (e.g., “French
+Overseas Territory”)
+</li>
+</ul>
+</li></ul>
+<p>With a completed config file, the standard call within R is:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">atn_smru_qc</span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>,</span>
-<span>            datadir <span class="op">=</span> <span class="st">"tagdata"</span>,</span>
-<span>            meta.file <span class="op">=</span> <span class="st">"metadata/metadata.csv"</span>,</span>
-<span>            outdir <span class="op">=</span> <span class="st">"smru/output"</span>,</span>
-<span>            proj <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>            model <span class="op">=</span> <span class="st">"rw"</span>,</span>
-<span>            vmax <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>            time.step <span class="op">=</span> <span class="fl">6</span>,</span>
-<span>            reroute <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>            cut <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>            QCmode <span class="op">=</span> <span class="st">"dm"</span>,</span>
-<span>            output <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>The first 4 arguments provide the file paths for the working
-directory <code>wd</code>, the tag data directory <code>datadir</code>,
-the metadata file path <code>meta.file</code>, and the QC output
-directory <code>outdir</code>. The paths provided can have arbitrary
-names but the assumption is that all paths lie within the outer working
-directory <code>wd</code>. <code>atn_smru_qc()</code> will also generate
-two additional directories: <code>maps</code> and <code>diag</code>,
-inside the <code>output</code> directory, for a map of all QC’d tracks
-and diagnostic plots of the state-space model (SSM) fits to the
-tag-measured locations. These plots display the SSM-estimated longitudes
-overlaid on the tag-measured longitudes, and similarly for latitude.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/smru_qc.html">smru_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"imos_config.json"</span><span class="op">)</span></span></code></pre></div>
+<p>where <code>wd</code> is the file path for the working directory
+within which all QC data/metadata inputs are downloaded (or read) and
+outputs are written.</p>
+<div class="section level4">
+<h4 id="additional-details-on-config-parameters">Additional details on config parameters<a class="anchor" aria-label="anchor" href="#additional-details-on-config-parameters"></a>
+</h4>
 <p>The <code>proj</code> argument specifies the projection (as a
-<code>proj4string</code>) to be used for the tag-measured long,lat data,
-ie. the working projection in <code>km</code> for the SSM. Any valid
+<code>proj4string</code>) to which the tag-measured locations are
+converted as input to the QC state-space model (SSM), ie. the working
+projection in <code>km</code> for the SSM. Any valid
 <code>proj4string</code> may be used, provided the units are in
 <code>km</code>. If <code>proj</code> is left as <code>NULL</code> then
 the QC algorithm will project the data differently depending on the
@@ -213,30 +398,34 @@ origin at tracks’ centroid</td>
 <p>The <code>model</code> argument specifies the <code>aniMotum</code>
 SSM to be used; typically either <code>rw</code> or <code>crw</code>.
 The latter is usually less biased when data gaps are absent, the former
-is best when data gaps are present. The SSM fitting algorithm has a few
-fundamental parameters that need to be specified; <code>vmax</code> is
-the animals’ maximum plausible travel rate in
+is best when data gaps are present. A general recommendation is to use
+<code>model</code>:<code>rw</code> as the SSM for unsupervised (e.g.,
+NRT) QC workflows. The SSM fitting algorithm has a few fundamental
+parameters that need to be specified; <code>vmax</code> is the animals’
+maximum plausible travel rate in
 ms<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">^{-1}</annotation></semantics></math>.
-For example, <code>vmax=3</code> is usually appropriate for seals and
-<code>vmax=2</code> for turtles. The SSM prediction interval in hours is
-specified with <code>time.step</code>. This time interval determines the
-temporal resolution of the predicted track. The predicted track
-locations provide the basis for interpolation to the time of each
-tag-measured ocean observation or behavioural event. Typically, 6 hours
-is appropriate for most Argos data collected from seals and turtles but
-a finer time interval may be required for faster moving species and/or
-more frequently measured ocean observations, and a coarser interval for
-more sporadically observed locations. Further details on SSM fitting to
-Argos and GPS data are provided in the associated R package <a href="https://ianjonsen.github.io/aniMotum/" class="external-link">aniMotum vignettes</a> and
+For example, <code>vmax</code>:<code>3</code> is usually appropriate for
+seals and <code>vmax</code>:<code>2</code> for turtles. The SSM
+prediction interval in hours is specified with <code>time.step</code>.
+Decimal hours can be used for <code>time.steps</code> shorter than 1 hr.
+This time interval determines the temporal resolution of the predicted
+track. The predicted track locations provide the basis for interpolation
+to the time of each tag-measured ocean observation or behavioural event.
+Typically, 6 hours is appropriate for most Argos data collected from
+seals and turtles but a finer time interval may be required for faster
+moving species and/or more frequently measured ocean observations, and a
+coarser interval for more sporadically observed locations. Further
+details on SSM fitting to Argos and GPS data are provided in the
+associated R package <a href="https://ianjonsen.github.io/aniMotum/" class="external-link">aniMotum vignettes</a> and
 in <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.14060" class="external-link">Jonsen
 et al. 2023</a>.</p>
 <p>When animals pass close to land some SSM-predicted locations may
 implausibly lie on land. Often, this is due to the spatial and temporal
 resolution of the Argos tracking data. In these cases, SSM-predicted
 locations can be adjusted minimally off of land by setting
-<code>reroute = TRUE</code> (the default is FALSE). The <a href="https://jmlondon.github.io/pathroutr/" class="external-link"><code>pathroutr</code> R
+<code>reroute</code>:<code>true</code>. The <a href="https://jmlondon.github.io/pathroutr/" class="external-link"><code>pathroutr</code> R
 package</a> is used for efficient rerouting. In this case, additional
-arguments may be specified:</p>
+arguments should be specified:</p>
 <p><code>dist</code> - the distance in km beyond track locations from
 which coastline polygon data should be sampled (smaller provides less
 information for path re-routing, greater increase computation time)</p>
@@ -245,15 +434,15 @@ from the coastline</p>
 <p><code>centroid</code>- whether to include the visibility graph
 centroids for greater resolution</p>
 <p>SSM-predicted tracks can be <code>cut</code>
-(<code>cut = TRUE</code>) in regions where large location data gaps
-exist. These location data gaps can occur when the tags are unable to
-transmit for extended periods or when animal surfacing occurs during
-periods of Argos satellite unavailability (more common closer to the
-equator than at higher latitudes). In this case, <code>min.gap</code> is
-used to specify the minimum data gap duration (h) from which to cut
-SSM-predicted locations. This will limit interpolation artefacts due to
-implausible SSM-predicted locations in excessively long data gap
-periods.</p>
+(<code>cut</code>:<code>true</code>) in regions where large location
+data gaps exist. These location data gaps can occur when the tags are
+unable to transmit for extended periods or when animal surfacing occurs
+during periods of Argos satellite unavailability (more common closer to
+the equator than at higher latitudes). In this case,
+<code>min.gap</code> is used to specify the minimum data gap duration
+(h) from which to cut SSM-predicted locations. This will limit
+interpolation artefacts due to implausible SSM-predicted locations in
+excessively long data gap periods.</p>
 <p>The <code>QCmode</code> sets whether the QC is being conducted in
 delayed-mode <code>dm</code> or near real-time <code>nrt</code>.
 Delayed-mode is reserved for when tag deployments have ended and usually
@@ -261,23 +450,16 @@ involve greater user intervention; such as making decisions on removing
 aberrant portions of a deployment (e.g., as tag batteries begin
 failing). The <code>nrt</code> mode is mean to be fully automated and
 only used while a deployment is active. In both cases, the output .CSV
-and plot filenames will include the <code>QCmode</code> as a suffix.</p>
-<p>The <code>output = TRUE</code> argument (the default is
-<code>output = FALSE</code>) can be used to return all
-workflow-generated R objects in a single, named list. As in the above
-example code. This can be useful for troubleshooting errors and provides
-a starting point for examining the QC output during a supervised,
-delay-mode QC workflow.</p>
-<p>In the above example, the main QC outputs were written to files and
-all intermediate objects were returned as a list in <code>out</code>.
-The QC output .CSV files were written to the specified output directory.
+and plot file names will include the <code>QCmode</code> as a
+suffix.</p>
+<p>In the above example, the main QC outputs were written to files. The
+QC output .CSV files were written to the specified output directory.
 Each .CSV file includes the name of the SMRU data table, when present
 (ctd, diag, dive, haulout, summary) or the QC file (metadata,
-ssmoutputs). Each of these files. For ATN QC workflows, each of these
-filenames is appended with the species’ AnimallAphiaID and the ATN
-ADRProjectID. <img src="images/CSV_files.png" style="width:95.0%"></p>
-<p>The map &amp; diagnostic plots were written to their respective
-<code>diag</code> and <code>maps</code> directories: <img src="images/diag_files.png" style="width:95.0%"><img src="images/map_file.png" style="width:95.0%"></p>
+ssmoutputs). For QC workflows of ATN data, each of these file names is
+appended with the species’ AnimalAphiaID and the ADRProjectID. For IMOS
+and other program data, the file names are appended with the SMRU
+campaign ID.</p>
 <p>The diag files show the SSM fit (red) overlaid on the tag-measured
 Argos &amp;/or GPS locations (blue). The dark grey vertical bars denote
 the time period tags were actively recording locations but the seal(s)
@@ -289,9 +471,9 @@ typically only addressed during a delayed-mode QC workflow. <img src="images/lat
 estimated location (red) for each deployed tag. The map files are
 annotated by the QC date so they are not overwritten by successive QC
 runs. <img src="images/map_2025-06-18.jpg" style="width:95.0%"></p>
-<div class="section level4">
-<h4 id="output--csv-files">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files"></a>
-</h4>
+<div class="section level5">
+<h5 id="output--csv-files">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files"></a>
+</h5>
 <p>The QC’s main outputs, the .CSV files contain all records from the
 original SMRU data tables and are appended with the following additional
 columns: <code>ssm_lat</code>, <code>ssm_lon</code>, <code>ssm_x</code>,
@@ -307,9 +489,9 @@ to animals going to sea (at deployment start) and portions when either
 the CTD or pressure sensor failed, eg. due to biofouling or seawater
 ingress, but tag still transmitted locations (near deployment end).</p>
 </div>
-<div class="section level4">
-<h4 id="metadata--csv-file">Metadata .CSV file<a class="anchor" aria-label="anchor" href="#metadata--csv-file"></a>
-</h4>
+<div class="section level5">
+<h5 id="metadata--csv-file">Metadata .CSV file<a class="anchor" aria-label="anchor" href="#metadata--csv-file"></a>
+</h5>
 <p>The metadata file contains all the original ATN metadata records plus
 the following additions describing the QC workflow applied to the
 data:</p>
@@ -334,9 +516,9 @@ was used.</li>
 to the data.</li>
 </ul>
 </div>
-<div class="section level4">
-<h4 id="ssmoutputs--csv-file">SSMOutputs .CSV file<a class="anchor" aria-label="anchor" href="#ssmoutputs--csv-file"></a>
-</h4>
+<div class="section level5">
+<h5 id="ssmoutputs--csv-file">SSMOutputs .CSV file<a class="anchor" aria-label="anchor" href="#ssmoutputs--csv-file"></a>
+</h5>
 <p>The SSMOutputs file contains the SSM-predicted locations at the
 <code>time.step</code> specified prediction interval. The time of the
 first location is set to the time of the first tag-measured location
@@ -350,9 +532,13 @@ coordinate projection is provided in the metadata .CSV file
 (<code>QCproj4string</code>).</p>
 </div>
 </div>
+</div>
 <div class="section level2">
-<h2 id="atn-wildlife-computers-tag-data-qc-workflow">2. ATN Wildlife Computers tag data QC workflow<a class="anchor" aria-label="anchor" href="#atn-wildlife-computers-tag-data-qc-workflow"></a>
+<h2 id="following-to-be-updated">FOLLOWING TO BE UPDATED…<a class="anchor" aria-label="anchor" href="#following-to-be-updated"></a>
 </h2>
+<div class="section level3">
+<h3 id="atn-wildlife-computers-tag-data-qc-workflow">2. ATN Wildlife Computers tag data QC workflow<a class="anchor" aria-label="anchor" href="#atn-wildlife-computers-tag-data-qc-workflow"></a>
+</h3>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/atn_wc_qc.html">atn_wc_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>,</span>
 <span>                 datadir <span class="op">=</span> <span class="st">"tagdata"</span>,</span>
@@ -389,9 +575,9 @@ Computers Portal are possible without these key pairs.</p>
 <p>Alternatively, <code><a href="../reference/atn_wc_qc.html">atn_wc_qc()</a></code> may be used with local copies
 of Wildlife Computers tag data, provided they are stored in tag-specific
 directories within the <code>datadir</code> directory.</p>
-<div class="section level4">
-<h4 id="output--csv-files-1">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files-1"></a>
-</h4>
+<div class="section level5">
+<h5 id="output--csv-files-1">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files-1"></a>
+</h5>
 <p>The QC’s main outputs are the Wildlife Computers tag data files
 appended with the same QC’d location variables as the SMRU tag QC output
 files: <code>ssm_lat</code>, <code>ssm_lon</code>, <code>ssm_x</code>,
@@ -425,6 +611,7 @@ are appended with the species’ AnimalAphiaID, the ATN ADRProjectID and
 the <code>QCmode</code> suffix - <code>_nrt</code> or <code>_dm</code>.
 The metadata structure and appended QC variables are the same as
 described for the SMRU QC workflow.</p>
+</div>
 </div>
 </div>
   </div>
