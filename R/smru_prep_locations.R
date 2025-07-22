@@ -265,27 +265,12 @@ smru_prep_loc <- function(smru,
     do(d_sf = proj.fn(.)) |>
     ungroup() |>
     mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
-
-  if("device_id" %in% names(meta)) {
-    msp <- meta |>
-      select(device_id, species) |>
-      mutate(sp = species.code)
-
-    diag_sf <- diag_sf |>
-      left_join(msp, by = c("ref" = "device_id"))
-
-  } else if ("DeploymentID" %in% names(meta)) {
-
-    msp <- meta |> select(DeploymentID, AnimalScientificName)
-    msp <- left_join(msp, spcodes, by = c("AnimalScientificName" = "species"))
-    diag_sf <- diag_sf |>
-      left_join(msp, by = c("ref" = "DeploymentID"))
-  }
-
+  # }
 
   diag_sf <- diag_sf |>
     dplyr::select(ref, cid, d_sf)
 
   return(diag_sf)
+
 
 }
