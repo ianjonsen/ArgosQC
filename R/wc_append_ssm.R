@@ -279,6 +279,13 @@ wc_append_datafile <- function(wc,
                                deploy_meta,
                                dropIDs) {
 
+  ## get *LIMITS & replace NA Date with Date of 1st obs minus 1 h
+  if ("HistType" %in% names(wc)) {
+    idx <- grep("LIMITS", wc$HistType)
+    foo <- wc[idx, ]
+    foo$Date <- wc$Date[idx + 1] - 3600
+  }
+
   wc <- wc |>
     left_join(deploy_meta, by = "DeploymentID") |>
     filter(Date >= dive_start) |>
@@ -287,6 +294,14 @@ wc_append_datafile <- function(wc,
     arrange(Date, .by_group = TRUE) |>
     ungroup()
 
+  ## merge LIMITS back into wc & order by date
+  if("HistType" %in% names(wc)) {
+    wc <- bind_rows(wc, foo) |>
+      group_by(DeploymentID) |>
+      arrange(Date, .by_group = TRUE) |>
+      ungroup()
+  }
+
   out <- locs |>
     group_by(DeploymentID) |>
     do(locs = approx_ssm(., wc = wc)) |>
@@ -294,6 +309,13 @@ wc_append_datafile <- function(wc,
 
   out <- left_join(wc, out, by = c("DeploymentID", "Date")) |>
     distinct()
+
+  if("HistType" %in% names(wc)) {
+    ## reinsert Date NA's where HistType is *LIMITS
+    out <- out |>
+      mutate(Date = ifelse(grepl("LIMITS", HistType), NA, Date)) |>
+      mutate(Date = as.POSIXct(Date, tz = "UTC"))
+  }
 
   out
 

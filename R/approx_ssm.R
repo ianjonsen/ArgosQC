@@ -12,9 +12,17 @@
 
 approx_ssm <- function(sloc, wc) {
   if ("Date" %in% names(wc)) {
-    dt <- wc |>
-      filter(DeploymentID == sloc$DeploymentID[1]) |>
-      pull(Date)
+    if ("HistType" %in% names(wc)) {
+      dt <- wc |>
+        filter(DeploymentID == sloc$DeploymentID[1]) |>
+        mutate(Date = ifelse(HistType == grepl("LIMITS", HistType), NA, Date)) |>
+        mutate(Date = as.POSIXct(Date, tz = "UTC")) |>
+        pull(Date)
+    } else {
+      dt <- wc |>
+        filter(DeploymentID == sloc$DeploymentID[1]) |>
+        pull(Date)
+    }
   } else if ("End" %in% names(wc)) {
     dt <- wc |>
       filter(DeploymentID == sloc$DeploymentID[1]) |>
