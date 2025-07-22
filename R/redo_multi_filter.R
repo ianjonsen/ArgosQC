@@ -62,8 +62,17 @@ redo_multi_filter <-
     fit.s <- fit %>% ungroup() %>% slice(-d)
 
     ## get data for fit failures
-    fail_dat <- diag_sf %>%
-      filter(ref %in% fit.f$id)
+    if("ref" %in% names(diag_sf)) {
+      ## SMRU data
+      fail_dat <- diag_sf %>%
+        filter(ref %in% fit.f$id)
+
+    } else if ("DeploymentID" %in% names(diag_sf)) {
+      ## WC data
+      fail_dat <- diag_sf %>%
+        filter(DeploymentID %in% fit.f$id)
+    }
+
 
     ## Refit Stage 1 - refit with a bigger min.dt
     fit_fail <- fail_dat$d_sf %>%
