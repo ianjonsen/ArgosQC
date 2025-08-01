@@ -20,6 +20,8 @@
 ##' tag-specific subdirectories. `path2data` should point to the outer directory.
 ##'
 ##' @param path2data path to all WC tag data files.
+##' @param subset.ids a single column .CSV file of WC UUID's to be included in
+##' the QC, with uuid as the variable name.
 ##'
 ##' @importFrom dplyr select mutate bind_rows everything case_when as_tibble
 ##' @importFrom lubridate dmy_hms
@@ -30,7 +32,8 @@
 ##' @md
 ##' @export
 
-wc_pull_data <- function(path2data) {
+wc_pull_data <- function(path2data,
+                         subset.ids) {
 
   ## All known WC data files to be QC'd + regex expressions to obtain latest
   ##    WC-post-processed Locations and FastGPS files
@@ -50,6 +53,14 @@ wc_pull_data <- function(path2data) {
       "SST"
     )
 
+  if(!is.null(subset.ids)) {
+    ids <- read_csv(subset.ids) |>
+      suppressMessages()
+    if(names(ids) != "uuid" | length(names(ids)) != 1) stop("Variable name for the WC ID's to QC'd must be 'uuid'")
+  } else {
+    ids <- NULL
+  }
+
   ## drop tag dirs with *-Locations.csv files < 20 Argos locations &/or without *-Locations.csv
   ##    file(s) b/c these latter dirs likely contain SMRU data
   dirs <- list.dirs(path2data)[-1]
@@ -57,15 +68,30 @@ wc_pull_data <- function(path2data) {
   idx <- sapply(1:length(dirs), function(i) {
     fs <- list.files(dirs[i])
     if (length(fs[grep("[0-9]-Locations.csv", fs)]) > 0) {
-      nrow(read_csv(file.path(dirs[i], fs[grep("[0-9]-Locations.csv", fs)][1]), col_types = cols()))
+      nrow(read_csv(file.path(dirs[i], fs[grep("[0-9]-Locations.csv", fs)][1]), col_types = cols()) |>
+             suppressWarnings())
     } else {
       0
     }
   })
+
   if (inherits(idx, "list"))
     idx <- unlist(idx)
-  idx <- idx > 20
-  ndirs <- dirs[idx]
+
+  ## reduce to only the subset in subset.ids (if !is.null)
+  if(!is.null(ids)) {
+    dd <- dirs[idx > 0]
+    sub <- purrr::map(ids$uuid, stringr::str_detect, string = dd) |>
+      sapply(which) |>
+      sort()
+    ndirs <- dd[sub]
+
+  } else {
+    ## ignore any tag datasets with <= 20 observed locations
+    idx <- idx > 20
+    ndirs <- dirs[idx]
+  }
+
 
   ## get all required data filenames
   fs <- lapply(1:length(ndirs), function(i) {
@@ -89,6 +115,7 @@ wc_pull_data <- function(path2data) {
                      show_col_types = FALSE,
                      name_repair = "unique_quiet") |>
         suppressMessages()
+
       ## detect & account for any leading blank rows in .csv files
       nn <- rowSums(is.na(xx)) == ncol(xx)
       ns <- sum(nn)
@@ -100,15 +127,20 @@ wc_pull_data <- function(path2data) {
           suppressMessages()
       }
 
+      if(nrow(xx) > 0) {
       xx |>
         mutate(DeploymentID = unique(str_split(x[[i]], "\\/", simplify = TRUE)[,2])) |>
         mutate(DeploymentID = str_split(DeploymentID, "\\_", simplify = TRUE)[,1]) |> ## removes _suffix (Tag serial number) if present
         select(DeploymentID, everything())
+      } else {
+        NULL
+      }
     })
     nms <- str_split(str_split(x, "\\.", simplify = TRUE)[,1], "-(?=[^-]+$)", simplify = TRUE)[,2]
     names(out) <- nms
     out
   }))
+
 
   ## Locations df
   ## Need to ensure variable names are exactly the same before binding df rows

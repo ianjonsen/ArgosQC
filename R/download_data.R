@@ -19,6 +19,8 @@
 ##' @param pwd SMRU data server password as a quoted string
 ##' @param wc.akey an Access Key issued by Wildlife Computers for their API
 ##' @param wc.skey a Secret Key issued by Wildlife Computers for their API
+##' @param subset.ids a single column .CSV file of WC UUID's to be included in
+##' the QC, with uuid as the variable name.
 ##' @param ... additional arguments passed to `smru_get_mdb` or `wc_get_files()`
 ##'
 ##' @importFrom utils unzip
@@ -35,6 +37,9 @@ download_data <- function(path = NULL,
                      pwd = NULL,
                      wc.akey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
                      wc.skey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
+                     owner.id = NULL,
+                     subset.ids = NULL,
+                     download = TRUE,
                      ...) {
 
   source <- match.arg(source, choices = c("smru", "wc", "googledrive", "dropbox", "local"))
@@ -73,7 +78,11 @@ download_data <- function(path = NULL,
     meta <- wc_get_files(dest = dest,
                  a.key = wc.akey,
                  s.key = wc.skey,
-                 ...)
+                 owner.id = owner.id,
+                 subset.ids,
+                 ...,
+                 download = download,
+                 return.tag.meta = TRUE)
 
   } else if(source == "local") {
 

@@ -15,7 +15,7 @@
 ##' @param dpath path to write all other diagnostic files
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case start end end of dive data are displayed rather than ctd data
-##' @param cid SMRU campaign id (from config file)
+##' @param cid SMRU campaign id (from config file). Ignored if WC data is used.
 ##'
 ##'
 ##' @importFrom dplyr %>% group_by summarise pull
@@ -44,7 +44,8 @@ diagnostics <-
            mpath = NULL,
            dpath = NULL,
            QCmode = "nrt",
-           cid) {
+           tag_mfr = "wc",
+           cid = NULL) {
 
     if(is.null(mpath)) stop("A valid file path for the map must be provided")
     if(is.null(dpath)) stop("A valid file path for the diagnostics must be provided")
@@ -88,16 +89,32 @@ diagnostics <-
           coord_sf(xlim = st_bbox(locs)[c(1, 3)], ylim = st_bbox(locs)[c(2, 4)]) +
           theme_minimal())
 
-        ggsave(
-          file.path(mpath, paste0(
-            "map_", cid, "_", Sys.Date(), ".png"
-          )),
-          width = 8,
-          height = 10,
-          units = "in",
-          dpi = 300,
-          bg = "white"
-        )
+        if(!is.null(cid)) {
+          ggsave(
+            file.path(mpath, paste0(
+              "map_", cid, "_", Sys.Date(), ".png"
+            )),
+            width = 8,
+            height = 10,
+            units = "in",
+            dpi = 300,
+            bg = "white"
+          )
+
+        } else {
+          browser()
+          ggsave(
+            file.path(mpath, paste0(
+              "map_", cid, "_", Sys.Date(), ".png"
+            )),
+            width = 8,
+            height = 10,
+            units = "in",
+            dpi = 300,
+            bg = "white"
+          )
+        }
+
 
         return(flocs)
       }) |>
@@ -128,6 +145,7 @@ diagnostics <-
                  ylim = st_bbox(locs)[c(2, 4)]) +
         theme_minimal())
 
+      if(!is.null(cid)) {
       ggsave(
         file.path(mpath, paste0(
           "map_", cid, "_", Sys.Date(), ".png"
@@ -138,6 +156,18 @@ diagnostics <-
         dpi = 300,
         bg = "white"
       )
+      } else {
+        ggsave(
+          file.path(mpath, paste0(
+            "map_", Sys.Date(), ".png"
+          )),
+          width = 8,
+          height = 10,
+          units = "in",
+          dpi = 300,
+          bg = "white"
+        )
+      }
 
     }
 
@@ -183,7 +213,7 @@ diagnostics <-
                  ncol = 6)
     )
 
-    if(QCmode == "nrt") {
+    if(QCmode == "nrt" & tag_mfr == "smru") {
       p.lat <- suppressWarnings(p.lat + geom_rect(
         data = meta |> filter(!is.na(start_date),
                               !is.na(ctd_start)),
@@ -211,7 +241,7 @@ diagnostics <-
           colour = NA
         ))
 
-    } else if(QCmode == "dm") {
+    } else if(QCmode == "dm" | tag_mfr == "wc") {
       p.lat <- suppressWarnings(p.lat + geom_rect(
         data = meta |> filter(!is.na(start_date),
                               !is.na(dive_start)),
@@ -240,16 +270,29 @@ diagnostics <-
         ))
     }
 
+    if(!is.null(cid)) {
+      suppressWarnings(ggsave(
+        file.path(dpath,
+                  paste0("lat_coverage_", cid, ".jpg")),
+        plot = p.lat,
+        width = 15,
+        height = 20,
+        units = "in",
+        dpi = 150
+      ))
 
-    suppressWarnings(ggsave(
-      file.path(dpath,
-                paste0("lat_coverage_", cid, ".jpg")),
-      plot = p.lat,
-      width = 15,
-      height = 20,
-      units = "in",
-      dpi = 150
-    ))
+    } else {
+      suppressWarnings(ggsave(
+        file.path(dpath,
+                  paste0("lat_coverage_", ".jpg")),
+        plot = p.lat,
+        width = 15,
+        height = 20,
+        units = "in",
+        dpi = 150
+      ))
+    }
+
 
 
     ## Longitude coverage plots
@@ -264,7 +307,7 @@ diagnostics <-
           ncol = 6
         ))
 
-    if(QCmode == "nrt") {
+    if(QCmode == "nrt" & tag_mfr == "smru") {
       p.lon <- suppressWarnings(p.lon + geom_rect(
         data = meta |> filter(!is.na(start_date),
                               !is.na(ctd_start)),
@@ -292,7 +335,7 @@ diagnostics <-
           colour = NA
         ))
 
-    } else if(QCmode == "dm") {
+    } else if(QCmode == "dm" | tag_mfr == "wc") {
       p.lon <- suppressWarnings(p.lon + geom_rect(
         data = meta |> filter(!is.na(start_date),
                               !is.na(dive_start)),
@@ -321,15 +364,24 @@ diagnostics <-
         ))
     }
 
-    suppressWarnings(ggsave(
-      file.path(dpath,
-                paste0("lon_coverage_", cid, ".jpg")),
-      plot = p.lon,
-      width = 15,
-      height = 20,
-      units = "in",
-      dpi = 150
-    ))
-
+    if (!is.null(cid)) {
+      suppressWarnings(ggsave(
+        file.path(dpath, paste0("lon_coverage_", cid, ".jpg")),
+        plot = p.lon,
+        width = 15,
+        height = 20,
+        units = "in",
+        dpi = 150
+      ))
+    } else {
+      suppressWarnings(ggsave(
+        file.path(dpath, paste0("lon_coverage_", ".jpg")),
+        plot = p.lon,
+        width = 15,
+        height = 20,
+        units = "in",
+        dpi = 150
+      ))
+    }
   }
 

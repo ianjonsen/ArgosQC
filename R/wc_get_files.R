@@ -11,12 +11,18 @@
 ##' @param a.key an Access Key issued by Wildlife Computers for their API
 ##' @param s.key a Secret Key issued by Wildlife Computers for their API
 ##' @param owner.id a WC data owner ID
+##' @param subset.ids a single column .CSV file of WC UUID's to be included in
+##' the QC, with uuid as the variable name.
 ##' @param collaborator (logical) should data owned by collaborators be
 ##' downloaded. Ignored if `owner.id` provided.
 ##' @param unzip (logical) should deployment zipfile be unzipped into destination
 ##' directory.
+##' @param download (logical) should the tag data files be download from the WC Data portal.
+##' If FALSE then only the WC tag metadata is downloaded.
+##' @param return.tag.meta (logical) should tag metadata constructed from WC dataset
+##' information be returned
 ##'
-##' @importFrom dplyr select mutate bind_rows
+##' @importFrom dplyr select mutate bind_rows bind_cols
 ##' @importFrom assertthat assert_that
 ##' @importFrom tidyr drop_na
 ##' @importFrom utils unzip
@@ -31,9 +37,12 @@ wc_get_files <- function(dest = NULL,
                          a.key = NULL,
                          s.key = NULL,
                          owner.id = NULL,
+                         subset.ids = NULL,
                          collaborator = TRUE,
                          unzip = TRUE,
-                         verbose = FALSE) {
+                         verbose = FALSE,
+                         download = TRUE,
+                         return.tag.meta = FALSE) {
 
   assert_that(!is.null(a.key), msg = "A valid wc.akey (Access Key) must be provided when downloading data from Wildlife Computers")
   assert_that(!is.null(s.key), msg = "A valid wc.skey (Secret Key) must be provided when downloading data from Wildlife Computers")
@@ -93,42 +102,92 @@ wc_get_files <- function(dest = NULL,
       xmlParse() |>
       xmlRoot()
 
+    ## Parse XML and extract required metadata
     deps <- xmlToDataFrame(nodes = getNodeSet(xml, "//deployment")) |>
-      select(id, owner, status, tag, deploy_date = deployment, last_update_date) |>
-      filter(!is.na(deploy_date)) |>
-      mutate(deploy_date = as.character(deploy_date)) |>
-      mutate(deploy_date = str_split(deploy_date, "\\-", simplify = TRUE)[,1]) |>
-      mutate(deploy_date = as.numeric(deploy_date)) |>
-      mutate(deploy_date = as.POSIXct(deploy_date, origin = "1970-01-01", tz = "UTC")) |>
-      mutate(last_update_date = as.numeric(last_update_date)) |>
-      mutate(last_update_date = as.POSIXct(last_update_date, origin = "1970-01-01", tz = "UTC"))
+      drop_na(id, argos) |>
+      select(id, owner, status, tag, argos, deployment, last_update_date, last_location)
+
+    argos <- xmlToDataFrame(nodes = getNodeSet(xml, "//argos")) |>
+      rename(sattag_program = program_number,
+             ptt = ptt_decimal)
+
+    deps <- bind_cols(deps, argos) |>
+      drop_na(last_location)
+
+    last_loc <- xmlToDataFrame(nodes = getNodeSet(xml, "//last_location")) |>
+      rename(last_loc_date = location_date,
+             last_loc_lon = longitude,
+             last_loc_lat = latitude)
+
+    deps <- bind_cols(deps, last_loc) |>
+      drop_na(deployment)
+
+    deploy <- xmlToDataFrame(nodes = getNodeSet(xml, "//start"), homogeneous = TRUE)
+    names(deploy) <- c("deploy_date", "deploy_lat", "deploy_lon")
+
+    ## combine & transform dates to POSIXt
+    deps <- bind_cols(deps, deploy) |>
+      mutate(last_update_date = as.POSIXct(as.numeric(last_update_date), origin = "1970-01-01", tz = "UTC")) |>
+      mutate(first_uplink_date = as.POSIXct(as.numeric(first_uplink_date), origin = "1970-01-01", tz = "UTC")) |>
+      mutate(last_uplink_date = as.POSIXct(as.numeric(last_uplink_date), origin = "1970-01-01", tz = "UTC")) |>
+      mutate(last_loc_date = as.POSIXct(as.numeric(last_loc_date), origin = "1970-01-01", tz = "UTC")) |>
+      mutate(deploy_date = as.POSIXct(as.numeric(deploy_date), origin = "1970-01-01", tz = "UTC"))
+
+    ## select final variables
+    deps <- deps |>
+      select(id, owner, sattag_program, ptt, tag, deploy_date,
+             deploy_lon, deploy_lat, first_uplink_date, last_uplink_date,
+             last_loc_date, last_loc_lon, last_loc_lat, last_update_date)
+
+    if(!is.null(subset.ids)) {
+      ids <- read_csv(subset.ids) |>
+        suppressMessages()
+      if(names(ids) != "uuid" | length(names(ids)) != 1) stop("Variable name for the WC ID's to QC'd must be 'uuid'")
+
+      deps <- deps |>
+        filter(id %in% ids$uuid)
+    } else {
+      ids <- NULL
+    }
+
+    ## check for duplicate ptt id's & return tag metadata and stop process with
+    ##    message
+    if(any(duplicated(deps$ptt))) {
+      message("Duplicate PTT ids detected. WC tag metadata has been written to a logfile.\n Review and add UUIDs to be QC'd in the config file 'tag.list'")
+      write_csv(deps, "QC_logfile.csv")
+      stop("Stopping QC process", call. = FALSE)
+    }
+    ## drop datasets missing tag serial number
+    # deps <- deps |>
+    #   filter(!is.na(tag))
+
+    ## keep datasets with deployments > 5 days
+    # deps <- deps |>
+    #   filter(as.numeric(difftime(last_loc_date, deploy_date, units = "days")) > 5)
 
   }
 
+
   ## Download data for all deployments as zipfiles
-  lapply(1:nrow(deps), function(i) {
-    hash <- sha256(paste0("action=download_deployment&id=", deps$id[i]), key = s.key)
+  if (download) {
+    lapply(1:nrow(deps), function(i) {
+      hash <- sha256(paste0("action=download_deployment&id=", deps$id[i]), key = s.key)
 
-    req |>
-      req_headers(`X-Access` = a.key, `X-Hash` = hash) |>
-      req_body_raw(paste0("action=download_deployment&id=", deps$id[i])) |>
-      req_perform(path = file.path(dest, paste0(deps$id[i], "_", deps$tag[i], ".zip")))
+      req |>
+        req_headers(`X-Access` = a.key, `X-Hash` = hash) |>
+        req_body_raw(paste0("action=download_deployment&id=", deps$id[i])) |>
+        req_perform(path = file.path(dest, paste0(deps$id[i], "_", deps$tag[i], ".zip")))
 
-    if (unzip) {
-      fs <- file.path(dest, list.files(dest, pattern = "*.zip"))
-      unzip(zipfile = fs,
-            exdir = str_split(list.files(dest,
-                                         pattern = "*.zip",
-                                         full.names = TRUE),
-                              "\\.",
-                              simplify = TRUE)[,1])
+      if (unzip) {
+        fs <- file.path(dest, list.files(dest, pattern = "*.zip"))
+        unzip(zipfile = fs,
+              exdir = str_split(fs, "\\.", simplify = TRUE)[, 1])
 
-      system(paste0("rm ", file.path(
-        dest, list.files(dest, pattern = "*.zip")
-      )))
-    }
+        system(paste0("rm ", fs))
+      }
 
-  })
+    })
+  }
 
-  return(deps)
+  if(return.tag.meta) return(deps)
 }

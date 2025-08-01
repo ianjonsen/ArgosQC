@@ -4,10 +4,13 @@
 \alias{wc_pull_data}
 \title{Pull data from Wildlife Computers tag data files}
 \usage{
-wc_pull_data(path2data)
+wc_pull_data(path2data, subset.ids)
 }
 \arguments{
 \item{path2data}{path to all WC tag data files.}
+
+\item{subset.ids}{a single column .CSV file of WC UUID's to be included in
+the QC, with uuid as the variable name.}
 }
 \description{
 extracts data from \code{X-Locations.csv} (Argos), \code{X-FastGPS.csv},

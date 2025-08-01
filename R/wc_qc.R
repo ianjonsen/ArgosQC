@@ -1,23 +1,19 @@
-##' @title SMRU SRDL QC workflow
+##' @title WC tag QC workflow
 ##'
-##' @description Wrapper function that executes the complete SMRU QC workflow from data
-##' download to SSM-appended tag data files output as CSV files. All settings are
-##' specified in a JSON config file, including program - currently, IMOS, ATN or OTN.
-##' The program field determines the specific ArgosQC workflow functions called
-##' within the wrapper fn.
+##' @description Wrapper function that executes the complete workflow from data
+##' download to SSM-appended tag data files output as CSV files.
 ##'
-##' @param `wd` the path to the working directory that contains: 1) the data directory
-##' where tag data files are stored (if `harvest$download` = FALSE) or downloaded to
-##' (if `harvest$download` = TRUE); 2) the metadata directory where all metadata
-##' files are stored; and 3) the destination directory for QC outputs.
+##' @param wd the path to the working directory that contains: 1) the data
+##' directory where tag data files are stored (if source = `local`); 2) the
+##' metadata directory where all metadata files are stored; and 3) the
+##' destination directory for QC output.
 ##'
 ##' @param config a hierarchical JSON configuration file containing the following
 ##' blocks, each with a set of block-specific parameters:
-##'
 ##' * `setup` config block specifies paths to required data, metadata & output
 ##' directories:
 ##'   * `program` the national (or other) program of which the data is a part.
-##'   Current options are: `imos`, `atn`, or `otn`.
+##'   Current options are: `atn`, or `irap`.
 ##'   * `data.dir` the name of the data directory. Must reside within the `wd`.
 ##'   * `meta.file` the metadata filename. Must reside within the `wd`. Can be NULL,
 ##'   in which case, the `meta` config block (see below) must be present &
@@ -44,17 +40,15 @@
 ##'
 ##' * `harvest` config block specifies data harvesting parameters:
 ##'   * `download` a logical indicating whether tag data are to be downloaded from
-##'   the SMRU data server or read from the local `data.dir`.
-##'   * `cid` SMRU campaign ID.
-##'   * `smru.usr` SMRU data server username as a string.
-##'   * `smru.pwd` SMRU data server password as a string.
-##'   * `timeout` extends the download timeout period a specified number of
-##'   seconds for slower internet connections.
-##'   * `dropIDs` the SMRU ref ID's that are to be ignored during the QC process.
-##'   Can be NULL.
-##'   * `p2mdbtools` (optional) provides the path to the mdbtools library if it
-##'   is installed in a non-standard location (e.g., on Macs when installed via
-##'   Homebrew).
+##'   the WC data portal (TRUE) or read from the local `data.dir` (FALSE).
+##'   * `collab.id` (optional) the WC data owner ID associated with the data to
+##'   be downloaded. Ignored (if provided) when `harvest$download`:FALSE.
+##'   * `wc.akey` (optional) the WC access key for API access to the data portal.
+##'   Ignored (if provided) when `harvest$download`:FALSE.
+##'   * `wc.skey` (optional) the WC secret key for API access to the data portal.
+##'   Ignored (if provided) when `harvest$download`:FALSE.
+##'   * `dropIDs` the WC UUID(s) for specific tag data set(s) that is/are to be
+##'   ignored during the QC process. Can be NULL.
 ##'
 ##' * `model` config block specifies model- and data-specific parameters:
 ##'   * `model` the aniMotum SSM model to be used for the location QC - typically
@@ -86,16 +80,9 @@
 ##'   predicted locations (default is 72 h)
 ##'   * `QCmode` one of either `nrt` for Near Real-Time QC or `dm` for Delayed
 ##'   Mode QC.
-##'
-##' * `meta` config block specifies species and deployment location information.
-##' This config block is only necessary when no metadata file is provided in the
-##' `setup` config block.
-##'   * `common_name` the species common name (e.g., "southern elephant seal")
-##'   * `species` the species scientific name (e.g., "Mirounga leonina")
-##'   * `release_site` the location where tags were deployed (e.g., "Iles Kerguelen")
-##'   * `state_country` the country/territory name (e.g., "French Overseas Territory")
-##'
-
+##'   * `pred.int` the prediction interval (h) to use for sub-sampling predicted
+##'   locations prior to interpolation of QC'd locations to tag data file event
+##'   times.
 ##'
 ##'
 ##' @importFrom stringr str_split str_length
@@ -104,25 +91,18 @@
 ##' @md
 ##' @export
 
-smru_qc <- function(wd,
-                    config) {
+wc_qc <- function(wd,
+                      config) {
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
 
   conf <- read_json(config, simplifyVector = TRUE)
 
-  ## define metadata source
-  if(is.na(conf$setup$meta.file)) {
-    conf$setup$meta.file <- NULL
-    meta.source <- "smru"
-  } else {
-    meta.source <- conf$setup$program
-  }
+  ## check for metadata file, throw error if missing as there's currently no
+  ##    alternative for WC data
+  if(is.na(conf$setup$meta.file)) stop("A metadata file must be provided")
 
-  ## define data source
-  if(!conf$harvest$download) data.source <- "local"
-  else data.source <- "smru"
 
   ## Create output dirs if they do not exits
   dir.create(file.path(wd, conf$setup$data.dir),
@@ -139,13 +119,10 @@ smru_qc <- function(wd,
              recursive = TRUE)
 
   ## Set parameters from JSON NA to R NULL
+  if(is.na(conf$harvest$wc.akey)) conf$harvest$wc.akey <- NULL
+  if(is.na(conf$harvest$wc.skey)) conf$harvest$wc.skey <- NULL
+  if(is.na(conf$harvest$tag.list)) conf$harvest$tag.list <- NULL
   if(is.na(conf$harvest$dropIDs)) conf$harvest$dropIDs <- NULL
-
-  if(any(!"p2mdbtools" %in% names(conf$harvest),
-     is.na(conf$harvest$p2mdbtools))) {
-    conf$harvest$p2mdbtools <- NULL
-  }
-
   if(is.na(conf$model$proj)) conf$model$proj <- NULL
 
   if(is.null(conf$harvest$dropIDs)) {
@@ -154,83 +131,59 @@ smru_qc <- function(wd,
     dropIDs <- conf$harvest$dropIDs
   }
 
-  ## Define the QC locations - p = predicted; r = rerouted
   what <- "p"
   if(conf$model$reroute) what <- "r"
 
-
-  ## Conditionally download data from SMRU server
-  if(conf$harvest$download) {
-    #   system(paste0("rm ", file.path(conf$setup$datadir, "*.mdb")))
-    ## download tag data from SMRU server
-    download_data(
+  if (all(!is.null(conf$harvest$wc.akey),
+          !is.null(conf$harvest$wc.skey))){
+    ## Conditionally download from WC Portal API
+    wc.meta <- download_data(
       dest = file.path(wd, conf$setup$data.dir),
-      source = "smru",
-      cid = conf$harvest$cid,
-      user = conf$harvest$smru.usr,
-      pwd = conf$harvest$smru.pwd,
-      timeout = conf$harvest$timeout
+      source = "wc",
+      unzip = TRUE,
+      wc.akey = conf$harvest$wc.akey,
+      wc.skey = conf$harvest$wc.skey,
+      subset.ids = conf$harvest$tag.list,
+      download = conf$harvest$download,
+      owner.id = conf$harvest$owner.id
     )
-
   }
 
-  ## Read SMRU tag file data from .mdb/source files
-  ## Pull tables (diag, gps*, haulout, ctd, dive*, cruise & summary) from .mdb files
-  ##    * if present
-  smru <- pull_data(
-    path2data = conf$setup$data.dir,
-    source = data.source,
-    cid = conf$harvest$cid,
-    p2mdbtools = conf$harvest$p2mdbtools
+  ## read SMRU tag file data from .mdb/source files
+  wc <- wc_pull_data(path2data = conf$setup$data.dir,
+                     subset.ids = conf$harvest$tag.list)
+
+  ## get metadata
+  meta <- get_metadata(source = conf$setup$program,
+                       tag_data = wc,
+                       tag_mfr = "wc",
+                       dropIDs = dropIDs,
+                       file = file.path(wd, conf$setup$meta.file),
+                       subset.ids = conf$harvest$tag.list,
+                       wc.meta = wc.meta
   )
 
-
-  ## Download or load metadata
-  if (conf$setup$program == "imos") {
-    ## download SMRU metadata & generate QC metadata for IMOS-AODN
-    meta <- get_metadata(
-      source = meta.source,
-      tag_data = smru,
-      cid = conf$harvest$cid,
-      dropIDs = dropIDs,
-      file = conf$setup$meta.file,
-      meta.args = conf$meta
-    ) |>
-      suppressMessages()
-
-  } else {
-
-    meta <- get_metadata(
-      source = meta.source,
-      tag_data = smru,
-      cid = conf$harvest$cid,
-      dropIDs = dropIDs,
-      file = conf$setup$meta.file,
-      meta.args = conf$meta
-    ) |>
-      suppressMessages()
-  }
-
-  ## Prepare location data
-  locs_sf <- smru_prep_loc(
-    smru,
+  ## prepare location data
+  locs_sf <- wc_prep_loc(
+    wc,
     meta,
     dropIDs = dropIDs,
     crs = conf$model$proj,
+    program = conf$setup$program,
     QCmode = conf$model$QCmode
   )
 
 
   ## FIT QC SSM in 2 passes
   ## First pass SSM-filter
-  fit1 <- multi_filter(
-    locs_sf,
-    vmax = conf$model$vmax,
-    model = conf$model$model,
-    ts = conf$model$time.step
-  ) |> suppressWarnings()
+  fit1 <- multi_filter(locs_sf,
+                       vmax = conf$model$vmax,
+                       model = conf$model$model,
+                       ts = conf$model$time.step) |>
+    suppressWarnings()
 
-  ## Second pass SSM-filter
+
+  ## Second pass SSM-filter - separately by species
   fit2 <- redo_multi_filter(
     fit1,
     locs_sf,
@@ -243,69 +196,69 @@ smru_qc <- function(wd,
     dist = conf$model$dist,
     buffer = conf$model$buffer,
     centroids = conf$model$centroids
-  ) |> suppressWarnings()
+  ) |>
+    suppressWarnings()
 
 
-## Mark SSM track segments for removal in data gaps > min.gap hours long
-##  predicted & rerouted locations are 'marked' with a `keep` column
-## (TRUE = keep, FALSE = ignore). Executed only if conf$model$cut = TRUE
-if (conf$model$cut) {
-  fit2 <- ssm_mark_gaps(fit2, min.gap = conf$model$min.gap)
-}
+  ## Mark SSM track segments for removal in data gaps > min.gap hours long
+  ##  predicted & rerouted locations are 'marked' with a `keep` column
+  ## (TRUE = keep, FALSE = ignore). Executed only if conf$model$cut = TRUE
+  if (conf$model$cut) {
+    fit2 <- ssm_mark_gaps(fit2[[i]], min.gap = conf$model$min.gap)
+  }
 
 
-## Append SSM locations to SMRU tag data files at observation times
-smru_ssm <- smru_append_ssm(
-  smru = smru,
-  fit = fit2,
-  what = what,
-  meta = meta,
-  cut = conf$model$cut,
-  dropIDs = dropIDs
-)
+  ## Append SSM-estimated locations to tag datafiles
+  wc_ssm <- wc_append_ssm(
+    wc = wc,
+    fit = fit2,
+    what = what,
+    meta = meta,
+    cut = conf$model$cut,
+    dropIDs = dropIDs
+  )
 
 
-## Generate SSM fit diagnostics & SSM-predicted track map
-obs <- smru_clean_diag(smru, dropIDs = dropIDs)
+  ## Diagnostic plots
+  diagnostics(
+    fit2,
+    fit1,
+    what = what,
+    cut = conf$model$cut,
+    data = wc$Locations,
+    ssm = wc_ssm,
+    meta = meta,
+    lines = TRUE,
+    obs = FALSE,
+    mpath = file.path(conf$setup$maps.dir),
+    dpath = file.path(conf$setup$diag.dir),
+    QCmode = conf$model$QCmode,
+    tag_mfr = "wc",
+    cid = NULL
+  )
 
-diagnostics(
-  fit = fit2,
-  fit1 = fit1,
-  what = what,
-  cut = conf$model$cut,
-  data = obs,
-  ssm = smru_ssm,
-  meta = meta,
-  mpath = file.path(conf$setup$maps.dir),
-  dpath = file.path(conf$setup$diag.dir),
-  QCmode = conf$model$QCmode,
-  tag_mfr = "smru",
-  cid = conf$harvest$cid
-)
+  ## write SSM-annotated datafiles to .csv
+
+  wc_write_csv(
+    wc_ssm = wc_ssm,
+    fit = fit2,
+    what = what,
+    meta,
+    program = conf$setup$program,
+    path = file.path(wd, conf$setup$output.dir),
+    dropIDs = dropIDs,
+    suffix = paste0("_", conf$model$QCmode),
+    pred.int = conf$model$pred.int
+  )
 
 
-## write SSM-appended files to CSV
-smru_write_csv(
-  smru_ssm = smru_ssm,
-  fit = fit2,
-  what = what,
-  meta = meta,
-  program = conf$setup$program,
-  path = file.path(wd, conf$setup$output.dir),
-  dropIDs = dropIDs,
-  suffix = paste0("_", conf$model$QCmode)
-)
-
-
-if (as.logical(conf$setup$return.R)) {
-  return(list(cid=cid,
-              dropIDs=dropIDs,
-              smru=smru,
-              meta=meta,
-              locs_sf=locs_sf,
-              fit1=fit1,
-              fit2=fit2,
-              smru_ssm=smru_ssm))
-}
-
+  if (conf$setup$return.R) {
+    return(list(dropIDs=dropIDs,
+                wc=wc,
+                meta=meta,
+                locations_sf=locs_sf,
+                fit1=fit1,
+                fit2=fit2,
+                wc_ssm=wc_ssm))
+  }
 }

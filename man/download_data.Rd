@@ -14,6 +14,9 @@ download_data(
   pwd = NULL,
   wc.akey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
   wc.skey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
+  owner.id = NULL,
+  subset.ids = NULL,
+  download = TRUE,
   ...
 )
 }
@@ -42,6 +45,9 @@ download_data(
 \item{wc.akey}{an Access Key issued by Wildlife Computers for their API}
 
 \item{wc.skey}{a Secret Key issued by Wildlife Computers for their API}
+
+\item{subset.ids}{a single column .CSV file of WC UUID's to be included in
+the QC, with uuid as the variable name.}
 
 \item{...}{additional arguments passed to \code{smru_get_mdb} or \code{wc_get_files()}}
 }

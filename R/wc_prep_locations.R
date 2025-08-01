@@ -83,10 +83,10 @@ wc_prep_loc <- function(wc,
       eor = as.numeric(eor)
     )
 
-  locs <- locs |>
-    filter(!DeploymentID %in% dropIDs)
-
   if (program == "atn") {
+    locs <- locs |>
+      filter(!DeploymentID %in% dropIDs)
+
     ## truncate by dive_start/dive_end datetimes & convert to sf geometry steps
     deploy_meta <- meta |>
       dplyr::select(
@@ -133,12 +133,26 @@ wc_prep_loc <- function(wc,
         -DeploymentStartDateTime,-DeploymentStopDateTime,-dive_start,-dive_end,-dt.meta,-dt.dive
       )
 
+    ## apply simple distance - time filter on first 10 locations to remove potentially
+    ##  spurious locations immediately after the first location, which is often
+    ##  a user-measured GPS location. Assume dist >= 1000km + spd>=500km/h imply
+    ##  spurious locations
+    locs <- locs |>
+      group_by(DeploymentID) |>
+      mutate(dist = track_distance_to(lon, lat, lon[1], lat[1])/1000) |>
+      mutate(dt = as.numeric(difftime(date, lag(date), units = "hours"))) |>
+      mutate(spd = dist/dt) |>
+      mutate(test = c(rep(TRUE, 10), rep(FALSE, n()-10))) |>
+      filter((dist < 1000 & spd < 500 & test) | !test) |>
+      select(-dist, -dt, -spd, -test)
+
   } else if (program == "irap") {
+    locs <- locs |>
+      filter(!DeploymentID %in% dropIDs)
+
     deploy_meta <- meta |>
       dplyr::select(
-        DeploymentID,
-        dive_start,
-        dive_end
+        DeploymentID, irapID, dive_start, dive_end
       )
 
   locs <- locs |>
@@ -157,23 +171,13 @@ wc_prep_loc <- function(wc,
         select(-dive_start, -dive_end)
     }
 
+  locs <- locs |> select(DeploymentID, everything())
+
   } else {
     stop("AniBOS program currently not supported")
 
   }
 
-  ## apply simple distance - time filter on first 10 locations to remove potentially
-  ##  spurious locations immediately after the first location, which is often
-  ##  a user-measured GPS location. Assume dist >= 1000km + spd>=500km/h imply
-  ##  spurious locations
-  locs <- locs |>
-    group_by(DeploymentID) |>
-    mutate(dist = track_distance_to(lon, lat, lon[1], lat[1])/1000) |>
-    mutate(dt = as.numeric(difftime(date, lag(date), units = "hours"))) |>
-    mutate(spd = dist/dt) |>
-    mutate(test = c(rep(TRUE, 10), rep(FALSE, n()-10))) |>
-    filter((dist < 1000 & spd < 500 & test) | !test) |>
-    select(-dist, -dt, -spd, -test)
 
   if (is.null(crs)) {
     ## project lon,lat coords - use different projections depending where
@@ -228,18 +232,19 @@ wc_prep_loc <- function(wc,
         }
       }
 
-      x |> select(-DeploymentID)
+      x
     }
 
   } else {
     proj.fn <- function(x) {
       x |>
         sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
-        sf::st_transform(., crs = crs) |>
-        select(-DeploymentID)
+        sf::st_transform(., crs = crs)
     }
 
   }
+
+
 
   ## Reproject
   locs <- locs |>
@@ -251,40 +256,17 @@ wc_prep_loc <- function(wc,
 
   if (program == "atn") {
     locs <- locs |>
-      left_join(meta |> select(DeploymentID, ADRProjectID),
-                by = "DeploymentID")
+      left_join(meta |> select(DeploymentID, ADRProjectID), by = "DeploymentID") |>
+      select(DeploymentID, ADRProjectID, d_sf)
+
+  } else if (program == "irap") {
+    locs <- locs |>
+      select(DeploymentID, d_sf)
+
+  } else if (!program %in% c("atn", "irap")) {
+    stop("program currently not supported")
 
   }
-
-  ## add species code
-  load(system.file("extdata/spcodes.rda", package = "ArgosQC"))
-
-  if(program == "atn") {
-    msp <- meta |> select(DeploymentID, AnimalScientificName)
-    msp <- left_join(msp, spcodes, by = c("AnimalScientificName" = "species"))
-    locs <- locs |>
-      left_join(msp, by = "DeploymentID")
-
-    locs <- locs |>
-      rename(sp = code) |>
-      mutate(sp = factor(sp, levels = spcodes$code, ordered = TRUE)) |>
-      mutate(sp = droplevels(sp)) |>
-      dplyr::select(DeploymentID, ADRProjectID, sp, d_sf)
-
-  } else if(program == "irap") {
-    msp <- meta |> select(DeploymentID, species)
-    msp <- left_join(msp, spcodes, by = "species")
-    locs <- locs |>
-      left_join(msp, by = "DeploymentID")
-
-    locs <- locs |>
-      rename(sp = code) |>
-      mutate(sp = factor(sp, levels = spcodes$code, ordered = TRUE)) |>
-      mutate(sp = droplevels(sp)) |>
-      dplyr::select(DeploymentID, sp, d_sf)
-  }
-
-  locs <- split(locs, locs$sp)
 
   return(locs)
 }

@@ -9,9 +9,12 @@ wc_get_files(
   a.key = NULL,
   s.key = NULL,
   owner.id = NULL,
+  subset.ids = NULL,
   collaborator = TRUE,
   unzip = TRUE,
-  verbose = FALSE
+  verbose = FALSE,
+  download = TRUE,
+  return.tag.meta = FALSE
 )
 }
 \arguments{
@@ -21,11 +24,20 @@ wc_get_files(
 
 \item{owner.id}{a WC data owner ID}
 
+\item{subset.ids}{a single column .CSV file of WC UUID's to be included in
+the QC, with uuid as the variable name.}
+
 \item{collaborator}{(logical) should data owned by collaborators be
 downloaded. Ignored if \code{owner.id} provided.}
 
 \item{unzip}{(logical) should deployment zipfile be unzipped into destination
 directory.}
+
+\item{download}{(logical) should the tag data files be download from the WC Data portal.
+If FALSE then only the WC tag metadata is downloaded.}
+
+\item{return.tag.meta}{(logical) should tag metadata constructed from WC dataset
+information be returned}
 }
 \description{
 Download satellite tracking data and associated tag files via

@@ -68,10 +68,16 @@ redo_multi_filter <-
         filter(ref %in% fit.f$id)
 
     } else if ("DeploymentID" %in% names(diag_sf)) {
-      ## WC data
+      ## WC ATN data
       fail_dat <- diag_sf %>%
         filter(DeploymentID %in% fit.f$id)
+
+    } else if ("irapID" %in% names(diag_sf)) {
+      ## WC IRAP data
+      fail_dat <- diag_sf %>%
+        filter(irapID %in% fit.f$id)
     }
+
 
 
     ## Refit Stage 1 - refit with a bigger min.dt

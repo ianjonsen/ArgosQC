@@ -12,7 +12,8 @@ get_metadata(
   dropIDs = NULL,
   file = NULL,
   meta.args,
-  enc = "UTF-8"
+  subset.ids = NULL,
+  wc.meta = NULL
 )
 }
 \arguments{
@@ -35,7 +36,8 @@ read from the provided \code{source}}
 \item{meta.args}{optional metadata fields to be passed from config file when
 downloading tag metadata from SMRU server.}
 
-\item{enc}{set locale encoding to handle special characters; default is "UTF-8"}
+\item{subset.ids}{a character vector of comma-separated (no spaces) WC UUID's
+to be included in the QC. Ignored if \code{tag_mfr != "wc"}}
 }
 \description{
 downloads, restructures & formats metadata, appends
