@@ -36,7 +36,7 @@ tag-specific subdirectories. path2data should point to the outer directory.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.7-01</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.8-2</span>
       </span>
     </div>
 
@@ -96,7 +96,7 @@ tag-specific subdirectories. <code>path2data</code> should point to the outer di
 </ul></div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">wc_pull_data</span><span class="op">(</span><span class="va">path2data</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">wc_pull_data</span><span class="op">(</span><span class="va">path2data</span>, <span class="va">subset.ids</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -105,6 +105,11 @@ tag-specific subdirectories. <code>path2data</code> should point to the outer di
 
 <dl><dt id="arg-path-data">path2data<a class="anchor" aria-label="anchor" href="#arg-path-data"></a></dt>
 <dd><p>path to all WC tag data files.</p></dd>
+
+
+<dt id="arg-subset-ids">subset.ids<a class="anchor" aria-label="anchor" href="#arg-subset-ids"></a></dt>
+<dd><p>a single column .CSV file of WC UUID's to be included in
+the QC, with uuid as the variable name.</p></dd>
 
 </dl></div>
 

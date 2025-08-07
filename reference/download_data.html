@@ -20,7 +20,7 @@ Portal API via the source argument."><!-- mathjax --><script src="https://cdnjs.
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.7-01</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.8-2</span>
       </span>
     </div>
 
@@ -77,6 +77,9 @@ Portal API via the <code>source</code> argument.</p>
 <span>  pwd <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  wc.akey <span class="op">=</span> <span class="st">"VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc="</span>,</span>
 <span>  wc.skey <span class="op">=</span> <span class="st">"7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw="</span>,</span>
+<span>  owner.id <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  subset.ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  download <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -124,6 +127,11 @@ Portal API via the <code>source</code> argument.</p>
 
 <dt id="arg-wc-skey">wc.skey<a class="anchor" aria-label="anchor" href="#arg-wc-skey"></a></dt>
 <dd><p>a Secret Key issued by Wildlife Computers for their API</p></dd>
+
+
+<dt id="arg-subset-ids">subset.ids<a class="anchor" aria-label="anchor" href="#arg-subset-ids"></a></dt>
+<dd><p>a single column .CSV file of WC UUID's to be included in
+the QC, with uuid as the variable name.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

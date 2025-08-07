@@ -20,7 +20,7 @@ the GPS (if present) or Argos location file."><!-- mathjax --><script src="https
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.7-01</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.8-2</span>
       </span>
     </div>
 
@@ -75,7 +75,8 @@ the GPS (if present) or Argos location file.</p>
 <span>  dropIDs <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">meta.args</span>,</span>
-<span>  enc <span class="op">=</span> <span class="st">"UTF-8"</span></span>
+<span>  subset.ids <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  wc.meta <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -116,8 +117,9 @@ read from the provided <code>source</code></p></dd>
 downloading tag metadata from SMRU server.</p></dd>
 
 
-<dt id="arg-enc">enc<a class="anchor" aria-label="anchor" href="#arg-enc"></a></dt>
-<dd><p>set locale encoding to handle special characters; default is "UTF-8"</p></dd>
+<dt id="arg-subset-ids">subset.ids<a class="anchor" aria-label="anchor" href="#arg-subset-ids"></a></dt>
+<dd><p>a character vector of comma-separated (no spaces) WC UUID's
+to be included in the QC. Ignored if <code>tag_mfr != "wc"</code></p></dd>
 
 </dl></div>
 

@@ -9,7 +9,6 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/news/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/approx_ssm.html</loc></url>
-<url><loc>https://ianjonsen.github.io/ArgosQC/reference/atn_wc_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/diagnostics.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/download_data.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/get_metadata.html</loc></url>
@@ -51,6 +50,7 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_get_files.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_prep_loc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_pull_data.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_ssm_outputs.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_write_csv.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_write_datafile.html</loc></url>

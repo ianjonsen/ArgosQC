@@ -3,7 +3,7 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   overview: overview.html
-last_built: 2025-07-22T17:27Z
+last_built: 2025-08-07T19:53Z
 urls:
   reference: https://ianjonsen.github.io/ArgosQC/reference
   article: https://ianjonsen.github.io/ArgosQC/articles
