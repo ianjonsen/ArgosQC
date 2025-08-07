@@ -79,6 +79,9 @@ increase processing time. Default land polygon data are sourced from the
 \item \code{dist} the distance in km from outside the convex hull of observed
 locations from which to select land polygon data for re-routing. Ignored
 if \code{reroute = FALSE}.
+\item \code{barrier} the file path (must be within the working directory) for a
+shapefile to use for the land barrier. If NULL (default) then the default
+\code{rnaturalearth} coastline polygon data is used.
 \item \code{buffer} the distance in km to buffer rerouted locations from the
 coastline. Ignored if \code{reroute = FALSE}.
 \item \code{centroids} whether centroids are to be included in the visibility graph

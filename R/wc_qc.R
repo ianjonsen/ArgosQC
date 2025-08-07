@@ -69,6 +69,9 @@
 ##'   * `dist` the distance in km from outside the convex hull of observed
 ##'   locations from which to select land polygon data for re-routing. Ignored
 ##'   if `reroute = FALSE`.
+##'   * `barrier` the file path (must be within the working directory) for a
+##'   shapefile to use for the land barrier. If NULL (default) then the default
+##'   `rnaturalearth` coastline polygon data is used.
 ##'   * `buffer` the distance in km to buffer rerouted locations from the
 ##'   coastline. Ignored if `reroute = FALSE`.
 ##'   * `centroids` whether centroids are to be included in the visibility graph
@@ -124,6 +127,7 @@ wc_qc <- function(wd,
   if(is.na(conf$harvest$tag.list)) conf$harvest$tag.list <- NULL
   if(is.na(conf$harvest$dropIDs)) conf$harvest$dropIDs <- NULL
   if(is.na(conf$model$proj)) conf$model$proj <- NULL
+  if(is.na(conf$model$barrier)) conf$model$barrier <- NULL
 
   if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")
@@ -194,6 +198,7 @@ wc_qc <- function(wd,
     map = list(psi = factor(NA)),
     reroute = conf$model$reroute,
     dist = conf$model$dist,
+    barrier = conf$model$barrier,
     buffer = conf$model$buffer,
     centroids = conf$model$centroids
   ) |>

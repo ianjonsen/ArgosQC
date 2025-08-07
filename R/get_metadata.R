@@ -62,6 +62,7 @@ get_metadata <- function(source = "smru",
       switch(source,
              irap = {
                meta <- read_csv(file) |>
+                 mutate(QC_start_datetime = mdy_hms(QC_start_datetime, tz = "UTC")) |>
                  suppressMessages()
 
                if(!is.null(ids)) {
@@ -71,13 +72,14 @@ get_metadata <- function(source = "smru",
                }
 
                if(!is.null(wc.meta)) {
-                 meta <- left_join(meta, wc.meta, by = c("DeploymentID"="id")) |>
+                 meta <- left_join(meta, wc.meta, by = c("DeploymentID" = "id")) |>
                    select(DeploymentID, sattag_program = sattag_program.y,
                           owner, tag_model, tag_serial_number, tag_ptt,
                           deploy_date, deploy_location = release_location,
                           deploy_lon = longitude, deploy_lat = latitude,
                           common_name, curved_carapace_length,
-                          curved_carapace_length_unit)
+                          curved_carapace_length_unit,
+                          QC_start_datetime)
                }
 
                 meta <- meta |>
@@ -312,7 +314,17 @@ get_metadata <- function(source = "smru",
                 dive_end = max(dive_end))
 
     meta <- meta |>
-      left_join(dive_se, by = "DeploymentID") #c("TagID" = "Ptt"))
+      left_join(dive_se, by = "DeploymentID")
+
+    ## revise QC start date (based on dive_start) if QC_start_datetime variable exists in metadata
+    if("QC_start_datetime" %in% names(meta)) {
+      meta <- meta |>
+        mutate(dive_start = ifelse(!is.na(QC_start_datetime) & dive_start < QC_start_datetime,
+                                   QC_start_datetime,
+                                   dive_start)) |>
+        mutate(dive_start = as.POSIXct(dive_start, origin = "1970-01-01", tz = "UTC")) |>
+        select(-QC_start_datetime)
+    }
   }
 
 return(meta)

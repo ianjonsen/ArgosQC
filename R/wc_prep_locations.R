@@ -161,8 +161,8 @@ wc_prep_loc <- function(wc,
 
     if (QCmode == "nrt") {
        locs <- locs |>
-        filter(date >= dive_start & !is.na(lon)) |>
-        select(-dive_start,-dive_end)
+         filter(date >= dive_start & !is.na(lon)) |>
+         select(-dive_start,-dive_end)
 
     } else {
       locs <- locs |>

@@ -27,6 +27,7 @@
 ##' @importFrom future plan
 ##' @importFrom furrr future_map furrr_options
 ##' @importFrom aniMotum fit_ssm ssm_control route_path
+##' @importFrom sf st_read
 ##'
 ##' @export
 ##'
@@ -54,6 +55,8 @@ redo_multi_filter <-
   tmp <- aniMotum::grab(fit, what = "p")
   ids <- unique(tmp$id[is.na(tmp$x.se) | is.na(tmp$y.se)])
   NA.se <- which(fit$id %in% ids)
+
+  if(!is.null(barrier) & reroute) barrier <- st_read(barrier, quiet = TRUE)
 
   if(length(nc) > 0 | length(oc) > 0 | length(NA.se) > 0) {
 
@@ -135,6 +138,7 @@ redo_multi_filter <-
         aniMotum::route_path(what = "predicted",
                              map_scale = 10,
                              dist = dist,
+                             barrier = barrier,
                              ...)
     }
 
