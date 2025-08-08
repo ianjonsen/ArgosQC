@@ -19,8 +19,12 @@
 ##' @param pwd SMRU data server password as a quoted string
 ##' @param wc.akey an Access Key issued by Wildlife Computers for their API
 ##' @param wc.skey a Secret Key issued by Wildlife Computers for their API
+##' @param owner.id the Wildlife Computers uuid associated with the data owner
 ##' @param subset.ids a single column .CSV file of WC UUID's to be included in
 ##' the QC, with uuid as the variable name.
+##' @param download (logical) indicating if the data is to be downloaded from
+##' the tag manufacturer's server. If the source is `wc` and `download = FALSE`
+##' then only the Wildlife Computers tag deployment metadata is downloaded.
 ##' @param ... additional arguments passed to `smru_get_mdb` or `wc_get_files()`
 ##'
 ##' @importFrom utils unzip

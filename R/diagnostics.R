@@ -14,7 +14,8 @@
 ##' @param mpath path to write map file
 ##' @param dpath path to write all other diagnostic files
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
-##' in latter case start end end of dive data are displayed rather than ctd data
+##' in latter case start end end of dive data are displayed rather than ctd data.
+##' @param tag_mfr the tag manufacturer. Currently, only `smru` or `wc` are supported.
 ##' @param cid SMRU campaign id (from config file). Ignored if WC data is used.
 ##'
 ##'

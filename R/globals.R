@@ -34,4 +34,9 @@ utils::globalVariables(c("dt", "lon1", "lat1", "x1", "y1", "x.se1", "y,se1",
    "geometry", "iq",  "latest_argos_location", "latest_uplink","location", "long","m_est",
    "mass", "month",    "parameters",   "quantile", "read.csv", "read.delim",    "reference",
    "round_date",    "s.date",   "smru_ref", "start_date",    "std_l",    "tdeploy",  "tdr_ctdid",
-   "time", "unittype", "wmo", "x.se", "y.se", "year", "latest_gps"))
+   "time", "unittype", "wmo", "x.se", "y.se", "year", "latest_gps", "HistType", "QC_start_datetime",
+   "sattag_program.y", "tag_model", "tag_serial_number", "tag_ptt", "release_location",
+   "longitude", "latitude", "curved_carapace_length", "curved_carapace_length_unit",
+   "phosi_secs", "last_location", "program_number", "ptt_decimal", "location_date",
+   "first_uplink_date", "last_uplink_date", "last_loc_date", "deploy_lon",
+   "deploy_lat", "last_loc_lon", "last_loc_lat", "i"))

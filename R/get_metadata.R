@@ -18,8 +18,9 @@
 ##' @param meta.args optional metadata fields to be passed from config file when
 ##' downloading tag metadata from SMRU server.
 ##' @param subset.ids a character vector of comma-separated (no spaces) WC UUID's
-##' to be included in the QC. Ignored if `tag_mfr != "wc"`
-##'
+##' to be included in the QC. Ignored if `tag_mfr != "wc"`.
+##' @param wc.meta an R data.frame of Wildlife Computers tag deployment metadata
+##' obtained via `download_data()`.
 ##'
 ##'
 ##' @importFrom dplyr select rename mutate filter bind_rows

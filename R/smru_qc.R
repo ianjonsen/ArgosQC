@@ -6,14 +6,12 @@
 ##' The program field determines the specific ArgosQC workflow functions called
 ##' within the wrapper fn.
 ##'
-##' @param `wd` the path to the working directory that contains: 1) the data directory
+##' @param wd the path to the working directory that contains: 1) the data directory
 ##' where tag data files are stored (if `harvest$download` = FALSE) or downloaded to
 ##' (if `harvest$download` = TRUE); 2) the metadata directory where all metadata
 ##' files are stored; and 3) the destination directory for QC outputs.
-##'
 ##' @param config a hierarchical JSON configuration file containing the following
 ##' blocks, each with a set of block-specific parameters:
-##'
 ##' * `setup` config block specifies paths to required data, metadata & output
 ##' directories:
 ##'   * `program` the national (or other) program of which the data is a part.
@@ -97,9 +95,6 @@
 ##'   * `species` the species scientific name (e.g., "Mirounga leonina")
 ##'   * `release_site` the location where tags were deployed (e.g., "Iles Kerguelen")
 ##'   * `state_country` the country/territory name (e.g., "French Overseas Territory")
-##'
-
-##'
 ##'
 ##' @importFrom stringr str_split str_length
 ##' @importFrom jsonlite read_json

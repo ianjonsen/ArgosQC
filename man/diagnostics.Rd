@@ -45,7 +45,9 @@ diagnostics(
 \item{dpath}{path to write all other diagnostic files}
 
 \item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
-in latter case start end end of dive data are displayed rather than ctd data}
+in latter case start end end of dive data are displayed rather than ctd data.}
+
+\item{tag_mfr}{the tag manufacturer. Currently, only \code{smru} or \code{wc} are supported.}
 
 \item{cid}{SMRU campaign id (from config file). Ignored if WC data is used.}
 }

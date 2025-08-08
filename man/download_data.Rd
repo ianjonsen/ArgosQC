@@ -46,8 +46,14 @@ download_data(
 
 \item{wc.skey}{a Secret Key issued by Wildlife Computers for their API}
 
+\item{owner.id}{the Wildlife Computers uuid associated with the data owner}
+
 \item{subset.ids}{a single column .CSV file of WC UUID's to be included in
 the QC, with uuid as the variable name.}
+
+\item{download}{(logical) indicating if the data is to be downloaded from
+the tag manufacturer's server. If the source is \code{wc} and \code{download = FALSE}
+then only the Wildlife Computers tag deployment metadata is downloaded.}
 
 \item{...}{additional arguments passed to \code{smru_get_mdb} or \code{wc_get_files()}}
 }

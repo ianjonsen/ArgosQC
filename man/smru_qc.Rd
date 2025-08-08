@@ -7,6 +7,11 @@
 smru_qc(wd, config)
 }
 \arguments{
+\item{wd}{the path to the working directory that contains: 1) the data directory
+where tag data files are stored (if \code{harvest$download} = FALSE) or downloaded to
+(if \code{harvest$download} = TRUE); 2) the metadata directory where all metadata
+files are stored; and 3) the destination directory for QC outputs.}
+
 \item{config}{a hierarchical JSON configuration file containing the following
 blocks, each with a set of block-specific parameters:
 \itemize{
@@ -101,11 +106,6 @@ This config block is only necessary when no metadata file is provided in the
 \item \code{state_country} the country/territory name (e.g., "French Overseas Territory")
 }
 }}
-
-\item{`wd`}{the path to the working directory that contains: 1) the data directory
-where tag data files are stored (if \code{harvest$download} = FALSE) or downloaded to
-(if \code{harvest$download} = TRUE); 2) the metadata directory where all metadata
-files are stored; and 3) the destination directory for QC outputs.}
 }
 \description{
 Wrapper function that executes the complete SMRU QC workflow from data

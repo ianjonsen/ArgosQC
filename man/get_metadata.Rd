@@ -37,7 +37,10 @@ read from the provided \code{source}}
 downloading tag metadata from SMRU server.}
 
 \item{subset.ids}{a character vector of comma-separated (no spaces) WC UUID's
-to be included in the QC. Ignored if \code{tag_mfr != "wc"}}
+to be included in the QC. Ignored if \code{tag_mfr != "wc"}.}
+
+\item{wc.meta}{an R data.frame of Wildlife Computers tag deployment metadata
+obtained via \code{download_data()}.}
 }
 \description{
 downloads, restructures & formats metadata, appends

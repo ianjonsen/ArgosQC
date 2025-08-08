@@ -7,7 +7,6 @@
 ##' directory where tag data files are stored (if source = `local`); 2) the
 ##' metadata directory where all metadata files are stored; and 3) the
 ##' destination directory for QC output.
-##'
 ##' @param config a hierarchical JSON configuration file containing the following
 ##' blocks, each with a set of block-specific parameters:
 ##' * `setup` config block specifies paths to required data, metadata & output
