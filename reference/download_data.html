@@ -129,9 +129,19 @@ Portal API via the <code>source</code> argument.</p>
 <dd><p>a Secret Key issued by Wildlife Computers for their API</p></dd>
 
 
+<dt id="arg-owner-id">owner.id<a class="anchor" aria-label="anchor" href="#arg-owner-id"></a></dt>
+<dd><p>the Wildlife Computers uuid associated with the data owner</p></dd>
+
+
 <dt id="arg-subset-ids">subset.ids<a class="anchor" aria-label="anchor" href="#arg-subset-ids"></a></dt>
 <dd><p>a single column .CSV file of WC UUID's to be included in
 the QC, with uuid as the variable name.</p></dd>
+
+
+<dt id="arg-download">download<a class="anchor" aria-label="anchor" href="#arg-download"></a></dt>
+<dd><p>(logical) indicating if the data is to be downloaded from
+the tag manufacturer's server. If the source is <code>wc</code> and <code>download = FALSE</code>
+then only the Wildlife Computers tag deployment metadata is downloaded.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

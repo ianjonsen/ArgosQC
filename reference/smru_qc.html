@@ -76,7 +76,14 @@ within the wrapper fn.</p>
     <h2>Arguments</h2>
 
 
-<dl><dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
+<dl><dt id="arg-wd">wd<a class="anchor" aria-label="anchor" href="#arg-wd"></a></dt>
+<dd><p>the path to the working directory that contains: 1) the data directory
+where tag data files are stored (if <code>harvest$download</code> = FALSE) or downloaded to
+(if <code>harvest$download</code> = TRUE); 2) the metadata directory where all metadata
+files are stored; and 3) the destination directory for QC outputs.</p></dd>
+
+
+<dt id="arg-config">config<a class="anchor" aria-label="anchor" href="#arg-config"></a></dt>
 <dd><p>a hierarchical JSON configuration file containing the following
 blocks, each with a set of block-specific parameters:</p><ul><li><p><code>setup</code> config block specifies paths to required data, metadata &amp; output
 directories:</p><ul><li><p><code>program</code> the national (or other) program of which the data is a part.
@@ -159,13 +166,6 @@ This config block is only necessary when no metadata file is provided in the
 <li><p><code>state_country</code> the country/territory name (e.g., "French Overseas Territory")</p></li>
 </ul></li>
 </ul></dd>
-
-
-<dt id="arg--wd-">`wd`<a class="anchor" aria-label="anchor" href="#arg--wd-"></a></dt>
-<dd><p>the path to the working directory that contains: 1) the data directory
-where tag data files are stored (if <code>harvest$download</code> = FALSE) or downloaded to
-(if <code>harvest$download</code> = TRUE); 2) the metadata directory where all metadata
-files are stored; and 3) the destination directory for QC outputs.</p></dd>
 
 </dl></div>
 
