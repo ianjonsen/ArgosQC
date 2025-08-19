@@ -17,7 +17,7 @@
 ##' for the track start date.
 ##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
-##' @importFrom dplyr ungroup rename select n lag
+##' @importFrom dplyr ungroup rename select n lag first
 ##' @importFrom assertthat assert_that
 ##' @importFrom sf st_as_sf st_transform
 ##' @importFrom stringr str_extract
@@ -133,19 +133,6 @@ wc_prep_loc <- function(wc,
         -DeploymentStartDateTime,-DeploymentStopDateTime,-dive_start,-dive_end,-dt.meta,-dt.dive
       )
 
-    ## apply simple distance - time filter on first 10 locations to remove potentially
-    ##  spurious locations immediately after the first location, which is often
-    ##  a user-measured GPS location. Assume dist >= 1000km + spd>=500km/h imply
-    ##  spurious locations
-    locs <- locs |>
-      group_by(DeploymentID) |>
-      mutate(dist = track_distance_to(lon, lat, lon[1], lat[1])/1000) |>
-      mutate(dt = as.numeric(difftime(date, lag(date), units = "hours"))) |>
-      mutate(spd = dist/dt) |>
-      mutate(test = c(rep(TRUE, 10), rep(FALSE, n()-10))) |>
-      filter((dist < 1000 & spd < 500 & test) | !test) |>
-      select(-dist, -dt, -spd, -test)
-
   } else if (program == "irap") {
     locs <- locs |>
       filter(!DeploymentID %in% dropIDs)
@@ -171,12 +158,26 @@ wc_prep_loc <- function(wc,
         select(-dive_start, -dive_end)
     }
 
-  locs <- locs |> select(DeploymentID, everything())
+  locs <- locs |>
+    select(DeploymentID, everything())
 
   } else {
     stop("AniBOS program currently not supported")
 
   }
+
+  ## apply simple distance - time filter on first 10 locations to remove potentially
+  ##  spurious locations immediately after the first location, which is often
+  ##  a user-measured GPS location. Assume dist >= 1000km + spd>=500km/h imply
+  ##  spurious locations
+  locs <- locs |>
+    group_by(DeploymentID) |>
+    mutate(dist = track_distance_to(lon, lat, first(lon), first(lat))/1000) |>
+    mutate(dt = as.numeric(difftime(date, lag(date), units = "hours"))) |>
+    mutate(spd = dist/dt) |>
+    mutate(test = c(rep(TRUE, 10), rep(FALSE, n()-10))) |>
+    filter((dist < 1000 & spd < 500 & test) | !test) |>
+    select(-dist, -dt, -spd, -test)
 
 
   if (is.null(crs)) {

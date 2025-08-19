@@ -160,6 +160,8 @@ smru_qc <- function(wd,
 
   ## Conditionally download data from SMRU server
   if(conf$harvest$download) {
+    message("Downloading tag data from SMRU server...")
+
     #   system(paste0("rm ", file.path(conf$setup$datadir, "*.mdb")))
     ## download tag data from SMRU server
     download_data(
@@ -173,6 +175,7 @@ smru_qc <- function(wd,
 
   }
 
+  message("Reading tag data from .mdb file...")
   ## Read SMRU tag file data from .mdb/source files
   ## Pull tables (diag, gps*, haulout, ctd, dive*, cruise & summary) from .mdb files
   ##    * if present
@@ -210,6 +213,7 @@ smru_qc <- function(wd,
       suppressMessages()
   }
 
+
   ## Prepare location data
   locs_sf <- smru_prep_loc(
     smru,
@@ -220,6 +224,8 @@ smru_qc <- function(wd,
   )
 
 
+  message("Fitting QC SSM - first pass...")
+
   ## FIT QC SSM in 2 passes
   ## First pass SSM-filter
   fit1 <- multi_filter(
@@ -228,6 +234,8 @@ smru_qc <- function(wd,
     model = conf$model$model,
     ts = conf$model$time.step
   ) |> suppressWarnings()
+
+  message("Fitting QC SSM - second pass...")
 
   ## Second pass SSM-filter
   fit2 <- redo_multi_filter(
@@ -245,6 +253,7 @@ smru_qc <- function(wd,
     centroids = conf$model$centroids
   ) |> suppressWarnings()
 
+  message("Locations estimated & rerouted...")
 
 ## Mark SSM track segments for removal in data gaps > min.gap hours long
 ##  predicted & rerouted locations are 'marked' with a `keep` column
@@ -264,6 +273,7 @@ smru_ssm <- smru_append_ssm(
   dropIDs = dropIDs
 )
 
+  message("QC'd locations appended to tag data files...")
 
 ## Generate SSM fit diagnostics & SSM-predicted track map
 obs <- smru_clean_diag(smru, dropIDs = dropIDs)
@@ -283,6 +293,7 @@ diagnostics(
   cid = conf$harvest$cid
 )
 
+message("SSM fit diagnostics generated...")
 
 ## write SSM-appended files to CSV
 smru_write_csv(
@@ -296,6 +307,7 @@ smru_write_csv(
   suffix = paste0("_", conf$model$QCmode)
 )
 
+message("QC workflow completed")
 
 if (as.logical(conf$setup$return.R)) {
   return(list(cid=cid,

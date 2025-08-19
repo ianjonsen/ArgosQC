@@ -23,7 +23,7 @@
 ##' obtained via `download_data()`.
 ##'
 ##'
-##' @importFrom dplyr select rename mutate filter bind_rows
+##' @importFrom dplyr select rename mutate filter bind_rows starts_with
 ##' @importFrom rvest read_html html_nodes html_table
 ##' @importFrom stringr str_to_lower str_replace_all
 ##' @importFrom lubridate mdy_hms round_date
@@ -63,7 +63,6 @@ get_metadata <- function(source = "smru",
       switch(source,
              irap = {
                meta <- read_csv(file) |>
-                 mutate(QC_start_datetime = mdy_hms(QC_start_datetime, tz = "UTC")) |>
                  suppressMessages()
 
                if(!is.null(ids)) {
@@ -74,13 +73,28 @@ get_metadata <- function(source = "smru",
 
                if(!is.null(wc.meta)) {
                  meta <- left_join(meta, wc.meta, by = c("DeploymentID" = "id")) |>
-                   select(DeploymentID, sattag_program = sattag_program.y,
-                          owner, tag_model, tag_serial_number, tag_ptt,
-                          deploy_date, deploy_location = release_location,
-                          deploy_lon = longitude, deploy_lat = latitude,
-                          common_name, curved_carapace_length,
-                          curved_carapace_length_unit,
-                          QC_start_datetime)
+                   select(
+                     DeploymentID,
+                     sattag_program = sattag_program.y,
+                     owner,
+                     tag_model,
+                     tag_serial_number,
+                     tag_ptt,
+                     deploy_date,
+                     deploy_location = release_location,
+                     deploy_lon = longitude,
+                     deploy_lat = latitude,
+                     common_name,
+                     sex,
+                     age_class,
+                     length,
+                     length_measurement,
+                     length_unit,
+                     mass,
+                     mass_measurement,
+                     mass_unit,
+                     starts_with("QC_")
+                   )
                }
 
                 meta <- meta |>
@@ -326,6 +340,7 @@ get_metadata <- function(source = "smru",
         mutate(dive_start = as.POSIXct(dive_start, origin = "1970-01-01", tz = "UTC")) |>
         select(-QC_start_datetime)
     }
+
   }
 
 return(meta)

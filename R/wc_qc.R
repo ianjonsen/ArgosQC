@@ -139,6 +139,8 @@ wc_qc <- function(wd,
 
   if (all(!is.null(conf$harvest$wc.akey),
           !is.null(conf$harvest$wc.skey))){
+    if(conf$harvest$download)
+      message("Downloading tag data from Wildlife Computers Data Portal...")
     ## Conditionally download from WC Portal API
     wc.meta <- download_data(
       dest = file.path(wd, conf$setup$data.dir),
@@ -152,6 +154,7 @@ wc_qc <- function(wd,
     )
   }
 
+  message("Reading tag data files...")
   ## read SMRU tag file data from .mdb/source files
   wc <- wc_pull_data(path2data = conf$setup$data.dir,
                      subset.ids = conf$harvest$tag.list)
@@ -179,6 +182,7 @@ wc_qc <- function(wd,
 
   ## FIT QC SSM in 2 passes
   ## First pass SSM-filter
+  message("Fitting QC SSM - first pass...")
   fit1 <- multi_filter(locs_sf,
                        vmax = conf$model$vmax,
                        model = conf$model$model,
@@ -187,6 +191,7 @@ wc_qc <- function(wd,
 
 
   ## Second pass SSM-filter - separately by species
+  message("Fitting QC SSM - second pass...")
   fit2 <- redo_multi_filter(
     fit1,
     locs_sf,
@@ -203,6 +208,8 @@ wc_qc <- function(wd,
   ) |>
     suppressWarnings()
 
+
+  message("Locations estimated & rerouted...")
 
   ## Mark SSM track segments for removal in data gaps > min.gap hours long
   ##  predicted & rerouted locations are 'marked' with a `keep` column
@@ -221,6 +228,8 @@ wc_qc <- function(wd,
     cut = conf$model$cut,
     dropIDs = dropIDs
   )
+
+  message("QC'd locations appended to tag data files...")
 
 
   ## Diagnostic plots
@@ -241,8 +250,10 @@ wc_qc <- function(wd,
     cid = NULL
   )
 
-  ## write SSM-annotated datafiles to .csv
+  message("SSM fit diagnostics generated...")
 
+
+  ## write SSM-annotated datafiles to .csv
   wc_write_csv(
     wc_ssm = wc_ssm,
     fit = fit2,
@@ -255,6 +266,7 @@ wc_qc <- function(wd,
     pred.int = conf$model$pred.int
   )
 
+  message("QC workflow completed")
 
   if (conf$setup$return.R) {
     return(list(dropIDs=dropIDs,

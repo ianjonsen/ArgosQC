@@ -129,7 +129,7 @@ wc_pull_data <- function(path2data,
 
       if(nrow(xx) > 0) {
       xx |>
-        mutate(DeploymentID = unique(str_split(x[[i]], "\\/", simplify = TRUE)[,2])) |>
+        mutate(DeploymentID = unique(str_split(x[[i]], "\\/", simplify = TRUE)[, grep("\\_", str_split(x[[i]], "\\/", simplify = TRUE))])) |>
         mutate(DeploymentID = str_split(DeploymentID, "\\_", simplify = TRUE)[,1]) |> ## removes _suffix (Tag serial number) if present
         select(DeploymentID, everything())
       } else {
