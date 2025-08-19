@@ -39,4 +39,5 @@ utils::globalVariables(c("dt", "lon1", "lat1", "x1", "y1", "x.se1", "y,se1",
    "longitude", "latitude", "curved_carapace_length", "curved_carapace_length_unit",
    "phosi_secs", "last_location", "program_number", "ptt_decimal", "location_date",
    "first_uplink_date", "last_uplink_date", "last_loc_date", "deploy_lon",
-   "deploy_lat", "last_loc_lon", "last_loc_lat", "i"))
+   "deploy_lat", "last_loc_lon", "last_loc_lat", "i", "length_measurement",
+   "length_unit", "mass_measurement", "mass_unit"))
