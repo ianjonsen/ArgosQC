@@ -120,13 +120,15 @@ wc_get_files <- function(dest = NULL,
              last_loc_lat = latitude)
 
     deps <- bind_cols(deps, last_loc) |>
-      drop_na(deployment)
+      mutate(deploy.na = is.na(deployment))
 
     deploy <- xmlToDataFrame(nodes = getNodeSet(xml, "//start"), homogeneous = TRUE)
     names(deploy) <- c("deploy_date", "deploy_lat", "deploy_lon")
+    deploy <- deploy |>
+      mutate(id = deps$id[!deps$deploy.na])
 
     ## combine & transform dates to POSIXt
-    deps <- bind_cols(deps, deploy) |>
+    deps <- left_join(deps, deploy, by = "id") |>
       mutate(last_update_date = as.POSIXct(as.numeric(last_update_date), origin = "1970-01-01", tz = "UTC")) |>
       mutate(first_uplink_date = as.POSIXct(as.numeric(first_uplink_date), origin = "1970-01-01", tz = "UTC")) |>
       mutate(last_uplink_date = as.POSIXct(as.numeric(last_uplink_date), origin = "1970-01-01", tz = "UTC")) |>
@@ -135,9 +137,22 @@ wc_get_files <- function(dest = NULL,
 
     ## select final variables
     deps <- deps |>
-      select(id, owner, sattag_program, ptt, tag, deploy_date,
-             deploy_lon, deploy_lat, first_uplink_date, last_uplink_date,
-             last_loc_date, last_loc_lon, last_loc_lat, last_update_date)
+      select(
+        id,
+        owner,
+        sattag_program,
+        ptt,
+        tag,
+        deploy_date,
+        deploy_lon,
+        deploy_lat,
+        first_uplink_date,
+        last_uplink_date,
+        last_loc_date,
+        last_loc_lon,
+        last_loc_lat,
+        last_update_date
+      )
 
     if(!is.null(subset.ids)) {
       ids <- read_csv(subset.ids) |>
@@ -147,6 +162,7 @@ wc_get_files <- function(dest = NULL,
       deps <- deps |>
         filter(id %in% ids$uuid)
     } else {
+
       ids <- NULL
     }
 
@@ -166,7 +182,6 @@ wc_get_files <- function(dest = NULL,
     #   filter(as.numeric(difftime(last_loc_date, deploy_date, units = "days")) > 5)
 
   }
-
 
   ## Download data for all deployments as zipfiles
   if (download) {

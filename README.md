@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# ArgosQC
+# {ArgosQC} <a href='https://ianjonsen.github.io/ArgosQC/index.html'><img src='man/figures/logo.png' align="right" height="250" /></a>
 
 <!-- badges: start -->
 
@@ -53,8 +53,18 @@ smru_qc(wd = "test", config = "test_conf.json")
 
 ### Financial support for the development of this software is provided by:
 
-#### [LOCEAN, France](https://www.locean.ipsl.fr) via Laurent MORTIER & Jean-Benoît CHARRASSIN
+#### [<img src="man/figures/IMOS_logo.png" style="width:30.0%" />](https://imos.org.au) [<img src="man/figures/SIMS_logo.png" style="width:30.0%" />](https://sims.org.au)
 
-#### [Armines, France](https://www.armines.net/fr) via Laurent MORTIER
+via Rob Harcourt & Clive McMahon
 
-#### [IMOS, Australia](https://imos.org.au) & [SIMS, Australia](https://sims.org.au) via Robert HARCOURT & Clive MCMAHON
+#### [<img src="man/figures/logo_locean_2.png" style="width:30.0%" />](https://www.locean.ipsl.fr)
+
+via Laurent MORTIER & Jean-Benoît CHARRASSIN
+
+#### [<img src="man/figures/armines-logo.png" style="width:20.0%" />](https://www.armines.net/fr)
+
+via Laurent MORTIER
+
+#### [<img src="man/figures/OTN_logo.png" style="width:30.0%" />](https://oceantrackingnetwork.org)
+
+via Evelien VanderKloet & Jon Pye

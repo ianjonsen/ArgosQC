@@ -62,7 +62,7 @@ get_metadata <- function(source = "smru",
 
       switch(source,
              irap = {
-               meta <- read_csv(file) |>
+               meta <- read_csv(file, col_types = c("cTcddcccdccdcccciciT")) |>
                  suppressMessages()
 
                if(!is.null(ids)) {
@@ -72,6 +72,7 @@ get_metadata <- function(source = "smru",
                }
 
                if(!is.null(wc.meta)) {
+
                  meta <- left_join(meta, wc.meta, by = c("DeploymentID" = "id")) |>
                    select(
                      DeploymentID,
@@ -81,6 +82,7 @@ get_metadata <- function(source = "smru",
                      tag_serial_number,
                      tag_ptt,
                      deploy_date,
+                     release_date,
                      deploy_location = release_location,
                      deploy_lon = longitude,
                      deploy_lat = latitude,
@@ -94,7 +96,11 @@ get_metadata <- function(source = "smru",
                      mass_measurement,
                      mass_unit,
                      starts_with("QC_")
-                   )
+                   ) |>
+                   mutate(deploy_date = case_when(is.na(deploy_date) ~ release_date,
+                                                  !is.na(deploy_date) ~ deploy_date)) |>
+                   select(-release_date)
+
                }
 
                 meta <- meta |>

@@ -13,7 +13,8 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ArgosQC
+# {ArgosQC} <a href='https://ianjonsen.github.io/ArgosQC/index.html'><img src='man/figures/logo.png' align="right" height="250" /></a>
+
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -55,8 +56,14 @@ smru_qc(wd = "test", config = "test_conf.json")
 
 ### Financial support for the development of this software is provided by:
 
-#### [LOCEAN, France](https://www.locean.ipsl.fr) via Laurent MORTIER & Jean-Benoît CHARRASSIN
+#### [![](man/figures/IMOS_logo.png){width=30% }](https://imos.org.au) [![](man/figures/SIMS_logo.png){width=30% }](https://sims.org.au)
+via Rob Harcourt & Clive McMahon
 
-#### [Armines, France](https://www.armines.net/fr) via Laurent MORTIER
+#### [![](man/figures/logo_locean_2.png){width=30% }](https://www.locean.ipsl.fr)
+via Laurent MORTIER & Jean-Benoît CHARRASSIN
 
-#### [IMOS, Australia](https://imos.org.au) & [SIMS, Australia](https://sims.org.au) via Robert HARCOURT & Clive MCMAHON
+#### [![](man/figures/armines-logo.png){width=20% }](https://www.armines.net/fr) 
+via Laurent MORTIER
+
+#### [![](man/figures/OTN_logo.png){width=30% }](https://oceantrackingnetwork.org)
+via Evelien VanderKloet & Jon Pye
