@@ -13,6 +13,7 @@
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Quality Control Process for the Integrated Marine Observing System's Argos Location Data">
 <meta property="og:description" content="An automated Argos location quality control process for Argos location data from satellite tags. Functions automatically download and collate data from one of several potential remote source: a user-supplied URL, a user-supplied Google Drive link, a user-supplied Dropbox link, the SMRU server, or the Wildlife Computers Portal API. The package matches deployment data with user-supplied deployment metadata; projects location data from lon,lat to a user-supplied projection or a default projection; fits user-specified SSMs in 2 passes to estimate most plausible locations; collates results by species &amp; deployment program; generates diagnostic plots &amp; maps; appends predicted locations at tag-measured event times to the tag manufacturer activity files such as CTD profiles, dive records, haulout records, and the Argos and (when present) GPS location files; saves activity files as .csv in one of several possible schema (IMOS ATF, ATN, User-defined); pushes QCd files to a user-specified server or saves to a local archive (zipfile).">
+<meta property="og:image" content="https://ianjonsen.github.io/ArgosQC/logo.png">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -33,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.8-3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.8-4</span>
       </span>
     </div>
 
@@ -76,7 +77,8 @@
   <div class="contents col-md-9">
 
 <div class="section level1">
-<div class="page-header"><h1 id="argosqc">ArgosQC<a class="anchor" aria-label="anchor" href="#argosqc"></a>
+<div class="page-header"><h1 id="argosqc-">{ArgosQC} <a href="https://ianjonsen.github.io/ArgosQC/index.html"><img src="reference/figures/logo.png" align="right" height="250"></a>
+<a class="anchor" aria-label="anchor" href="#argosqc-"></a>
 </h1></div>
 <!-- badges: start -->
 <!-- badges: end -->
@@ -116,19 +118,29 @@
 <h3 id="financial-support-for-the-development-of-this-software-is-provided-by">Financial support for the development of this software is provided by:<a class="anchor" aria-label="anchor" href="#financial-support-for-the-development-of-this-software-is-provided-by"></a>
 </h3>
 <div class="section level4">
-<h4 id="locean-france-via-laurent-mortier--jean-benoît-charrassin">
-<a href="https://www.locean.ipsl.fr" class="external-link">LOCEAN, France</a> via Laurent MORTIER &amp; Jean-Benoît CHARRASSIN<a class="anchor" aria-label="anchor" href="#locean-france-via-laurent-mortier--jean-beno%C3%AEt-charrassin"></a>
+<h4 id="id_-">
+<a href="https://imos.org.au" class="external-link"><img src="reference/figures/IMOS_logo.png" style="width:30.0%"></a> <a href="https://sims.org.au" class="external-link"><img src="reference/figures/SIMS_logo.png" style="width:30.0%"></a>
+<a class="anchor" aria-label="anchor" href="#id_-"></a>
 </h4>
+<p>via Rob Harcourt &amp; Clive McMahon</p>
 </div>
 <div class="section level4">
-<h4 id="armines-france-via-laurent-mortier">
-<a href="https://www.armines.net/fr" class="external-link">Armines, France</a> via Laurent MORTIER<a class="anchor" aria-label="anchor" href="#armines-france-via-laurent-mortier"></a>
+<h4 id="section">
+<a href="https://www.locean.ipsl.fr" class="external-link"><img src="reference/figures/logo_locean_2.png" style="width:30.0%"></a><a class="anchor" aria-label="anchor" href="#section"></a>
 </h4>
+<p>via Laurent MORTIER &amp; Jean-Benoît CHARRASSIN</p>
 </div>
 <div class="section level4">
-<h4 id="imos-australia--sims-australia-via-robert-harcourt--clive-mcmahon">
-<a href="https://imos.org.au" class="external-link">IMOS, Australia</a> &amp; <a href="https://sims.org.au" class="external-link">SIMS, Australia</a> via Robert HARCOURT &amp; Clive MCMAHON<a class="anchor" aria-label="anchor" href="#imos-australia--sims-australia-via-robert-harcourt--clive-mcmahon"></a>
+<h4 id="section-1">
+<a href="https://www.armines.net/fr" class="external-link"><img src="reference/figures/armines-logo.png" style="width:20.0%"></a><a class="anchor" aria-label="anchor" href="#section-1"></a>
 </h4>
+<p>via Laurent MORTIER</p>
+</div>
+<div class="section level4">
+<h4 id="section-2">
+<a href="https://oceantrackingnetwork.org" class="external-link"><img src="reference/figures/OTN_logo.png" style="width:30.0%"></a><a class="anchor" aria-label="anchor" href="#section-2"></a>
+</h4>
+<p>via Evelien VanderKloet &amp; Jon Pye</p>
 </div>
 </div>
 </div>
