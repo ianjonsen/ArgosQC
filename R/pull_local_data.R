@@ -112,7 +112,7 @@ pull_local_data <- function(path2data,
       list_drop_empty()
 
   } else if(tag_mfr == "wc") {
-    stop("tag_mfr = 'wc' is deprecated. Use 'pull_wd_data()' instead.")
+    stop("tag_mfr = 'wc' is deprecated. Use 'pull_wc_data()' instead.")
   }
 
 

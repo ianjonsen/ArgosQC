@@ -17,10 +17,12 @@
 ##' `FastGPS.csv` files.
 ##'
 ##' @param path2data path to data file(s)
-##' @param source one of "smru", "wc", or "local"
+##' @param source one of "smru", "wc"
 ##' @param cid SMRU campaign ids. If not specified then the cid are built from
 ##' the directory or filenames present in the `path2data` directory.
-##' @param tag_mfr either "smru or "wc", ignored if `source` != "local"
+##' @param tag_mfr either "smru or "wc"
+##' @param subset.ids a single column .CSV file of WC UUID's to be included in
+##' the QC, with uuid as the variable name.
 ##' @param ... additional arguments passed to `smru_pull_tables`
 ##'
 ##' @md
@@ -30,9 +32,10 @@ pull_data <- function(path2data,
                       source = "smru",
                       cid = NULL,
                       tag_mfr = "smru",
+                      subset.ids = NULL,
                       ...) {
 
-  source <- match.arg(source, choices = c("smru", "wc", "local"))
+  source <- match.arg(source, choices = c("smru", "wc"))
 
   if (source == "smru") {
     if (is.null(cid)) {
@@ -47,14 +50,16 @@ pull_data <- function(path2data,
 
   } else if (source == "wc") {
 
-    out <- wc_pull_data(path2data)
+    out <- wc_pull_data(path2data,
+                        subset.ids)
 
-  } else if(source == "local") {
-
-    out <- pull_local_data(path2data,
-                           cid = cid,
-                           tag_mfr)
   }
+  # } else if(source == "local") {
+  #
+  #   out <- pull_local_data(path2data,
+  #                          cid = cid,
+  #                          tag_mfr)
+  # }
 
   return(out)
 }

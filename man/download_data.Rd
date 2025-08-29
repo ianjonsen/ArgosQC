@@ -2,13 +2,11 @@
 % Please edit documentation in R/download_data.R
 \name{download_data}
 \alias{download_data}
-\title{Download SMRU or Wildlife Computers tag data from arbitrary sources}
+\title{Download SMRU or Wildlife Computers tag data from their servers}
 \usage{
 download_data(
-  path = NULL,
   dest = NULL,
   source = "smru",
-  unzip = FALSE,
   cid = NULL,
   user = NULL,
   pwd = NULL,
@@ -21,20 +19,13 @@ download_data(
 )
 }
 \arguments{
-\item{path}{a url or local filepath pointing to a zipfile of tag datafiles}
-
 \item{dest}{destination path to save download}
 
 \item{source}{source type of data to be downloaded. Can be one of:
 \itemize{
 \item \code{smru} - SMRU Data Server;
 \item \code{wc} - Wildlife Computers Data Portal API;
-\item \code{googledrive} - a url link to a zipfile shared on a GoogleDrive;
-\item \code{dropbox} - a url link to a zipfile shared on Dropbox;
-\item \code{local} - a local filepath to a zipfile containing SMRU or WC tag datafiles.
 }}
-
-\item{unzip}{(logical) should the downloaded zipfile be unzipped.}
 
 \item{cid}{SMRU tag deployment campaign id(s) to download, eg. "ct180"}
 
@@ -58,8 +49,6 @@ then only the Wildlife Computers tag deployment metadata is downloaded.}
 \item{...}{additional arguments passed to \code{smru_get_mdb} or \code{wc_get_files()}}
 }
 \description{
-Satellite tracking data, in a zipfile, are downloaded from a
-user-specified URL (for accessing zipfiles on GoogleDrive or Dropbox),
-accessed from the SMRU data server, or accessed from the Wildlife Computers
-Portal API via the \code{source} argument.
+Satellite tracking data are accessed from the SMRU data server,
+or accessed from the Wildlife Computers Portal API via the \code{source} argument.
 }

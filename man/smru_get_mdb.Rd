@@ -5,7 +5,7 @@
 \title{Download .mdb files from the SMRU server}
 \usage{
 smru_get_mdb(
-  cids,
+  cid,
   dest = NULL,
   user = NULL,
   pwd = NULL,
@@ -14,7 +14,7 @@ smru_get_mdb(
 )
 }
 \arguments{
-\item{cids}{SMRU campaign ids to be downloaded from SMRU data server}
+\item{cid}{SMRU campaign ids to be downloaded from SMRU data server}
 
 \item{dest}{destination path for saving .mdb files}
 

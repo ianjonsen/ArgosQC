@@ -4,17 +4,27 @@
 \alias{pull_data}
 \title{Pull SMRU or WC data from downloaded data files}
 \usage{
-pull_data(path2data, source = "smru", cid = NULL, tag_mfr = "smru", ...)
+pull_data(
+  path2data,
+  source = "smru",
+  cid = NULL,
+  tag_mfr = "smru",
+  subset.ids = NULL,
+  ...
+)
 }
 \arguments{
 \item{path2data}{path to data file(s)}
 
-\item{source}{one of "smru", "wc", or "local"}
+\item{source}{one of "smru", "wc"}
 
 \item{cid}{SMRU campaign ids. If not specified then the cid are built from
 the directory or filenames present in the \code{path2data} directory.}
 
-\item{tag_mfr}{either "smru or "wc", ignored if \code{source} != "local"}
+\item{tag_mfr}{either "smru or "wc"}
+
+\item{subset.ids}{a single column .CSV file of WC UUID's to be included in
+the QC, with uuid as the variable name.}
 
 \item{...}{additional arguments passed to \code{smru_pull_tables}}
 }

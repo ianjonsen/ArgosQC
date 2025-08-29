@@ -2,7 +2,7 @@
 ##'
 ##' @description fetches .mdb files from SMRU server and saves to a \code{dest}-ination directory
 ##'
-##' @param cids SMRU campaign ids to be downloaded from SMRU data server
+##' @param cid SMRU campaign ids to be downloaded from SMRU data server
 ##' @param dest destination path for saving .mdb files
 ##' @param user SMRU data server username as a string
 ##' @param pwd  SMRU data server password as a string
@@ -19,7 +19,7 @@
 ##' @keywords internal
 
 smru_get_mdb <-
-  function(cids,
+  function(cid,
            dest = NULL,
            user = NULL,
            pwd = NULL,
@@ -61,7 +61,7 @@ smru_get_mdb <-
       system(paste0("rm ", file.path(dest, paste0(cid, ".zip"))))
     }
 
-      out <- cids %>% walk(~ fn(
+      out <- cid %>% walk(~ fn(
           .x,
           dest = dest,
           user = user,

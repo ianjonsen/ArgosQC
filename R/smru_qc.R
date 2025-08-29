@@ -118,10 +118,6 @@ smru_qc <- function(wd,
     meta.source <- conf$setup$program
   }
 
-  ## define data source
-  if(!conf$harvest$download) data.source <- "local"
-  else data.source <- "smru"
-
   ## Create output dirs if they do not exits
   dir.create(file.path(wd, conf$setup$data.dir),
              showWarnings = FALSE,
@@ -181,7 +177,7 @@ smru_qc <- function(wd,
   ##    * if present
   smru <- pull_data(
     path2data = conf$setup$data.dir,
-    source = data.source,
+    source = "smru",
     cid = conf$harvest$cid,
     p2mdbtools = conf$harvest$p2mdbtools
   )

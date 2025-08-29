@@ -7,7 +7,6 @@
 ##' @param source source type of data to be downloaded. Can be one of:
 ##' * `smru` - SMRU Data Server;
 ##' * `wc` - Wildlife Computers Data Portal API;
-##' @param unzip (logical) should the downloaded zipfile be unzipped.
 ##' @param cid SMRU tag deployment campaign id(s) to download, eg. "ct180"
 ##' @param user SMRU data server username as a quoted string
 ##' @param pwd SMRU data server password as a quoted string
@@ -40,7 +39,6 @@ download_data <- function(dest = NULL,
 
   source <- match.arg(source, choices = c("smru", "wc"))
 
-
   if(is.null(dest)) {
 
     dest <- tempdir()
@@ -61,7 +59,8 @@ download_data <- function(dest = NULL,
   } else if(source == "wc") {
 
     if(any(is.null(wc.akey), is.null(wc.skey)))
-      stop("Valid 'wc.akey' and 'wc.skey' must be supplied to download from the Wildlife Computers Portal")
+      stop("Valid 'wc.akey' and 'wc.skey' must be supplied to access the Wildlife Computers Portal API")
+
     meta <- wc_get_files(dest = dest,
                  a.key = wc.akey,
                  s.key = wc.skey,
