@@ -173,7 +173,7 @@ smru_qc <- function(wd,
 
   message("Reading tag data from .mdb file...")
   ## Read SMRU tag file data from .mdb/source files
-  ## Pull tables (diag, gps*, haulout, ctd, dive*, cruise & summary) from .mdb files
+  ## Pull tables (diag, gps*, haulout*, ctd, dive*, cruise* & summary) from .mdb files
   ##    * if present
   smru <- pull_data(
     path2data = conf$setup$data.dir,
@@ -231,7 +231,8 @@ smru_qc <- function(wd,
     ts = conf$model$time.step
   ) |> suppressWarnings()
 
-  message("Fitting QC SSM - second pass...")
+  if(conf$model$reroute) message("Fitting QC SSM - second pass & rerouting locations off land...")
+  else message("Fitting QC SSM - second pass...")
 
   ## Second pass SSM-filter
   fit2 <- redo_multi_filter(

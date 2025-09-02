@@ -191,7 +191,8 @@ wc_qc <- function(wd,
 
 
   ## Second pass SSM-filter - separately by species
-  message("Fitting QC SSM - second pass...")
+  if(conf$model$reroute) message("Fitting QC SSM - second pass & rerouting locations off land...")
+  else message("Fitting QC SSM - second pass...")
   fit2 <- redo_multi_filter(
     fit1,
     locs_sf,
