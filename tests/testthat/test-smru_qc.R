@@ -2,7 +2,10 @@ test_that("smru_qc works", {
   ## use ct185 - single tag deployment to keep test time as short as possible
   ##  downloads data from SMRU server
   ##  Perhaps turn off download_data to further speed up testing?
-  smru_qc(".", "config_ct185.json")
+
+  ## specify mdbtools location if running on Mac
+  if(R.version$platform == "aarch64-apple-darwin20") smru_qc(".", "config_ct185_mac.json")
+  else smru_qc(".", "config_ct185.json")
   expect_true(file.exists("test/metadata_ct185_nrt.csv"))
   expect_true(file.exists("test/ctd_ct185_nrt.csv"))
   expect_true(file.exists("test/diag_ct185_nrt.csv"))

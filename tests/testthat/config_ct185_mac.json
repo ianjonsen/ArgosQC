@@ -16,7 +16,7 @@
 	"smru.pwd":"imos",
 	"timeout":180,
 	"dropIDs":null,
-	"p2mdbtools":null
+	"p2mdbtools":"/opt/homebrew/Cellar/mdbtools/1.0.1/bin/"
 	},
 "model":
 	{
