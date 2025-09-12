@@ -4,7 +4,7 @@ test_that("smru_qc works", {
   ##  Perhaps turn off download_data to further speed up testing?
 
   ## specify mdbtools location if running on Mac
-  if(R.version$platform == "aarch64-apple-darwin20") smru_qc(".", "config_ct185_mac.json")
+  if(Sys.info()[1] == "Darwin") smru_qc(".", "config_ct185_mac.json")
   else smru_qc(".", "config_ct185.json")
   expect_true(file.exists("test/metadata_ct185_nrt.csv"))
   expect_true(file.exists("test/ctd_ct185_nrt.csv"))

@@ -34,7 +34,7 @@ jobs:
         with:
           use-public-rspm: true
 
-      - name: "[Custom block] [Linux] Install spatial libraries"
+      - name: "[Custom block] [Linux] Install mdbtools"
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
