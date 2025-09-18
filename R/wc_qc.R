@@ -105,7 +105,9 @@ wc_qc <- function(wd,
   ##    alternative for WC data
   if(is.na(conf$setup$meta.file)) stop("A metadata file must be provided")
 
-  ## Create output dirs if they do not exits
+  ## Create output dirs if they do not exist
+  ##    NOTE: dir names can NOT include spaces or _
+  ##    as these will mess up data download &/or file extraction
   dir.create(file.path(wd, conf$setup$data.dir),
              showWarnings = FALSE,
              recursive = TRUE)

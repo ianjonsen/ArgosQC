@@ -87,7 +87,15 @@ smru_pull_tables <- function(cids,
 
   if(any(names(smru) %in% "diag")) {
     smru$diag <- smru$diag |>
-    mutate(d_date = mdy_hms(d_date, tz = "UTC"))
+    mutate(d_date = mdy_hms(d_date, tz = "UTC")) |>
+    mutate(iq = as.integer(iq)) |>
+    suppressWarnings()
+
+    ## replace ref's with _ with -
+    if(min(smru$diag$d_date, na.rm=TRUE) < ISOdate(2006,01,01,tz="UTC")) {
+      smru$diag <- smru$diag |>
+        mutate(ref = str_replace_all(ref, "\\_", "-"))
+    }
   }
 
   if(any(names(smru) %in% "gps")) {
@@ -111,6 +119,11 @@ smru_pull_tables <- function(cids,
                                  mdy_hms(e_date_tag, tz = "UTC"),
                                  e_date_tag))
     }
+    ## replace ref's with _ with -
+    if(min(smru$haulout$s_date, na.rm=TRUE) < ISOdate(2006,01,01,tz="UTC")) {
+      smru$haulout <- smru$haulout |>
+        mutate(ref = str_replace_all(ref, "\\_", "-"))
+    }
   }
 
   if(any(names(smru) %in% "ctd")) {
@@ -124,6 +137,11 @@ smru_pull_tables <- function(cids,
     if("modified" %in% names(smru$ctd)) {
       smru$ctd <- smru$ctd |>
         mutate(modified = mdy_hms(modified, tz = "UTC"))
+    }
+    ## replace ref's with _ with -
+    if(min(smru$ctd$end_date, na.rm=TRUE) < ISOdate(2006,01,01,tz="UTC")) {
+      smru$ctd <- smru$ctd |>
+        mutate(ref = str_replace_all(ref, "\\_", "-"))
     }
   }
 
@@ -141,31 +159,76 @@ smru_pull_tables <- function(cids,
                                     mdy_hms(de_date_tag, tz = "UTC"),
                                     de_date_tag))
     }
+    ## replace ref's with _ with -
+    if(min(smru$dive$de_date, na.rm=TRUE) < ISOdate(2006,01,01,tz="UTC")) {
+      smru$dive <- smru$dive |>
+        mutate(ref = str_replace_all(ref, "\\_", "-"))
+    }
   }
 
-  if(any(names(smru) %in% "summary")) {
-    smru$summary <- smru$summary |>
-      mutate(s_date = mdy_hms(s_date, tz = "UTC")) |>
-      mutate(e_date = mdy_hms(e_date, tz = "UTC"))
+    if (any(names(smru) %in% "summary")) {
+      smru$summary <- smru$summary |>
+        mutate(s_date = mdy_hms(s_date, tz = "UTC")) |>
+        mutate(e_date = mdy_hms(e_date, tz = "UTC"))
 
-    if("s_date_tag" %in% smru$summary) {
+      if ("s_date_tag" %in% smru$summary) {
+        smru$summary <- smru$summary |>
+          mutate(s_date_tag = ifelse(
+            !is.na(s_date_tag),
+            mdy_hms(s_date_tag, tz = "UTC"),
+            s_date_tag
+          ))
+      }
+      if ("e_date_tag" %in% smru$summary) {
+        smru$summary <- smru$summary |>
+          mutate(e_date_tag = ifelse(
+            !is.na(e_date_tag),
+            mdy_hms(e_date_tag, tz = "UTC"),
+            e_date_tag
+          ))
+      }
+      ## replace ref's with _ with -
+      if (min(smru$summary$s_date, na.rm=TRUE) < ISOdate(2006, 01, 01, tz = "UTC")) {
+        smru$summary <- smru$summary |>
+          mutate(ref = str_replace_all(ref, "\\_", "-"))
+      }
       smru$summary <- smru$summary |>
-        mutate(s_date_tag = ifelse(!is.na(s_date_tag),
-                                   mdy_hms(s_date_tag, tz = "UTC"),
-                                   s_date_tag))
+        mutate(
+          surf_tm = ifelse(surf_tm < 0, 0, surf_tm),
+          dive_tm = ifelse(dive_tm < 0, 0, dive_tm),
+          haul_tm = ifelse(haul_tm < 0, 0, haul_tm)
+        )
+      ## values are proportion of total time & therefore must be >= 0
     }
-    if("e_date_tag" %in% smru$summary) {
-      smru$summary <- smru$summary |>
-        mutate(e_date_tag = ifelse(!is.na(e_date_tag),
-                                   mdy_hms(e_date_tag, tz = "UTC"),
-                                   e_date_tag))
+
+
+    if (any(names(smru) %in% "cruise")) {
+      smru$cruise <- smru$cruise |>
+        mutate(s_date = mdy_hms(s_date, tz = "UTC")) |>
+        mutate(e_date = mdy_hms(e_date, tz = "UTC"))
+
+      if ("s_date_tag" %in% smru$cruise) {
+        smru$cruise <- smru$cruise |>
+          mutate(s_date_tag = ifelse(
+            !is.na(s_date_tag),
+            mdy_hms(s_date_tag, tz = "UTC"),
+            s_date_tag
+          ))
+      }
+      if ("e_date_tag" %in% smru$cruise) {
+        smru$cruise <- smru$cruise |>
+          mutate(e_date_tag = ifelse(
+            !is.na(e_date_tag),
+            mdy_hms(e_date_tag, tz = "UTC"),
+            e_date_tag
+          ))
+      }
+      ## replace ref's with _ with -
+      if (min(smru$cruise$s_date, na.rm=TRUE) < ISOdate(2006, 01, 01, tz = "UTC")) {
+        smru$cruise <- smru$cruise |>
+          mutate(ref = str_replace_all(ref, "\\_", "-"))
+      }
     }
-    smru$summary <- smru$summary |>
-      mutate(surf_tm = ifelse(surf_tm < 0, 0, surf_tm),
-             dive_tm = ifelse(dive_tm < 0, 0, dive_tm),
-             haul_tm = ifelse(haul_tm < 0, 0, haul_tm))
-    ## values are proportion of total time & therefore must be >= 0
-  }
 
   return(smru)
 

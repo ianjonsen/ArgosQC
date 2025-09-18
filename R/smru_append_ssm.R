@@ -49,17 +49,17 @@ smru_append_ssm <- function(smru,
     )
   }
 
-  f <- ArgosQC:::grab_QC(fit, "fitted", as_sf = FALSE) |>
+  f <- grab_QC(fit, "fitted", as_sf = FALSE) |>
     rename(ref = id) |>
     filter(!ref %in% dropIDs)
   names(f) <- to_snake_case(names(f))
 
   ssm_locs <- switch(what,
                      p = {
-                       ArgosQC:::grab_QC(fit, "predicted", cut = cut, as_sf = FALSE)
+                       grab_QC(fit, "predicted", cut = cut, as_sf = FALSE)
                      },
                      r = {
-                       ArgosQC:::grab_QC(fit, "rerouted", cut = cut, as_sf = FALSE)
+                       grab_QC(fit, "rerouted", cut = cut, as_sf = FALSE)
                      }) |>
     rename(ref = id) |>
     filter(!ref %in% dropIDs)

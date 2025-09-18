@@ -67,12 +67,12 @@ diagnostics <-
       n <- length(fit)
 
       flocs <- lapply(1:n, function(i) {
-        locs <- ArgosQC:::grab_QC(fit[[i]], what = what, as_sf = TRUE)
+        locs <- grab_QC(fit[[i]], what = what, as_sf = TRUE)
         end.locs <- locs |>
           group_by(id) |>
           summarise(geometry = geometry[n(), ])
 
-        flocs <- ArgosQC:::grab_QC(fit[[i]], what = "f")
+        flocs <- grab_QC(fit[[i]], what = "f")
 
         suppressMessages(map_QC(
           fit[[i]],
@@ -123,12 +123,12 @@ diagnostics <-
 
 
     } else if(inherits(fit, "ssm_df")) {
-      locs <- ArgosQC:::grab_QC(fit, what = what, as_sf = TRUE)
+      locs <- grab_QC(fit, what = what, as_sf = TRUE)
       end.locs <- locs |>
         group_by(id) |>
         summarise(geometry = geometry[n(), ])
 
-      flocs <- ArgosQC:::grab_QC(fit, what = "f")
+      flocs <- grab_QC(fit, what = "f")
 
       suppressMessages(map_QC(
         fit,
