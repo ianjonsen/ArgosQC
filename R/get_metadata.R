@@ -113,17 +113,18 @@ get_metadata <- function(source = "smru",
 
 
     ## read & clean metadata
-    meta <- switch(source, irap = {
-      wc_clean_meta_irap(
-        file = file,
-        ids = ids,
-        dropIDs = dropIDs,
-        wc.meta = wc.meta
-      )
-    }, atn = {
-      wc_clean_meta_atn(file = file,
-                        ids = ids,
-                        dropIDs = dropIDs)
+    meta <- switch(source,
+                   irap = {
+                     wc_clean_meta_irap(file = file,
+                                        ids = ids,
+                                        dropIDs = dropIDs,
+                                        wc.meta = wc.meta
+                                        )
+                     },
+                   atn = {
+                     wc_clean_meta_atn(file = file,
+                                         ids = ids,
+                                         dropIDs = dropIDs)
     })
 
 
