@@ -26,9 +26,10 @@ Several automated QC workflows have been set up for SMRU SRDL-CTD (and related) 
 
 |             Workflow                                   |    Function         |
 |:------------------------------------------------------:|:-------------------:|
-| IMOS - AODN SMRU SRDL-CTD (and related) tags           |  `smru_qc()`   |
+| IMOS SMRU SRDL-CTD (and related) tags           |  `smru_qc()`   |
 | ATN SMRU SRDL-CTD (and related) tags                   |  `smru_qc()`    |
-| ATN Wildlife Computers SPOT, SPLASH, and SCOUT tags    |  `atn_wc_qc()`      |
+| ATN Wildlife Computers SPOT, SPLASH, and SCOUT tags    |  `wc_qc()`      |
+| NSWOO - IRAP Wildlife Computers tags              |  `wc_qc()`      |
 
 These single function workflows simplify the automated QC implementation. Additional workflows will be added as required to accommodate additional tag manufacturers and/or tag data structures, as well as organisational metadata and output data formatting requirements. The QC workflows can also be implemented by calling individual `ArgosQC` functions in series as required. This latter approach allows greater flexibility as intermediate & final output data and metadata can be re-structured as needed. The single function SMRU tag QC & ATN Wildlife Computers tag workflows are highlighted below.
 
@@ -198,23 +199,14 @@ The SSMOutputs file contains the SSM-predicted locations at the `time.step` spec
 
 # FOLLOWING TO BE UPDATED...
 
-## 2. ATN Wildlife Computers tag data QC workflow
+## 2. Wildlife Computers (WC) tag data QC workflow
+The Wildlife Computers JSON config file has the same 4-block structure as the SMRU config file (`meta` block is optional), however, some of the parameters within the blocks differ. Below is the config file for a NSWOO (IRAP) QC workflow on WC SPOT tags deployed on green turtles in NSW, Australia.
+
+<center>
+![](images/IRAP_config_JSON.png){width=70%}
+The call within R is
 ```{r fn2 call, eval=FALSE}
-out <- atn_wc_qc(wd = "test",
-                 datadir = "tagdata",
-                 meta.file = file.path("metadata", "ATN Tag Deployment Metadata.csv"),
-                 outdir = "wc/output",
-                 proj = NULL,
-                 model = "rw",
-                 vmax = 3,
-                 time.step = 6,
-                 reroute = FALSE,
-                 cut = FALSE,
-                 QCmode = "dm",
-                 output = TRUE,
-                 collab.id = "...alphanumeric...",
-                 wc.akey = "...alphanumeric...",
-                 wc.skey = "...alphanumeric...")
+wc_qc(wd = "test", config = "irap_config.json")
 ```
 
 The arguments are similar to `atn_smru_qc()`, with the addition of Wildlife Computers API identifiers: `collab.id`, `wc.akey`, and `wc.skey`. These may be used to download data directly from the Wildlife Computers Portal, in this case, data are written to tag-specific directories within the specified `datadir` directory. The `collab.id` argument specifies the Wildlife Computers collaborator ID, which is required if the user does not own or otherwise does not have direct access to the data. Note, that data-sharing collaborations must be set up in the Wildlife Computers Portal prior to using this tool. `ArgosQC` who are Wildlife Computers data owners may access their data from the Portal simply by providing the `wc.akey` and `wc.skey` arguments. The `wc.akey` specifies the Wildlife Computers Access Key that all Portal users must have to access the API. The Access key is used in tandem with the `wc.skey`, the Wildlife Computers Secret Key. No data downloads from the Wildlife Computers Portal are possible without these key pairs. 

@@ -89,6 +89,7 @@
 ##'
 ##' @importFrom stringr str_split str_length
 ##' @importFrom jsonlite read_json
+##' @importFrom testthat skip_if is_testing
 ##'
 ##' @md
 ##' @export
@@ -98,6 +99,8 @@ wc_qc <- function(wd,
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
+
+  skip_if(is_testing(), "Skipping - test in development")
 
   conf <- read_json(config, simplifyVector = TRUE)
 
@@ -138,7 +141,8 @@ wc_qc <- function(wd,
   what <- "p"
   if(conf$model$reroute) what <- "r"
 
-  if (all(!is.null(conf$harvest$wc.akey),
+  if (all(!is.null(conf$harvest$owner.id),
+          !is.null(conf$harvest$wc.akey),
           !is.null(conf$harvest$wc.skey))){
     if(conf$harvest$download)
       message("Downloading tag data from Wildlife Computers Data Portal...")

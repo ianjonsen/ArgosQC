@@ -184,9 +184,7 @@ smru_qc <- function(wd,
 
 
   ## Download or load metadata
-  if (conf$setup$program == "imos") {
-    ## download SMRU metadata & generate QC metadata for IMOS-AODN
-    meta <- get_metadata(
+  meta <- get_metadata(
       source = meta.source,
       tag_data = smru,
       cid = conf$harvest$cid,
@@ -195,19 +193,6 @@ smru_qc <- function(wd,
       meta.args = conf$meta
     ) |>
       suppressMessages()
-
-  } else {
-
-    meta <- get_metadata(
-      source = meta.source,
-      tag_data = smru,
-      cid = conf$harvest$cid,
-      dropIDs = dropIDs,
-      file = conf$setup$meta.file,
-      meta.args = conf$meta
-    ) |>
-      suppressMessages()
-  }
 
 
   ## Prepare location data

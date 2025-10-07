@@ -46,7 +46,7 @@ the QC, with uuid as the variable name.}
 the tag manufacturer's server. If the source is \code{wc} and \code{download = FALSE}
 then only the Wildlife Computers tag deployment metadata is downloaded.}
 
-\item{...}{additional arguments passed to \code{smru_get_mdb} or \code{wc_get_files()}}
+\item{...}{additional arguments passed to \code{smru_get_mdb()} or \code{wc_get_files()}}
 }
 \description{
 Satellite tracking data are accessed from the SMRU data server,

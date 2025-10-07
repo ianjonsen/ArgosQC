@@ -21,7 +21,7 @@
 ##' @keywords internal
 ##'
 
-smru_clean_imos_meta <- function(cid,
+smru_clean_meta_imos <- function(cid,
                        smru,
                        dropIDs = NULL,
                        file = NULL) {

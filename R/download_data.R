@@ -18,7 +18,7 @@
 ##' @param download (logical) indicating if the data is to be downloaded from
 ##' the tag manufacturer's server. If the source is `wc` and `download = FALSE`
 ##' then only the Wildlife Computers tag deployment metadata is downloaded.
-##' @param ... additional arguments passed to `smru_get_mdb` or `wc_get_files()`
+##' @param ... additional arguments passed to `smru_get_mdb()` or `wc_get_files()`
 ##'
 ##' @importFrom utils unzip
 ##' @importFrom usethis create_download_url

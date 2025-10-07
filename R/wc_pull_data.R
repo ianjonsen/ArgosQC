@@ -54,7 +54,7 @@ wc_pull_data <- function(path2data,
     )
 
   if(!is.null(subset.ids)) {
-    ids <- read_csv(subset.ids) |>
+    ids <- read_csv(subset.ids, col_types = "c") |>
       suppressMessages()
     if(names(ids) != "uuid" | length(names(ids)) != 1) stop("Variable name for the WC ID's to QC'd must be 'uuid'")
   } else {

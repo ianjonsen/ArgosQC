@@ -1,0 +1,36 @@
+[{"setup": 
+	{
+	"program":"irap",
+	"data.dir":"test",
+	"meta.file":"IRAP_metadata_lh.csv",
+	"maps.dir":"test",
+	"diag.dir":"test",
+	"output.dir":"test",
+	"return.R":false
+	},
+"harvest": 
+	{
+	"download":true,
+	"owner.id":"663d756e3cd05b1b7a0ee403",
+	"wc.akey":"VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
+	"wc.skey":"7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
+	"tag.list":"irap_lhtu_tags.csv",
+	"dropIDs":null
+	},
+"model": 
+	{
+	"model":"rw",
+	"vmax":3,
+	"time.step":6,
+	"proj":null,
+	"reroute":true,
+	"dist":20,
+	"barrier":null,
+	"buffer":0.25,
+	"centroids":true,
+	"cut":false,
+	"min.gap":72,
+	"QCmode":"nrt",
+	"pred.int":6
+	}
+}]

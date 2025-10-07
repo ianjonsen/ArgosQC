@@ -28,7 +28,7 @@ cid SMRU campaign ids}
 
 \item{cid}{SMRU campaign id must be provided when the tag_mfr is \code{smru}}
 
-\item{dropIDs}{SMRU refs or WC ids to be dropped}
+\item{dropIDs}{SMRU refs or WC ids to be dropped from QC}
 
 \item{file}{path to metadata .csv file, if provided then metadata will be
 read from the provided \code{source}}
