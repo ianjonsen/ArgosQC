@@ -49,7 +49,8 @@
 ##'   * `timeout` extends the download timeout period a specified number of
 ##'   seconds for slower internet connections.
 ##'   * `dropIDs` the SMRU ref ID's that are to be ignored during the QC process.
-##'   Can be NULL.
+##'   SMRU ref ID's are suppled as a .CSV file `dropIDs.csv` with a single
+##'   variable named `ref`. Can be NULL.
 ##'   * `p2mdbtools` (optional) provides the path to the mdbtools library if it
 ##'   is installed in a non-standard location (e.g., on Macs when installed via
 ##'   Homebrew).
@@ -146,7 +147,7 @@ smru_qc <- function(wd,
   if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")
   } else {
-    dropIDs <- conf$harvest$dropIDs
+    dropIDs <- suppressMessages(readr::read_csv(conf$harvest$dropIDs)$ref)
   }
 
   ## Define the QC locations - p = predicted; r = rerouted

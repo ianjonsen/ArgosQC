@@ -56,7 +56,8 @@ the SMRU data server or read from the local \code{data.dir}.
 \item \code{timeout} extends the download timeout period a specified number of
 seconds for slower internet connections.
 \item \code{dropIDs} the SMRU ref ID's that are to be ignored during the QC process.
-Can be NULL.
+SMRU ref ID's are suppled as a .CSV file \code{dropIDs.csv} with a single
+variable named \code{ref}. Can be NULL.
 \item \code{p2mdbtools} (optional) provides the path to the mdbtools library if it
 is installed in a non-standard location (e.g., on Macs when installed via
 Homebrew).
