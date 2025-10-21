@@ -4,10 +4,21 @@
 \alias{smru_build_meta_imos}
 \title{construct IMOS metadata from SMRU data server & config file details}
 \usage{
-smru_build_meta_imos(cid, dropIDs, meta.args, tag_data)
+smru_build_meta_imos(
+  cid,
+  user = NULL,
+  pwd = NULL,
+  dropIDs,
+  meta.args = NULL,
+  tag_data
+)
 }
 \arguments{
 \item{cid}{the SMRU campaign ID - supplied by \code{conf$harvest$cid}}
+
+\item{user}{SMRU data server username as a quoted string}
+
+\item{pwd}{SMRU data server password as a quoted string}
 
 \item{dropIDs}{SMRU refs or WC ids to be dropped from QC - supplied by
 \code{conf$harvest$dropIDs} in \code{get_metadata()}}

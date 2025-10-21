@@ -5,6 +5,8 @@
 ##' Data server table associated with the provided `cid` (SMRU campaign id).
 ##'
 ##' @param cid the SMRU campaign ID - supplied by `conf$harvest$cid`
+##' @param user SMRU data server username as a quoted string
+##' @param pwd SMRU data server password as a quoted string
 ##' @param dropIDs SMRU refs or WC ids to be dropped from QC - supplied by
 ##' `conf$harvest$dropIDs` in `get_metadata()`
 ##' @param meta.args metadata fields to be passed from config file - required when
@@ -14,20 +16,27 @@
 ##' @importFrom dplyr select mutate filter rename left_join everything
 ##' @importFrom rvest read_html html_elements html_table
 ##' @importFrom stringr str_replace_all str_to_lower str_split
+##' @importFrom assertthat assert_that
 ##'
 ##' @keywords internal
 ##'
 
 
 smru_build_meta_imos <- function(cid,
+                                user = NULL,
+                                pwd = NULL,
                                 dropIDs,
-                                meta.args,
+                                meta.args = NULL,
                                 tag_data)
 {
 
+  assert_that(!is.null(user))
+  assert_that(!is.null(pwd))
+  assert_that(!is.null(meta.args))
+
   ## download SMRU metadata & generate QC metadata for IMOS-AODN
   tag_meta <- lapply(1:length(cid), function(i) {
-    url <- paste0("https://imos:imos@www.smru.st-andrews.ac.uk/protected/", cid[i], "/", cid[i], ".html")
+    url <- paste0("https://", user, ":", pwd, "@www.smru.st-andrews.ac.uk/protected/", cid[i], "/", cid[i], ".html")
     tm <- url |>
       read_html() |>
       html_elements(xpath = '/html/body/ul[1]/table') |>

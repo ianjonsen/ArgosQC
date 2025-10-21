@@ -189,6 +189,8 @@ smru_qc <- function(wd,
       source = meta.source,
       tag_data = smru,
       cid = conf$harvest$cid,
+      user = conf$harvest$smru.usr,
+      pwd = conf$harvest$smru.pwd,
       dropIDs = dropIDs,
       file = conf$setup$meta.file,
       meta.args = conf$meta

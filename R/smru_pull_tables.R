@@ -27,7 +27,7 @@ smru_pull_tables <- function(cids,
 ) {
 
   ## path for MacBook Pro M1 Pro
-  #p2mdbtools <- "/opt/homebrew/Cellar/mdbtools/1.0.0/bin/"
+  #p2mdbtools <- "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/"
   if(is.null(p2mdbtools)) p2mdbtools <- ""
 
   ## map data strings to tables strings

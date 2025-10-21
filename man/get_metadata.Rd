@@ -9,6 +9,8 @@ get_metadata(
   tag_mfr = "smru",
   tag_data = NULL,
   cid = NULL,
+  user = NULL,
+  pwd = NULL,
   dropIDs = NULL,
   file = NULL,
   meta.args,
@@ -17,8 +19,11 @@ get_metadata(
 )
 }
 \arguments{
-\item{source}{the source of the metadata, current options are \code{imos}, \code{smru},
-\code{atn}.}
+\item{source}{the source of the deployment metadata, current options are
+\code{imos}, \code{smru}, or \code{atn}. If \code{source = 'imos'} or \code{source = 'atn'} then
+metadata are obtained from user-provided .CSV file via the config.json file.
+If \code{sourcce = 'smru'} then metadata are built from a combination of SMRU
+server details & deployment details in the config.json file.}
 
 \item{tag_mfr}{the tag manufacturer, current options are \code{smru} or \code{wc}
 cid SMRU campaign ids}
@@ -27,6 +32,12 @@ cid SMRU campaign ids}
 \code{pull_data}.}
 
 \item{cid}{SMRU campaign id must be provided when the tag_mfr is \code{smru}}
+
+\item{user}{SMRU data server username as a quoted string - to be used only if
+metadata are to be built from SMRU server details (\code{source = 'smru'}).}
+
+\item{pwd}{SMRU data server password as a quoted string - to be used only if
+metadata are to be built from SMRU server details (\code{source = 'smru'}).}
 
 \item{dropIDs}{SMRU refs or WC ids to be dropped from QC}
 

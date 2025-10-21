@@ -5,13 +5,20 @@
 ##' metadata - eg. release_datetime, release_longitude/latitude's with data from
 ##' the GPS (if present) or Argos location file.
 ##'
-##' @param source the source of the metadata, current options are `imos`, `smru`,
-##' `atn`.
+##' @param source the source of the deployment metadata, current options are
+##' `imos`, `smru`, or `atn`. If `source = 'imos'` or `source = 'atn'` then
+##' metadata are obtained from user-provided .CSV file via the config.json file.
+##' If `sourcce = 'smru'` then metadata are built from a combination of SMRU
+##' server details & deployment details in the config.json file.
 ##' @param tag_mfr the tag manufacturer, current options are `smru` or `wc`
 ##' cid SMRU campaign ids
 ##' @param tag_data a list of either `smru` data tables or `wc` files as output by
 ##' `pull_data`.
 ##' @param cid SMRU campaign id must be provided when the tag_mfr is `smru`
+##' @param user SMRU data server username as a quoted string - to be used only if
+##' metadata are to be built from SMRU server details (`source = 'smru'`).
+##' @param pwd SMRU data server password as a quoted string - to be used only if
+##' metadata are to be built from SMRU server details (`source = 'smru'`).
 ##' @param dropIDs SMRU refs or WC ids to be dropped from QC
 ##' @param file path to metadata .csv file, if provided then metadata will be
 ##' read from the provided `source`
@@ -35,6 +42,8 @@ get_metadata <- function(source = "smru",
                          tag_mfr = "smru",
                          tag_data = NULL,
                          cid = NULL,
+                         user = NULL,
+                         pwd = NULL,
                          dropIDs = NULL,
                          file = NULL,
                          meta.args,
@@ -193,6 +202,8 @@ get_metadata <- function(source = "smru",
                    smru = {
                      ## download SMRU metadata & generate QC metadata for IMOS-AODN
                      meta <- smru_build_meta_imos(cid = cid,
+                                                  user = user,
+                                                  pwd = pwd,
                                                   dropIDs = dropIDs,
                                                   meta.args = meta.args,
                                                   tag_data = tag_data)
