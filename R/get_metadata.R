@@ -49,6 +49,7 @@ get_metadata <- function(source = "smru",
                          meta.args,
                          subset.ids = NULL,
                          wc.meta = NULL) {
+
   if (is.null(tag_data))
     stop("a tag_data object must be supplied")
   #  if(all(source == "imos", is.null(file))) stop("an IMOS-ATF .csv metadata file must be provided")

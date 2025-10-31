@@ -104,9 +104,20 @@ wc_qc <- function(wd,
 
   conf <- read_json(config, simplifyVector = TRUE)
 
+  ## define metadata source
+  if(is.na(conf$setup$meta.file)) {
+    conf$setup$meta.file <- NULL
+    meta.source <- "wc"
+
+  } else {
+    ## specifies program-specific metadata
+    meta.source <- conf$setup$program
+  }
+
+
   ## check for metadata file, throw error if missing as there's currently no
   ##    alternative for WC data
-  if(is.na(conf$setup$meta.file)) stop("A metadata file must be provided")
+#  if(is.na(conf$setup$meta.file)) stop("A metadata file must be provided")
 
   ## Create output dirs if they do not exist
   ##    NOTE: dir names can NOT include spaces or _
@@ -166,13 +177,14 @@ wc_qc <- function(wd,
                   subset.ids = conf$harvest$tag.list)
 
   ## get metadata
-  meta <- get_metadata(source = conf$setup$program,
+  meta <- get_metadata(source = meta.source,
                        tag_data = wc,
                        tag_mfr = "wc",
                        dropIDs = dropIDs,
                        file = file.path(wd, conf$setup$meta.file),
                        subset.ids = conf$harvest$tag.list,
-                       wc.meta = wc.meta
+                       wc.meta = wc.meta,
+                       meta.args = conf$meta
   )
 
   ## prepare location data

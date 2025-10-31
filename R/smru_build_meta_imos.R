@@ -60,7 +60,7 @@ smru_build_meta_imos <- function(cid,
            -latest_argos_location)
 
   tmp <- split(tag_data$diag, tag_data$diag$ref)
-  meta_loc <- lapply(tmp, function(x) {
+  loc_meta <- lapply(tmp, function(x) {
     with(subset(x, d_date <= unique(round_date(d_date, unit="day"))[2]),
          data.frame(ref = ref[1],
                     release_date = d_date[1],
@@ -69,7 +69,7 @@ smru_build_meta_imos <- function(cid,
   }) |>
     bind_rows()
 
-  meta <- suppressWarnings(left_join(tag_meta, meta_loc, by = c("device_id"="ref")) |>
+  meta <- suppressWarnings(left_join(tag_meta, loc_meta, by = c("device_id"="ref")) |>
                              mutate(sattag_program = str_split(device_id, "\\-", simplify = TRUE)[,1]) |>
                              mutate(common_name = meta.args$common_name,
                                     species = meta.args$species) |>

@@ -30,12 +30,13 @@ download_data <- function(dest = NULL,
                      cid = NULL,
                      user = NULL,
                      pwd = NULL,
-                     wc.akey = "VVeerW+G6YUe7olzlrOr6q5o2Nkjx5PTEwuwElcPyKc=",
-                     wc.skey = "7k9MupziDacYNur/3IPMDjn7wum6oQk5eV2LRj86iDw=",
+                     wc.akey = NULL,
+                     wc.skey = NULL,
                      owner.id = NULL,
                      subset.ids = NULL,
                      download = TRUE,
                      ...) {
+
 
   source <- match.arg(source, choices = c("smru", "wc"))
 

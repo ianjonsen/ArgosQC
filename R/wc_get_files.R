@@ -47,11 +47,8 @@ wc_get_files <- function(dest = NULL,
   assert_that(!is.null(a.key), msg = "A valid wc.akey (Access Key) must be provided when downloading data from Wildlife Computers")
   assert_that(!is.null(s.key), msg = "A valid wc.skey (Secret Key) must be provided when downloading data from Wildlife Computers")
 
-  if (any(is.null(a.key), is.null(s.key)))
-    stop("A Wildlife Computers API Access Key & Secret Key are required to download data")
-
   if (all(is.null(owner.id), !collaborator))
-    stop("Either an WC owner id must be specified or the collaborator argument must be set to TRUE")
+    stop("Either a WC owner id must be specified or the collaborator argument must be set to TRUE")
 
   req <- request('https://my.wildlifecomputers.com/services/')
 
@@ -86,8 +83,7 @@ wc_get_files <- function(dest = NULL,
     }) |>
       bind_rows() |>
       drop_na() |>
-      mutate(last_update_date = as.POSIXct(
-        as.numeric(last_update_date, origin = "1970-01-01", tz = "GMT")
+      mutate(last_update_date = as.POSIXct(as.numeric(last_update_date, origin = "1970-01-01", tz = "GMT")
       ))
 
   } else if(!is.null(owner.id)) {
@@ -120,7 +116,8 @@ wc_get_files <- function(dest = NULL,
              last_loc_lat = latitude)
 
     deps <- bind_cols(deps, last_loc) |>
-      mutate(deploy.na = is.na(deployment))
+      mutate(deploy.na = is.na(deployment)) |>
+      mutate(tag.na = is.na(tag))
 
     deploy <- xmlToDataFrame(nodes = getNodeSet(xml, "//start"), homogeneous = TRUE)
     names(deploy) <- c("deploy_date", "deploy_lat", "deploy_lon")

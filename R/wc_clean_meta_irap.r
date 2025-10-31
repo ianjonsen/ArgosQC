@@ -36,7 +36,6 @@ wc_clean_meta_irap <- function(file,
   }
 
   if(!is.null(wc.meta)) {
-
     irap.meta <- left_join(irap.meta, wc.meta, by = c("DeploymentID" = "id")) |>
       select(
         DeploymentID,
