@@ -1,3 +1,7 @@
+# ArgosQC 0.9-1
+
+* Wildlife Computers QC workflow can now download tag deployment metadata via WC API
+
 # ArgosQC 0.8-5
 
 * QC workflow details specified via .JSON config files
