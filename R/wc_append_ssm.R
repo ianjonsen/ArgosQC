@@ -74,7 +74,7 @@ wc_append_ssm <- function(wc,
   }
 
   deploy_meta <- meta |>
-    select(DeploymentID, dive_start) |>
+    select(DeploymentID, QC_start_date) |>
     filter(!DeploymentID %in% dropIDs)
 
   # get tag-specific file names
@@ -121,7 +121,7 @@ wc_append_ssm <- function(wc,
     }
 
     x |>
-      select(-dive_start)
+      select(-QC_start_date)
   })
 
   names(out) <- wc.fnms
@@ -152,7 +152,7 @@ wc_append_Locations <- function(wc,
 
   wc <- wc |>
     left_join(deploy_meta, by = "DeploymentID") |>
-    filter(Date >= dive_start) |>
+    filter(Date >= QC_start_date) |>
     filter(!DeploymentID %in% dropIDs) |>
     group_by(DeploymentID) |>
     arrange(Date, .by_group = TRUE) |>
@@ -198,7 +198,7 @@ wc_append_ECDHistosDSA <- function(wc,
 
   wc <- wc |>
     left_join(deploy_meta, by = "DeploymentID") |>
-    filter(End >= dive_start) |>
+    filter(End >= QC_start_date) |>
     filter(!DeploymentID %in% dropIDs) |>
     group_by(DeploymentID) |>
     arrange(End, .by_group = TRUE) |>
@@ -239,7 +239,7 @@ wc_append_DSA <- function(wc,
 
   wc <- wc |>
     left_join(deploy_meta, by = "DeploymentID") |>
-    filter(DiveStart >= dive_start) |>
+    filter(DiveStart >= QC_start_date) |>
     filter(!DeploymentID %in% dropIDs) |>
     group_by(DeploymentID) |>
     arrange(DiveStart, .by_group = TRUE) |>
@@ -288,7 +288,7 @@ wc_append_datafile <- function(wc,
 
   wc <- wc |>
     left_join(deploy_meta, by = "DeploymentID") |>
-    filter(Date >= dive_start) |>
+    filter(Date >= QC_start_date) |>
     filter(!DeploymentID %in% dropIDs) |>
     group_by(DeploymentID) |>
     arrange(Date, .by_group = TRUE) |>

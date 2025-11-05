@@ -45,7 +45,7 @@ wc_write_csv <- function(wc_ssm,
   meta <- meta |> filter(!DeploymentID %in% dropIDs)
 
   meta <- inner_join(meta, ssm_out$qc_se, by = "DeploymentID") |>
-    select(-dive_start, -dive_end) |>
+    select(-QC_start_date, -QC_end_date) |>
     rename(QCStartDateTime = qc_start_date, QCStopDateTime = qc_end_date) |>
     mutate(QCMethod = "ArgosQC",
             QCVersion = as.character(packageVersion("ArgosQC"))) |>
@@ -110,9 +110,9 @@ wc_write_csv <- function(wc_ssm,
           )
         )))
 
-    } else if(program == "irap") {
+    } else if(program != "atn") {
       out[[i]] |>
-        mutate(DeploymentID = irapID) |>
+#        mutate(DeploymentID = irapID) |>
         group_by(common_name) |>
         group_split() |>
         walk( ~ suppressMessages(write_csv(
@@ -178,9 +178,9 @@ if(program == "atn") {
                     meta |> select(DeploymentID, TagID, TagModel, AnimalAphiaID, ADRProjectID),
                     by = "DeploymentID")
 
-} else if(program == "irap") {
+} else if(program != "atn") {
   out <- inner_join(tmp,
-                    meta |> select(DeploymentID, irapID, common_name),
+                    meta |> select(DeploymentID, common_name),
                     by = "DeploymentID")
 }
 
@@ -245,10 +245,10 @@ wc_write_ssm <- function(locs_out,
       meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
       by = "DeploymentID")
 
-  } else if(program == "irap") {
+  } else if(program != "atn") {
     locs_out <- left_join(
       locs_out,
-      meta |> select(DeploymentID, irapID, common_name),
+      meta |> select(DeploymentID, common_name),
       by = "DeploymentID")
   }
 
@@ -300,9 +300,9 @@ wc_write_locations <- function(wc_ssm,
                       meta |> select(DeploymentID, AnimalAphiaID, ADRProjectID),
                       by = "DeploymentID")
 
-  } else if(program == "irap") {
+  } else if(program != "atn") {
     locs <- left_join(locs,
-                      meta |> select(DeploymentID, irapID, common_name),
+                      meta |> select(DeploymentID, common_name),
                       by = "DeploymentID")
 
   }

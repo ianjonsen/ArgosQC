@@ -45,13 +45,15 @@ metadata are to be built from SMRU server details (\code{source = 'smru'}).}
 read from the provided \code{source}}
 
 \item{meta.args}{optional metadata fields to be passed from config file when
-downloading tag metadata from SMRU server.}
+downloading tag metadata from SMRU server. Typically used only when no
+metadata filepath is provided in the config file.}
 
 \item{subset.ids}{a character vector of comma-separated (no spaces) WC UUID's
 to be included in the QC. Ignored if \code{tag_mfr != "wc"}.}
 
 \item{wc.meta}{an R data.frame of Wildlife Computers tag deployment metadata
-obtained via \code{download_data()}.}
+obtained via \code{download_data()}. Typically used only when no metadata filepath
+is provided in the config file.}
 }
 \description{
 downloads, restructures & formats metadata, appends

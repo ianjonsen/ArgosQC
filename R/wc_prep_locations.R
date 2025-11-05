@@ -133,13 +133,13 @@ wc_prep_loc <- function(wc,
         -DeploymentStartDateTime,-DeploymentStopDateTime,-dive_start,-dive_end,-dt.meta,-dt.dive
       )
 
-  } else if (program == "irap") {
+  } else if (program != "atn") {
     locs <- locs |>
       filter(!DeploymentID %in% dropIDs)
 
     deploy_meta <- meta |>
       dplyr::select(
-        DeploymentID, irapID, dive_start, dive_end
+        DeploymentID, QC_start_date
       )
 
   locs <- locs |>
@@ -148,14 +148,14 @@ wc_prep_loc <- function(wc,
 
     if (QCmode == "nrt") {
        locs <- locs |>
-         filter(date >= dive_start & !is.na(lon)) |>
-         select(-dive_start,-dive_end)
+         filter(date >= QC_start_date & !is.na(lon)) |>
+         select(-QC_start_date)
 
     } else {
       locs <- locs |>
-        filter(date >= dive_start & !is.na(lon),
-               date <= dive_end & !is.na(lon)) |>
-        select(-dive_start, -dive_end)
+        filter(date >= QC_start_date & !is.na(lon),
+               date <= QC_end_date & !is.na(lon)) |>
+        select(-QC_start_date, -QC_end_date)
     }
 
   locs <- locs |>
@@ -260,7 +260,7 @@ wc_prep_loc <- function(wc,
       left_join(meta |> select(DeploymentID, ADRProjectID), by = "DeploymentID") |>
       select(DeploymentID, ADRProjectID, d_sf)
 
-  } else if (program == "irap") {
+  } else if (program != "atn") {
     locs <- locs |>
       select(DeploymentID, d_sf)
 

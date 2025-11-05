@@ -23,12 +23,13 @@
 ##' @param file path to metadata .csv file, if provided then metadata will be
 ##' read from the provided `source`
 ##' @param meta.args optional metadata fields to be passed from config file when
-##' downloading tag metadata from SMRU server.
+##' downloading tag metadata from SMRU server. Typically used only when no
+##' metadata filepath is provided in the config file.
 ##' @param subset.ids a character vector of comma-separated (no spaces) WC UUID's
 ##' to be included in the QC. Ignored if `tag_mfr != "wc"`.
 ##' @param wc.meta an R data.frame of Wildlife Computers tag deployment metadata
-##' obtained via `download_data()`.
-##'
+##' obtained via `download_data()`. Typically used only when no metadata filepath
+##' is provided in the config file.
 ##'
 ##' @importFrom dplyr select rename mutate filter bind_rows starts_with
 ##' @importFrom lubridate mdy_hms round_date
@@ -74,56 +75,63 @@ get_metadata <- function(source = "smru",
 
     ## get diving start/end dates - to automatically determine when animal
     ##  goes to sea
+    ## Based on tag datasets checked so far - these files are unreliable for
+    ##  determining when/if animal is at sea. Just rely on deploy/embark date in
+    ##  metadata
     tag_data <- vctrs::list_drop_empty(tag_data)
-    dive_se <- vector(mode = "list", length = 4)
+    dive_st <- vector(mode = "list", length = 4)
 
     if ("Histos" %in% names(tag_data)) {
-      dive_se[[1]] <- tag_data$Histos |>
+      dive_st[[1]] <- tag_data$Histos |>
         group_by(DeploymentID) |>
         summarise(
-          dive_start = min(Date, na.rm = TRUE),
-          dive_end = min(Date, na.rm = TRUE)
+          dive_start = min(Date, na.rm = TRUE)
         )
     }
 
     if ("ECDHistos_SCOUT_TEMP_361A" %in% names(tag_data)) {
-      dive_se[[2]] <- tag_data$ECDHistos_SCOUT_TEMP_361A |>
+      dive_st[[2]] <- tag_data$ECDHistos_SCOUT_TEMP_361A |>
         group_by(DeploymentID) |>
         summarise(
-          dive_start = min(Date, na.rm = TRUE),
-          dive_end = min(Date, na.rm = TRUE)
+          dive_start = min(Date, na.rm = TRUE)
         )
     }
 
     if ("ECDHistos_SCOUT_DSA" %in% names(tag_data)) {
-      dive_se[[3]] <- tag_data$ECDHistos_SCOUT_DSA |>
+      dive_st[[3]] <- tag_data$ECDHistos_SCOUT_DSA |>
         group_by(DeploymentID) |>
         summarise(
-          dive_start = min(Start, na.rm = TRUE),
-          dive_end = min(End, na.rm = TRUE)
+          dive_start = min(Start, na.rm = TRUE)
         )
     }
 
     if ("MinMaxDepth" %in% names(tag_data)) {
-      dive_se[[4]] <- tag_data$MinMaxDepth |>
+      dive_st[[4]] <- tag_data$MinMaxDepth |>
         group_by(DeploymentID) |>
         summarise(
-          dive_start = min(Date, na.rm = TRUE),
-          dive_end = max(Date, na.rm = TRUE)
+          dive_start = min(Date, na.rm = TRUE)
         )
     }
+    names(dive_st) <- c("Histos",
+                        "ECDHistos_SCOUT_TEMP_361A",
+                        "ECDHistos_SCOUT_DSA",
+                        "MinMaxDepth")
 
-    dive_se <- list_drop_empty(dive_se)
+    dive_st <- list_drop_empty(dive_st)
 
-    dive_se <- dive_se |>
+    dive_st <- dive_st |>
       bind_rows() |>
       group_by(DeploymentID) |>
-      summarise(dive_start = min(dive_start),
-                dive_end = max(dive_end))
+      summarise(dive_start = max(dive_start))
 
 
     ## read & clean metadata
     meta <- switch(source,
+                   atn = {
+                     wc_clean_meta_atn(file = file,
+                                       ids = ids,
+                                       dropIDs = dropIDs)
+                   },
                    irap = {
                      wc_clean_meta_irap(file = file,
                                         ids = ids,
@@ -131,31 +139,59 @@ get_metadata <- function(source = "smru",
                                         wc.meta = wc.meta
                                         )
                      },
-                   atn = {
-                     wc_clean_meta_atn(file = file,
-                                         ids = ids,
-                                         dropIDs = dropIDs)
-    })
+                   wc = {
+                    wc_build_meta_generic(ids = ids,
+                                          dropIDs = dropIDs,
+                                          meta.args = meta.args,
+                                          wc.meta = wc.meta,
+                                          tag_data = tag_data)
+                   }
+                   )
 
 
     ## join metadata & dive start/end dates
     meta <- meta |>
-      left_join(dive_se, by = "DeploymentID")
+      left_join(dive_st, by = "DeploymentID") |>
+      mutate(QC_start_date = case_when(
+        dive_start > deploy_date ~ dive_start,
+        dive_start <= deploy_date ~ deploy_date,
+        (is.na(deploy_date) & dive_start <= embark_date) ~ embark_date,
+        (is.na(deploy_date) & dive_start > embark_date) ~ dive_start
+      )) |>
+      mutate(deploy_longitude = as.double(deploy_longitude)) |>
+      mutate(deploy_latitude = as.double(deploy_latitude)) |>
+      mutate(QC_end_date = NA)
 
     ## revise QC start date (based on dive_start) if QC_start_datetime variable exists in metadata
     if ("QC_start_datetime" %in% names(meta)) {
       meta <- meta |>
         mutate(
-          dive_start = ifelse(
-            !is.na(QC_start_datetime) & dive_start < QC_start_datetime,
+          QC_start_date = ifelse(
+            !is.na(QC_start_datetime) & QC_start_date < QC_start_datetime,
             QC_start_datetime,
-            dive_start
+            QC_start_date
           )
         ) |>
-        mutate(dive_start = as.POSIXct(dive_start, origin = "1970-01-01", tz = "UTC")) |>
+        mutate(QC_start_date = as.POSIXct(QC_start_date, origin = "1970-01-01", tz = "UTC")) |>
         select(-QC_start_datetime)
     }
 
+    ## revise QC end date if QC_end_datetime variable exists in metadata
+    if ("QC_end_datetime" %in% names(meta)) {
+      meta <- meta |>
+        mutate(
+          QC_end_date = ifelse(
+            !is.na(QC_end_datetime),
+            QC_end_datetime,
+            QC_end_date
+          )
+        ) |>
+        mutate(QC_end_date = as.POSIXct(QC_end_date, origin = "1970-01-01", tz = "UTC")) |>
+        select(-QC_end_datetime)
+    }
+
+    meta <- meta |>
+      select(-dive_start)
 
   } else if (tag_mfr == "smru") {
     ## append dive start and end dates for (alternate) track truncation

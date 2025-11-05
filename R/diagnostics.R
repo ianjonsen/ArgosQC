@@ -103,7 +103,6 @@ diagnostics <-
           )
 
         } else {
-          browser()
           ggsave(
             file.path(mpath, paste0(
               "map_", cid, "_", Sys.Date(), ".png"
@@ -243,12 +242,13 @@ diagnostics <-
         ))
 
     } else if(QCmode == "dm" | tag_mfr == "wc") {
+
       p.lat <- suppressWarnings(p.lat + geom_rect(
         data = meta |> filter(!is.na(start_date),
-                              !is.na(dive_start)),
+                              !is.na(QC_start_date)),
         aes(
           xmin = start_date,
-          xmax = dive_start,
+          xmax = QC_start_date,
           ymin = -Inf,
           ymax = Inf
         ),
@@ -258,9 +258,9 @@ diagnostics <-
       ) +
         geom_rect(
           data = meta |> filter(!is.na(end_date),
-                                !is.na(dive_end)),
+                                !is.na(QC_end_date)),
           aes(
-            xmin = dive_end,
+            xmin = QC_end_date,
             xmax = end_date,
             ymin = -Inf,
             ymax = Inf
@@ -339,10 +339,10 @@ diagnostics <-
     } else if(QCmode == "dm" | tag_mfr == "wc") {
       p.lon <- suppressWarnings(p.lon + geom_rect(
         data = meta |> filter(!is.na(start_date),
-                              !is.na(dive_start)),
+                              !is.na(QC_start_date)),
         aes(
           xmin = start_date,
-          xmax = dive_start,
+          xmax = QC_start_date,
           ymin = -Inf,
           ymax = Inf
         ),
@@ -352,9 +352,9 @@ diagnostics <-
       ) +
         geom_rect(
           data = meta |> filter(!is.na(end_date),
-                                !is.na(dive_end)),
+                                !is.na(QC_end_date)),
           aes(
-            xmin = dive_end,
+            xmin = QC_end_date,
             xmax = end_date,
             ymin = -Inf,
             ymax = Inf

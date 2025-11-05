@@ -104,7 +104,8 @@ wc_qc <- function(wd,
 
   conf <- read_json(config, simplifyVector = TRUE)
 
-  ## define metadata source
+  ## define metadata source - if no metadata file supplied in config file then
+  ##  build deployment metadata from WC Data Portal xml dump
   if(is.na(conf$setup$meta.file)) {
     conf$setup$meta.file <- NULL
     meta.source <- "wc"
