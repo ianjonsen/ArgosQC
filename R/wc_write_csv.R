@@ -41,21 +41,19 @@ wc_write_csv <- function(wc_ssm,
                             pred.int = pred.int)
 
   ## Metadata
-  ## If ATN data then append QC variables to metadata
+  ## Append QC metadata to output metadata
   meta <- meta |> filter(!DeploymentID %in% dropIDs)
 
   meta <- inner_join(meta, ssm_out$qc_se, by = "DeploymentID") |>
     select(-QC_start_date, -QC_end_date) |>
-    rename(QCStartDateTime = qc_start_date, QCStopDateTime = qc_end_date) |>
-    mutate(QCMethod = "ArgosQC",
-            QCVersion = as.character(packageVersion("ArgosQC"))) |>
-    rename(QCproj4string = proj4string)
+    mutate(qc_method = "ArgosQC",
+           qc_version = as.character(packageVersion("ArgosQC"))) |>
+    rename(qc_proj4string = proj4string)
 
   now <- Sys.time()
   attr(now, "tzone") <- "UTC"
   meta <- meta |>
-    mutate(QCDateTime = now)
-
+    mutate(qc_run_date = now)
 
   wc.fnms <- names(wc_ssm)
 
@@ -81,6 +79,10 @@ wc_write_csv <- function(wc_ssm,
   )
 
   ## QC-annotated Metadata
+  if (program != "atn") {
+    meta <- meta |>
+      rename(deployment_id = DeploymentID)
+  }
   out$metadata <- meta
 
   nms <- names(out)
@@ -179,6 +181,7 @@ if(program == "atn") {
                     by = "DeploymentID")
 
 } else if(program != "atn") {
+
   out <- inner_join(tmp,
                     meta |> select(DeploymentID, common_name),
                     by = "DeploymentID")

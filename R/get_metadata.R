@@ -148,16 +148,28 @@ get_metadata <- function(source = "smru",
                    }
                    )
 
-
     ## join metadata & dive start/end dates
     meta <- meta |>
-      left_join(dive_st, by = "DeploymentID") |>
-      mutate(QC_start_date = case_when(
-        dive_start > deploy_date ~ dive_start,
-        dive_start <= deploy_date ~ deploy_date,
-        (is.na(deploy_date) & dive_start <= embark_date) ~ embark_date,
-        (is.na(deploy_date) & dive_start > embark_date) ~ dive_start
-      )) |>
+      left_join(dive_st, by = "DeploymentID")
+
+    if("embark_date" %in% names(meta)) {
+      meta <- meta |>
+        mutate(QC_start_date = case_when(
+          dive_start > deploy_date ~ dive_start,
+          dive_start <= deploy_date ~ deploy_date,
+          (is.na(deploy_date) & dive_start <= embark_date) ~ embark_date,
+          (is.na(deploy_date) & dive_start > embark_date) ~ dive_start
+        ))
+
+    } else {
+      meta <- meta |>
+        mutate(QC_start_date = case_when(
+          dive_start > deploy_date ~ dive_start,
+          dive_start <= deploy_date ~ deploy_date
+        ))
+    }
+
+    meta <- meta |>
       mutate(deploy_longitude = as.double(deploy_longitude)) |>
       mutate(deploy_latitude = as.double(deploy_latitude)) |>
       mutate(QC_end_date = NA)
