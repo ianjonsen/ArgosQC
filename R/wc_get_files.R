@@ -24,6 +24,7 @@
 ##'
 ##' @importFrom dplyr select mutate bind_rows bind_cols
 ##' @importFrom assertthat assert_that
+##' @importFrom testthat is_testing
 ##' @importFrom tidyr drop_na
 ##' @importFrom utils unzip
 ##' @importFrom openssl sha256
@@ -194,6 +195,7 @@ wc_get_files <- function(dest = NULL,
         fs <- file.path(dest, list.files(dest, pattern = "*.zip"))
         unzip(zipfile = fs,
               exdir = str_split(fs, "\\.", simplify = TRUE)[, 1])
+
 
         system(paste0("rm ", fs))
       }

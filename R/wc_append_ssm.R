@@ -307,7 +307,8 @@ wc_append_datafile <- function(wc,
     do(locs = approx_ssm(., wc = wc)) |>
     unnest(cols = c(locs))
 
-  out <- left_join(wc, out, by = c("DeploymentID", "Date")) |>
+  out <- left_join(wc, out, by = c("DeploymentID", "Date"),
+                   relationship = "many-to-many") |>
     distinct()
 
   if("HistType" %in% names(wc)) {

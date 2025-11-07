@@ -1,4 +1,0 @@
-DeploymentID,release_date,release_location,latitude,longitude,common_name,sex,age_class,length,length_measurement,length_unit,mass,mass_measurement,mass_unit,tag_model,tag_serial_number,tag_ptt,lead_team,sattag_program,QC_start_datetime
-673bee2d5a171ca3cd0f865b,2024-06-21T01:54:00Z,"Bait Ground, Forster",-32.1778472,152.521977,loggerhead turtle,NA,NA,96,curved carapace,cm,NA,NA,NA,Splash10-F-351A,24A0510,265986,Taronga,4135,NA
-673bed659328c7e794075670,2024-06-21T04:15:00Z,"Jaden's Rock, Forster",-32.176786,152.5192201,loggerhead turtle,NA,NA,78,curved carapace,cm,NA,NA,NA,Splash10-F-351A,24A0509,265985,Taronga,4135,NA
-687db46d4d7306e3f20236da,2025-07-10T03:11:00Z,"Green Island, South West Rocks",-30.9115913,153.091856,loggerhead turtle,NA,NA,87,curved carapace,cm,NA,NA,NA,Splash10-F-351A,24A1024,280603,Taronga,8272,NA

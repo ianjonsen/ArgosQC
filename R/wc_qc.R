@@ -100,7 +100,7 @@ wc_qc <- function(wd,
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
 
-  skip_if(is_testing(), "Skipping - test in development")
+#  skip_if(is_testing(), "Skipping - test in development")
 
   conf <- read_json(config, simplifyVector = TRUE)
 
@@ -157,7 +157,7 @@ wc_qc <- function(wd,
           !is.null(conf$harvest$wc.akey),
           !is.null(conf$harvest$wc.skey))){
     if(conf$harvest$download)
-      message("Downloading tag data from Wildlife Computers Data Portal...")
+      message("\nDownloading tag data from Wildlife Computers Data Portal...")
     ## Conditionally download from WC Portal API
     wc.meta <- download_data(
       dest = file.path(wd, conf$setup$data.dir),

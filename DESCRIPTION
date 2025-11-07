@@ -1,7 +1,7 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.9-1
+Version: 0.9-02
 Date: 2025-11-05
 Author: Ian Jonsen [aut, cre, cph]           
 Maintainer: Ian Jonsen <jonsen@stochastic-qc.org>
@@ -50,4 +50,4 @@ Suggests:
     rmarkdown
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-Config/testthat/parallel: true
+Config/testthat/parallel: false

@@ -18,7 +18,7 @@
 ##' @importFrom dplyr select mutate filter rename left_join everything case_when
 ##' @importFrom rvest read_html html_elements html_table
 ##' @importFrom stringr str_detect str_sub
-##' @importFrom stats weighted.mean
+##' @importFrom stats weighted.mean median
 ##' @importFrom assertthat assert_that
 ##'
 ##' @keywords internal

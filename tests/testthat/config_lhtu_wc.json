@@ -1,14 +1,14 @@
-[{"setup": 
+[{"setup":
 	{
 	"program":"irap",
 	"data.dir":"test",
-	"meta.file":"IRAP_metadata_lh.csv",
+	"meta.file":null,
 	"maps.dir":"test",
 	"diag.dir":"test",
 	"output.dir":"test",
 	"return.R":false
 	},
-"harvest": 
+"harvest":
 	{
 	"download":true,
 	"owner.id":"663d756e3cd05b1b7a0ee403",
@@ -17,7 +17,7 @@
 	"tag.list":"irap_lhtu_tags.csv",
 	"dropIDs":null
 	},
-"model": 
+"model":
 	{
 	"model":"rw",
 	"vmax":3,
@@ -32,5 +32,12 @@
 	"min.gap":72,
 	"QCmode":"nrt",
 	"pred.int":6
+	},
+"meta":
+	{
+	"common_name":"loggerhead turtle",
+	"species":"Caretta caretta",
+	"release_site":"NSW",
+	"state_country":"Australia"
 	}
 }]

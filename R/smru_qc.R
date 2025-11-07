@@ -157,8 +157,7 @@ smru_qc <- function(wd,
 
   ## Conditionally download data from SMRU server
   if(conf$harvest$download) {
-    message("Downloading tag data from SMRU server...")
-
+    message("\nDownloading tag data from SMRU server...")
     #   system(paste0("rm ", file.path(conf$setup$datadir, "*.mdb")))
     ## download tag data from SMRU server
     download_data(
