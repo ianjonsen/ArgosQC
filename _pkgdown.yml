@@ -18,6 +18,11 @@ navbar:
       menu:
         - text: Overview
           href: articles/overview.html
+        - text: SMRU_workflow
+          href: articles/SMRU_workflow.html
+        - text: WC_workflow
+          href: articles/WC_workflow.html
+
     github:
       text: GitHub
       icon: fa-github fa-lg

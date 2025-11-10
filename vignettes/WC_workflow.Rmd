@@ -5,6 +5,9 @@ vignette: >
   %\VignetteIndexEntry{SMRU_workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r, include = FALSE}
@@ -19,8 +22,8 @@ knitr::opts_chunk$set(
 ## 2. Wildlife Computers (WC) tag data QC workflow
 The Wildlife Computers JSON config file has the same 4-block structure as the SMRU config file (`meta` block is optional), however, some of the parameters within the blocks differ. Below is the config file for a NSWOO (IRAP) QC workflow on WC SPOT tags deployed on green turtles in NSW, Australia.
 
-<center>
-![](images/IRAP_config_JSON.png){width=70%}
+<center>![](images/IRAP_config_JSON.png){width=100%}</center>
+
 The call within R is
 ```{r fn2 call, eval=FALSE}
 wc_qc(wd = "test", config = "irap_config.json")
