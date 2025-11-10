@@ -19,27 +19,28 @@ library(ArgosQC)
 ```
 
 ## Background
-`ArgosQC` provides automated workflows for quality controlling Argos & GPS (when present) locations obtained from either SMRU SRDL or Wildlife Computers animal telemetry tags. Workflows currently are set up for IMOS and ATN tagging data. The general workflow for SMRU tags is documented in [Jonsen et al. 2024](https://repository.oceanbestpractices.org/handle/11329/2571). The workflow for Wildlife Computers tags is analogous, with differences due to the various tag data structures.
+`ArgosQC` provides automated workflows for quality controlling Argos & GPS (when present) locations obtained from either SMRU SRDL or Wildlife Computers animal telemetry tags. Workflows currently are set up for IMOS and ATN tagging data. The general workflow for SMRU tags is documented in [Jonsen et al. 2024](https://repository.oceanbestpractices.org/handle/11329/2571). The workflow for Wildlife Computers tags is analogous but not identical due to differences in both the structure and nature of the data the tags collect and transmit.
 
 ## Workflows
 Several automated QC workflows have been set up for SMRU SRDL-CTD (and related) tags, and for Wildlife Computers SPOT, SPLASH and SCOUT tags. The workflows are specific to IMOS - AODN and ATN metadata and QC output data structure requirements. The following QC workflows can be implement from a single `ArgosQC` function & a required config JSON file, with output written to .CSV files in a user-specified directory:
 
 |             Workflow                                   |    Function         |
 |:------------------------------------------------------:|:-------------------:|
-| IMOS SMRU SRDL-CTD (and related) tags           |  `smru_qc()`   |
-| ATN SMRU SRDL-CTD (and related) tags                   |  `smru_qc()`    |
-| ATN Wildlife Computers SPOT, SPLASH, and SCOUT tags    |  `wc_qc()`      |
-| NSWOO - IRAP Wildlife Computers tags              |  `wc_qc()`      |
+| SMRU SRDL-CTD (and related) tags +  IMOS metadata      |  `smru_qc()`   |
+| SMRU SRDL-CTD (and related) tags + ATN metadata        |  `smru_qc()`    |
+| Wildlife Computers SPOT, SPLASH, and SCOUT tags + ATN metadata   |  `wc_qc()`      |
+| Wildlife Computers tag data + Generic metadata         |  `wc_qc()`      |
+
 
 These single function workflows simplify the automated QC implementation. Additional workflows will be added as required to accommodate additional tag manufacturers and/or tag data structures, as well as organisational metadata and output data formatting requirements. The QC workflows can also be implemented by calling individual `ArgosQC` functions in series as required. This latter approach allows greater flexibility as intermediate & final output data and metadata can be re-structured as needed. The single function SMRU tag QC & ATN Wildlife Computers tag workflows are highlighted below.
 
 ## Example
 
 ## 1. SMRU SRDL-CTD tag data QC workflow
-The first step to initiate any ArgosQC workflow is to construct a JSON config file. The file is hierarchical in structure with as many as 4 blocks: `setup`, `harvest`, `model`, and `meta`. The `meta` block is only required if no metadata file is provided in the `setup` block. These files can be constructed manually or programmatically and provide the ability to define certain aspects of the QC workflow. Below is the config file for an IMOS QC workflow on SMRU GPS SRDL-CTD tags deployed on olive ridley turtles on the Tiwi Islands, Australia.
+The first step to initiate any ArgosQC workflow is to construct a JSON config file. The file is hierarchical in structure with as many as 4 blocks: `setup`, `harvest`, `model`, and `meta`. The `meta` block is only required if no metadata file is provided in the `setup` block. These files can be constructed manually or programmatically and provide the ability to define certain aspects of the QC workflow. Below is the config file for an IMOS QC workflow on SMRU GPS SRDL-CTD tags deployed on olive ridley turtles on the Tiwi Islands, Australia. All SMRU tag data are organised by deployment campaign ids, e.g., `ct188`. A separate QC workflow (config file) must be generated for each deployment campaign.
 
 <center>
-![](images/IMOS_config_JSON.png){width=70%}
+![](images/IMOS_config_JSON.png){width=100%}
 </center>
 The block-specific parameters are as follows:
 <ul>
@@ -50,7 +51,7 @@ The block-specific parameters are as follows:
     Current options are: `imos`, `atn`, or `otn`.
     <li> `data.dir` the name of the data directory. Must reside within the `wd`.
     <li> `meta.file` the metadata filename. Must reside within the `wd`. Can be NULL,
-    in which case, the `meta` config block (see below) must be present &
+    in which case, the `meta` config block (see below) must be present & 
     tag-specific metadata are scraped from the SMRU data server.
     <li> `maps.dir` the directory path to write diagnostic maps of QC'd tracks.
     <li> `diag.dir` the directory path to write diagnostic time-series plots of
@@ -87,9 +88,10 @@ The block-specific parameters are as follows:
     seconds for slower internet connections.
     <li> `dropIDs` the SMRU ref ID's that are to be ignored during the QC process.
     Can be NULL.
-    <li> `p2mdbtools` (optional) provides the path to the mdbtools library if it
+    <li> `p2mdbtools` (optional) provides the path to the mdbtools library (required 
+    extract data from `.mdb` -Microsoft Access Database files) if it
     is installed in a non-standard location (e.g., on Macs when installed via
-    Homebrew).  
+    Homebrew). Can be set to NULL otherwise.  
  </ul></ul></ul>     
     
 <ul>  
@@ -113,6 +115,10 @@ The block-specific parameters are as follows:
    <li> `dist` the distance in km from outside the convex hull of observed
    locations from which to select land polygon data for re-routing. Ignored
    if `reroute = FALSE`.
+   <li> `barrier` an optional filepath to an alternate polygon data file for the 
+   land (or other) barrier. For example, higher resolution local coastline data
+   can be supplied, provided the data extend at least `dist` km beyond the 
+   extent of the track data.
    <li> `buffer` the distance in km to buffer rerouted locations from the
    coastline. Ignored if `reroute = FALSE`.
    <li> `centroids` whether centroids are to be included in the visibility graph
@@ -174,17 +180,17 @@ The `QCmode` sets whether the QC is being conducted in delayed-mode `dm` or near
 In the above example, the main QC outputs were written to files. The QC output .CSV files were written to the specified output directory. Each .CSV file includes the name of the SMRU data table, when present (ctd, diag, dive, haulout, summary) or the QC file (metadata, ssmoutputs). For QC workflows of ATN data, each of these file names is appended with the species' AnimalAphiaID and the ADRProjectID. For IMOS and other program data, the file names are appended with the SMRU campaign ID.
 
 The diag files show the SSM fit (red) overlaid on the tag-measured Argos &/or GPS locations (blue). The dark grey vertical bars denote the time period tags were actively recording locations but the seal(s) had not yet gone to sea (no recorded diving activity). By default, the QC model does not fit to data in these time periods. These plots help judge whether the SSM fits have artefacts that need addressing - typically only addressed during a delayed-mode QC workflow.
-![](images/lat_coverage.jpg){width=75%}
+![](images/lat_coverage_tu123.jpg){width=100%}
 
 The map file shows the SSM-predicted tracks (blue) and current last estimated location (red) for each deployed tag. The map files are annotated by the QC date so they are not overwritten by successive QC runs. 
-![](images/map_2025-06-18.jpg){width=95%}
+![](images/map_tu123_2025-11-10.jpg){width=100%}
 
 #### Output .CSV files
 
 The QC's main outputs, the .CSV files contain all records from the original SMRU data tables and are appended with the following additional columns: `ssm_lat`, `ssm_lon`, `ssm_x`, `ssm_y`, `ssm_x_se`, `ssm_y_se`. These are the QC'd locations and their uncertainty estimates interpolated to the time of each record. The `ssm_x`, `ssm_y` variables are the coordinates from the QC workflow projection (in km) and `ssm_x_se`, `ssm_y_se` are the associated standard errors (in km). Note that NA's may be present in the QC-appended location variables, particularly at the start and/or end of individual tracks. This is typically indicative of track portions prior to animals going to sea (at deployment start) and portions when either the CTD or pressure sensor failed, eg. due to biofouling or seawater ingress, but tag still transmitted locations (near deployment end).
 
 #### Metadata .CSV file
-The metadata file contains all the original ATN metadata records plus the following additions describing the QC workflow applied to the data:
+If an input deployment/tag metadata file is provided then the output metadata file contains all the original metadata records plus the following variables describing the QC workflow applied to the data:
 
 - `QCStartDateTime` - the track datetime (UTC) at which the QC workflow was started.
 - `QCStopDateTime` - the track datetime (UTC) at which the QC workflow was ended.
@@ -192,6 +198,8 @@ The metadata file contains all the original ATN metadata records plus the follow
 - `QCMethod` - denotes the `ArgosQC` R package was used.
 - `QCVersion` - denotes the version number of the `ArgosQC` R package used.
 - `QCDateTime` - the datetime (UTC) when the QC was applied to the data.
+
+Note, these variables are not appended to the metadata for IMOS QC workflows due to IMOS - AODN metadata specifications.
 
 #### SSMOutputs .CSV file
 The SSMOutputs file contains the SSM-predicted locations at the `time.step` specified prediction interval. The time of the first location is set to the time of the first tag-measured location passed to the model. This may or may not be the first tag-measured location in the tag datafile, depending on whether the animal-borne tag was immediately at sea. The location coordinates are provided as: `lon`, `lat`, `x`, `y`, and location uncertainty as `x_se`, `y_se`. The planar coordinates and uncertainty estimates always have units in km. Their coordinate projection is provided in the metadata .CSV file (`QCproj4string`).
