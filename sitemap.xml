@@ -3,6 +3,8 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/CODE_OF_CONDUCT.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/CONTRIBUTING.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/LICENSE.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/articles/SMRU_workflow.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/articles/WC_workflow.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/articles/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/articles/overview.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/authors.html</loc></url>
@@ -21,8 +23,10 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/push_2_aodn.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/redo_multi_filter.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_append_ssm.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_build_meta_imos.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_clean_diag.html</loc></url>
-<url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_clean_imos_meta.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_clean_meta_atn.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_clean_meta_imos.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_get_mdb.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_prep_loc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_pull_tables.html</loc></url>
@@ -40,12 +44,14 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_write_ssm.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_write_summary.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/ssm_mark_gaps.html</loc></url>
-<url><loc>https://ianjonsen.github.io/ArgosQC/reference/tidy_download.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_DSA.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_ECDHistosDSA.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_Locations.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_datafile.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_ssm.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_build_meta_generic.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_clean_meta_atn.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_clean_meta_irap.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_get_collab_ids.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_get_files.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_prep_loc.html</loc></url>
