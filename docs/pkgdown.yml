@@ -1,9 +1,11 @@
-pandoc: '3.4'
+pandoc: 3.6.3
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   overview: overview.html
-last_built: 2025-06-20T18:21Z
+  SMRU_workflow: SMRU_workflow.html
+  WC_workflow: WC_workflow.html
+last_built: 2025-11-10T16:57Z
 urls:
   reference: https://ianjonsen.github.io/ArgosQC/reference
   article: https://ianjonsen.github.io/ArgosQC/articles

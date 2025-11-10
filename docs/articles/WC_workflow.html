@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Overview • ArgosQC</title>
+<title>SMRU SRDL-CTD tag QC workflow • ArgosQC</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="Overview">
+<script src="../pkgdown.js"></script><meta property="og:title" content="SMRU SRDL-CTD tag QC workflow">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -80,79 +80,91 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>Overview</h1>
+      <h1 data-toc-skip>SMRU SRDL-CTD tag QC workflow</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/ianjonsen/ArgosQC/blob/HEAD/vignettes/overview.Rmd" class="external-link"><code>vignettes/overview.Rmd</code></a></small>
-      <div class="hidden name"><code>overview.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/ianjonsen/ArgosQC/blob/HEAD/vignettes/WC_workflow.Rmd" class="external-link"><code>vignettes/WC_workflow.Rmd</code></a></small>
+      <div class="hidden name"><code>WC_workflow.Rmd</code></div>
 
     </div>
 
     
     
+<div class="section level2">
+<h2 id="following-to-be-updated">FOLLOWING TO BE UPDATED…<a class="anchor" aria-label="anchor" href="#following-to-be-updated"></a>
+</h2>
+<div class="section level3">
+<h3 id="wildlife-computers-wc-tag-data-qc-workflow">2. Wildlife Computers (WC) tag data QC workflow<a class="anchor" aria-label="anchor" href="#wildlife-computers-wc-tag-data-qc-workflow"></a>
+</h3>
+<p>The Wildlife Computers JSON config file has the same 4-block
+structure as the SMRU config file (<code>meta</code> block is optional),
+however, some of the parameters within the blocks differ. Below is the
+config file for a NSWOO (IRAP) QC workflow on WC SPOT tags deployed on
+green turtles in NSW, Australia.</p>
+<center>
+<p><img src="images%2FIRAP_config_JSON.png" style="width:70.0%"> The
+call within R is</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ianjonsen/ArgosQC/" class="external-link">ArgosQC</a></span><span class="op">)</span></span></code></pre></div>
-<div class="section level2">
-<h2 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
-</h2>
-<p><code>ArgosQC</code> provides automated workflows for quality
-controlling Argos &amp; GPS (when present) locations obtained from
-either SMRU SRDL or Wildlife Computers animal telemetry tags. Workflows
-currently are set up for IMOS and ATN tagging data. The general workflow
-for SMRU tags is documented in <a href="https://repository.oceanbestpractices.org/handle/11329/2571" class="external-link">Jonsen
-et al. 2024</a>. The workflow for Wildlife Computers tags is analogous
-but not identical due to differences in both the structure and nature of
-the data the tags collect and transmit.</p>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/wc_qc.html">wc_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"irap_config.json"</span><span class="op">)</span></span></code></pre></div>
+<p>The arguments are similar to <code>atn_smru_qc()</code>, with the
+addition of Wildlife Computers API identifiers: <code>collab.id</code>,
+<code>wc.akey</code>, and <code>wc.skey</code>. These may be used to
+download data directly from the Wildlife Computers Portal, in this case,
+data are written to tag-specific directories within the specified
+<code>datadir</code> directory. The <code>collab.id</code> argument
+specifies the Wildlife Computers collaborator ID, which is required if
+the user does not own or otherwise does not have direct access to the
+data. Note, that data-sharing collaborations must be set up in the
+Wildlife Computers Portal prior to using this tool. <code>ArgosQC</code>
+who are Wildlife Computers data owners may access their data from the
+Portal simply by providing the <code>wc.akey</code> and
+<code>wc.skey</code> arguments. The <code>wc.akey</code> specifies the
+Wildlife Computers Access Key that all Portal users must have to access
+the API. The Access key is used in tandem with the <code>wc.skey</code>,
+the Wildlife Computers Secret Key. No data downloads from the Wildlife
+Computers Portal are possible without these key pairs.</p>
+<p>Alternatively, <code>atn_wc_qc()</code> may be used with local copies
+of Wildlife Computers tag data, provided they are stored in tag-specific
+directories within the <code>datadir</code> directory.</p>
+<div class="section level5">
+<h5 id="output--csv-files">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files"></a>
+</h5>
+<p>The QC’s main outputs are the Wildlife Computers tag data files
+appended with the same QC’d location variables as the SMRU tag QC output
+files: <code>ssm_lat</code>, <code>ssm_lon</code>, <code>ssm_x</code>,
+<code>ssm_y</code>, <code>ssm_x_se</code>, <code>ssm_y_se</code>. The
+output .CSV files necessarily depend on the specific type of Wildlife
+Computers tag(s) that is/are being QC’d. Currently, the
+<code>ArgosQC</code> workflow accommodates SPOT, SPLASH and SCOUT tag
+data. Combined across these tag types, the following output .CSV files
+(per Wildlife Computers) are provided:</p>
+<ul>
+<li><code>DSA</code></li>
+<li><code>ECDHistos</code></li>
+<li><code>FastGPS</code></li>
+<li><code>Histos</code></li>
+<li><code>Locations</code></li>
+<li><code>MinMaxDepth</code></li>
+<li><code>MixLayer</code></li>
+<li><code>PDTs</code></li>
+<li><code>SST</code></li>
+</ul>
+<p>Where one of these files can have a data structure that differs
+between specific tag types, the file names are appended with the tag
+type. For example, <code>ECDHistos</code> file structure differ between
+SCOUT DSA and SCOUT TEMP 361A tags, so these file names appear as either
+<code>ECDHistos_SCOUT_DSA</code> or
+<code>ECDHistos_SCOUT_TEMP_361A</code>. Similar scenarios for other tag
+types/versions will be incorporated as required in future versions of
+<code>ArgosQC</code>.</p>
+<p>As with the SMRU QC output files, each of the WC QC output file names
+are appended with the species’ AnimalAphiaID, the ATN ADRProjectID and
+the <code>QCmode</code> suffix - <code>_nrt</code> or <code>_dm</code>.
+The metadata structure and appended QC variables are the same as
+described for the SMRU QC workflow.</p>
 </div>
-<div class="section level2">
-<h2 id="workflows">Workflows<a class="anchor" aria-label="anchor" href="#workflows"></a>
-</h2>
-<p>Several automated QC workflows have been set up for SMRU SRDL-CTD
-(and related) tags, and for Wildlife Computers SPOT, SPLASH and SCOUT
-tags. The workflows are specific to IMOS - AODN and ATN metadata and QC
-output data structure requirements. The following QC workflows can be
-implement from a single <code>ArgosQC</code> function &amp; a required
-config JSON file, with output written to .CSV files in a user-specified
-directory:</p>
-<table class="table">
-<colgroup>
-<col width="72%">
-<col width="27%">
-</colgroup>
-<thead><tr class="header">
-<th align="center">Workflow</th>
-<th align="center">Function</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="center">SMRU SRDL-CTD (and related) tags + IMOS metadata</td>
-<td align="center"><code><a href="../reference/smru_qc.html">smru_qc()</a></code></td>
-</tr>
-<tr class="even">
-<td align="center">SMRU SRDL-CTD (and related) tags + ATN metadata</td>
-<td align="center"><code><a href="../reference/smru_qc.html">smru_qc()</a></code></td>
-</tr>
-<tr class="odd">
-<td align="center">Wildlife Computers SPOT, SPLASH, and SCOUT tags + ATN
-metadata</td>
-<td align="center"><code><a href="../reference/wc_qc.html">wc_qc()</a></code></td>
-</tr>
-<tr class="even">
-<td align="center">Wildlife Computers tag data + Generic metadata</td>
-<td align="center"><code><a href="../reference/wc_qc.html">wc_qc()</a></code></td>
-</tr>
-</tbody>
-</table>
-<p>These single function workflows simplify the automated QC
-implementation. Additional workflows will be added as required to
-accommodate additional tag manufacturers and/or tag data structures, as
-well as organisational metadata and output data formatting requirements.
-The QC workflows can also be implemented by calling individual
-<code>ArgosQC</code> functions in series as required. This latter
-approach allows greater flexibility as intermediate &amp; final output
-data and metadata can be re-structured as needed. The single function
-SMRU &amp; Wildlife Computers tag workflows are outlined in
-<code>vignette('SMRU SRDL-CTD tag QC workflow')</code></p>
+</center>
+</div>
 </div>
   </div>
 
