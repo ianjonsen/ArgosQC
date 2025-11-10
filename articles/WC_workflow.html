@@ -96,23 +96,22 @@
     
     
 <div class="section level2">
-<h2 id="following-to-be-updated">FOLLOWING TO BE UPDATED…<a class="anchor" aria-label="anchor" href="#following-to-be-updated"></a>
+<h2 id="wildlife-computers-wc-tag-qc-workflow">Wildlife Computers (WC) tag QC workflow<a class="anchor" aria-label="anchor" href="#wildlife-computers-wc-tag-qc-workflow"></a>
 </h2>
-<div class="section level3">
-<h3 id="wildlife-computers-wc-tag-data-qc-workflow">2. Wildlife Computers (WC) tag data QC workflow<a class="anchor" aria-label="anchor" href="#wildlife-computers-wc-tag-data-qc-workflow"></a>
-</h3>
 <p>The Wildlife Computers JSON config file has the same 4-block
 structure as the SMRU config file (<code>meta</code> block is optional),
 however, some of the parameters within the blocks differ. Below is the
-config file for a NSWOO (IRAP) QC workflow on WC SPOT tags deployed on
-green turtles in NSW, Australia.</p>
+config file for a NSWOO (IRAP) QC workflow on WC SPOT6 tags deployed on
+loggerhead turtles in NSW, Australia.</p>
 <center>
 <img src="images/IRAP_config_JSON.png" style="width:100.0%">
 </center>
 <p>The call within R is</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/wc_qc.html">wc_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"irap_config.json"</span><span class="op">)</span></span></code></pre></div>
-<p>The arguments are similar to <code>atn_smru_qc()</code>, with the
+<p>The config file block parameters are similar to the config file for
+the SMRU workflow, with the following exceptions:</p>
+<p>arguments are similar to <code>atn_smru_qc()</code>, with the
 addition of Wildlife Computers API identifiers: <code>collab.id</code>,
 <code>wc.akey</code>, and <code>wc.skey</code>. These may be used to
 download data directly from the Wildlife Computers Portal, in this case,
@@ -132,9 +131,9 @@ Computers Portal are possible without these key pairs.</p>
 <p>Alternatively, <code>atn_wc_qc()</code> may be used with local copies
 of Wildlife Computers tag data, provided they are stored in tag-specific
 directories within the <code>datadir</code> directory.</p>
-<div class="section level5">
-<h5 id="output--csv-files">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files"></a>
-</h5>
+<div class="section level4">
+<h4 id="output--csv-files">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files"></a>
+</h4>
 <p>The QC’s main outputs are the Wildlife Computers tag data files
 appended with the same QC’d location variables as the SMRU tag QC output
 files: <code>ssm_lat</code>, <code>ssm_lon</code>, <code>ssm_x</code>,
@@ -168,7 +167,6 @@ are appended with the species’ AnimalAphiaID, the ATN ADRProjectID and
 the <code>QCmode</code> suffix - <code>_nrt</code> or <code>_dm</code>.
 The metadata structure and appended QC variables are the same as
 described for the SMRU QC workflow.</p>
-</div>
 </div>
 </div>
   </div>

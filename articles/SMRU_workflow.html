@@ -98,18 +98,18 @@
 <div class="section level2">
 <h2 id="smru-srdl-ctd-tag-qc-workflow">SMRU SRDL-CTD tag QC workflow<a class="anchor" aria-label="anchor" href="#smru-srdl-ctd-tag-qc-workflow"></a>
 </h2>
-<p>The first step to initiate any ArgosQC workflow is to construct a
-JSON config file. The file is hierarchical in structure with as many as
-4 blocks: <code>setup</code>, <code>harvest</code>, <code>model</code>,
-and <code>meta</code>. The <code>meta</code> block is only required if
-no metadata file is provided in the <code>setup</code> block. These
-files can be constructed manually or programmatically and provide the
-ability to define certain aspects of the QC workflow. Below is the
-config file for an IMOS QC workflow on SMRU GPS SRDL-CTD tags deployed
-on olive ridley turtles on the Tiwi Islands, Australia. All SMRU tag
-data are organised by deployment campaign ids, e.g., <code>ct188</code>.
-A separate QC workflow (config file) must be generated for each
-deployment campaign.</p>
+<p>The first step to initiate any <code>ArgosQC</code> workflow is to
+construct a <code>JSON</code> config file. The file is hierarchical in
+structure with as many as 4 blocks: <code>setup</code>,
+<code>harvest</code>, <code>model</code>, and <code>meta</code>. The
+<code>meta</code> block is only required if no metadata file is provided
+in the <code>setup</code> block. These files can be constructed manually
+or programmatically and provide the ability to define certain aspects of
+the QC workflow. Below is the config file for an IMOS QC workflow on
+SMRU GPS SRDL-CTD tags deployed on olive ridley turtles on the Tiwi
+Islands, Australia. All SMRU tag data are organised by deployment
+campaign ids, e.g., <code>ct188</code>. A separate QC workflow (config
+file) must be generated for each deployment campaign.</p>
 <center>
 <img src="images/IMOS_config_JSON.png" style="width:100.0%">
 </center>
