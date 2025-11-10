@@ -1,8 +1,8 @@
 ---
-title: "SMRU SRDL-CTD tag QC workflow"
+title: "WC_workflow"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{SMRU_workflow}
+  %\VignetteIndexEntry{WC_workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 editor_options: 
