@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 ## SMRU SRDL-CTD tag QC workflow
 
-The first step to initiate any ArgosQC workflow is to construct a JSON
+The first step to initiate any `ArgosQC` workflow is to construct a `JSON`
 config file. The file is hierarchical in structure with as many as 4
 blocks: `setup`, `harvest`, `model`, and `meta`. The `meta` block is
 only required if no metadata file is provided in the `setup` block.

@@ -17,37 +17,78 @@ knitr::opts_chunk$set(
 )
 ```
 
-# FOLLOWING TO BE UPDATED...
+## Wildlife Computers (WC) tag QC workflow
 
-## 2. Wildlife Computers (WC) tag data QC workflow
-The Wildlife Computers JSON config file has the same 4-block structure as the SMRU config file (`meta` block is optional), however, some of the parameters within the blocks differ. Below is the config file for a NSWOO (IRAP) QC workflow on WC SPOT tags deployed on green turtles in NSW, Australia.
+The Wildlife Computers JSON config file has the same 4-block structure
+as the SMRU config file (`meta` block is optional), however, some of the
+parameters within the blocks differ. Below is the config file for a
+NSWOO (IRAP) QC workflow on WC SPOT6 tags deployed on loggerhead turtles
+in NSW, Australia.
 
-<center>![](images/IRAP_config_JSON.png){width=100%}</center>
+<center>![](images/IRAP_config_JSON.png){width="100%"}</center>
 
 The call within R is
+
 ```{r fn2 call, eval=FALSE}
 wc_qc(wd = "test", config = "irap_config.json")
 ```
 
-The arguments are similar to `atn_smru_qc()`, with the addition of Wildlife Computers API identifiers: `collab.id`, `wc.akey`, and `wc.skey`. These may be used to download data directly from the Wildlife Computers Portal, in this case, data are written to tag-specific directories within the specified `datadir` directory. The `collab.id` argument specifies the Wildlife Computers collaborator ID, which is required if the user does not own or otherwise does not have direct access to the data. Note, that data-sharing collaborations must be set up in the Wildlife Computers Portal prior to using this tool. `ArgosQC` who are Wildlife Computers data owners may access their data from the Portal simply by providing the `wc.akey` and `wc.skey` arguments. The `wc.akey` specifies the Wildlife Computers Access Key that all Portal users must have to access the API. The Access key is used in tandem with the `wc.skey`, the Wildlife Computers Secret Key. No data downloads from the Wildlife Computers Portal are possible without these key pairs. 
+The config file block parameters are similar to the config file for the
+SMRU workflow, with the following exceptions:
 
-Alternatively, `atn_wc_qc()` may be used with local copies of Wildlife Computers tag data, provided they are stored in tag-specific directories within the `datadir` directory.
+
+
+arguments are similar to `atn_smru_qc()`, with the addition of Wildlife
+Computers API identifiers: `collab.id`, `wc.akey`, and `wc.skey`. These
+may be used to download data directly from the Wildlife Computers
+Portal, in this case, data are written to tag-specific directories
+within the specified `datadir` directory. The `collab.id` argument
+specifies the Wildlife Computers collaborator ID, which is required if
+the user does not own or otherwise does not have direct access to the
+data. Note, that data-sharing collaborations must be set up in the
+Wildlife Computers Portal prior to using this tool. `ArgosQC` who are
+Wildlife Computers data owners may access their data from the Portal
+simply by providing the `wc.akey` and `wc.skey` arguments. The `wc.akey`
+specifies the Wildlife Computers Access Key that all Portal users must
+have to access the API. The Access key is used in tandem with the
+`wc.skey`, the Wildlife Computers Secret Key. No data downloads from the
+Wildlife Computers Portal are possible without these key pairs.
+
+Alternatively, `atn_wc_qc()` may be used with local copies of Wildlife
+Computers tag data, provided they are stored in tag-specific directories
+within the `datadir` directory.
 
 #### Output .CSV files
-The QC's main outputs are the Wildlife Computers tag data files appended with the same QC'd location variables as the SMRU tag QC output files: `ssm_lat`, `ssm_lon`, `ssm_x`, `ssm_y`, `ssm_x_se`, `ssm_y_se`. The output .CSV files necessarily depend on the specific type of Wildlife Computers tag(s) that is/are being QC'd. Currently, the `ArgosQC` workflow accommodates SPOT, SPLASH and SCOUT tag data. Combined across these tag types, the following output .CSV files (per Wildlife Computers) are provided:
 
-- `DSA`
-- `ECDHistos`
-- `FastGPS`
-- `Histos`
-- `Locations`
-- `MinMaxDepth`
-- `MixLayer`
-- `PDTs`
-- `SST`
+The QC's main outputs are the Wildlife Computers tag data files appended
+with the same QC'd location variables as the SMRU tag QC output files:
+`ssm_lat`, `ssm_lon`, `ssm_x`, `ssm_y`, `ssm_x_se`, `ssm_y_se`. The
+output .CSV files necessarily depend on the specific type of Wildlife
+Computers tag(s) that is/are being QC'd. Currently, the `ArgosQC`
+workflow accommodates SPOT, SPLASH and SCOUT tag data. Combined across
+these tag types, the following output .CSV files (per Wildlife
+Computers) are provided:
 
-Where one of these files can have a data structure that differs between specific tag types, the file names are appended with the tag type. For example, `ECDHistos` file structure differ between SCOUT DSA and SCOUT TEMP 361A tags, so these file names appear as either `ECDHistos_SCOUT_DSA` or `ECDHistos_SCOUT_TEMP_361A`. Similar scenarios for other tag types/versions will be incorporated as required in future versions of `ArgosQC`.
+-   `DSA`
+-   `ECDHistos`
+-   `FastGPS`
+-   `Histos`
+-   `Locations`
+-   `MinMaxDepth`
+-   `MixLayer`
+-   `PDTs`
+-   `SST`
 
-As with the SMRU QC output files, each of the WC QC output file names are appended with the species' AnimalAphiaID, the ATN ADRProjectID and the `QCmode` suffix - `_nrt` or `_dm`. The metadata structure and appended QC variables are the same as described for the SMRU QC workflow.
+Where one of these files can have a data structure that differs between
+specific tag types, the file names are appended with the tag type. For
+example, `ECDHistos` file structure differ between SCOUT DSA and SCOUT
+TEMP 361A tags, so these file names appear as either
+`ECDHistos_SCOUT_DSA` or `ECDHistos_SCOUT_TEMP_361A`. Similar scenarios
+for other tag types/versions will be incorporated as required in future
+versions of `ArgosQC`.
 
- 
+As with the SMRU QC output files, each of the WC QC output file names
+are appended with the species' AnimalAphiaID, the ATN ADRProjectID and
+the `QCmode` suffix - `_nrt` or `_dm`. The metadata structure and
+appended QC variables are the same as described for the SMRU QC
+workflow.
