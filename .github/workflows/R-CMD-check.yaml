@@ -66,7 +66,7 @@ jobs:
       - name: "[Custom block] [macOS] Install mdbtools"
         if: runner.os == 'macOS'
         run: |
-          brew install pkg-config mdbtools
+          brew install mdbtools
 
       - name: Install system dependencies (Windows)
         if: runner.os == 'Windows'
