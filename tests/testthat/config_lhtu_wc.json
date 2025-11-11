@@ -23,7 +23,7 @@
 	"vmax":3,
 	"time.step":6,
 	"proj":null,
-	"reroute":true,
+	"reroute":false,
 	"dist":20,
 	"barrier":null,
 	"buffer":0.25,
