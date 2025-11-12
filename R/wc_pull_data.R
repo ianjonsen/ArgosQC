@@ -24,10 +24,12 @@
 ##' the QC, with uuid as the variable name.
 ##'
 ##' @importFrom dplyr select mutate bind_rows everything case_when as_tibble
+##' @importFrom purrr map
 ##' @importFrom lubridate dmy_hms
 ##' @importFrom readr read_csv cols
-##' @importFrom stringr str_split
+##' @importFrom stringr str_split str_detect
 ##' @importFrom vctrs list_drop_empty
+##' @importFrom testthat is_testing
 ##'
 ##' @md
 ##' @export
@@ -53,13 +55,14 @@ wc_pull_data <- function(path2data,
       "SST"
     )
 
-  if(!is.null(subset.ids)) {
-    ids <- read_csv(subset.ids, col_types = "c") |>
-      suppressMessages()
-    if(names(ids) != "uuid" | length(names(ids)) != 1) stop("Variable name for the WC ID's to QC'd must be 'uuid'")
-  } else {
-    ids <- NULL
-  }
+    if(!is.null(subset.ids)) {
+      ids <- read_csv(subset.ids, col_types = "c") |>
+        suppressMessages()
+      if(names(ids) != "uuid" | length(names(ids)) != 1) stop("Variable name for the WC ID's to QC'd must be 'uuid'")
+    } else {
+      ids <- NULL
+    }
+
 
   ## drop tag dirs with *-Locations.csv files < 20 Argos locations &/or without *-Locations.csv
   ##    file(s) b/c these latter dirs likely contain SMRU data
@@ -81,10 +84,10 @@ wc_pull_data <- function(path2data,
   ## reduce to only the subset in subset.ids (if !is.null)
   if(!is.null(ids)) {
     dd <- dirs[idx > 0]
-    sub <- purrr::map(ids$uuid, stringr::str_detect, string = dd) |>
-      sapply(which) |>
-      sort()
-    ndirs <- dd[sub]
+    sub <- map(ids$uuid, str_detect, string = dd)
+    sub <- sapply(sub, which)
+    if(length(sub) > 0) ndirs <- dd[sub]
+    else ndirs <- dd
 
   } else {
     ## ignore any tag datasets with <= 20 observed locations

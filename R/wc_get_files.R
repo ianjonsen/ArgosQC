@@ -152,17 +152,17 @@ wc_get_files <- function(dest = NULL,
         last_update_date
       )
 
-    if(!is.null(subset.ids)) {
-      ids <- read_csv(subset.ids) |>
-        suppressMessages()
-      if(names(ids) != "uuid" | length(names(ids)) != 1) stop("Variable name for the WC ID's to QC'd must be 'uuid'")
+      if(!is.null(subset.ids)) {
+        ids <- read_csv(subset.ids, col_types = "c") |>
+          suppressMessages()
+        if(names(ids) != "uuid" | length(names(ids)) != 1) stop("Variable name for the WC ID's to QC'd must be 'uuid'")
 
-      deps <- deps |>
-        filter(id %in% ids$uuid)
-    } else {
+        deps <- deps |>
+          filter(id %in% ids$uuid)
 
-      ids <- NULL
-    }
+      } else {
+        ids <- NULL
+      }
 
     ## check for duplicate ptt id's & return tag metadata and stop process with
     ##    message
@@ -194,7 +194,7 @@ wc_get_files <- function(dest = NULL,
       if (unzip) {
         fs <- file.path(dest, list.files(dest, pattern = "*.zip"))
         unzip(zipfile = fs,
-              exdir = str_split(fs, "\\.", simplify = TRUE)[, 1])
+              exdir = str_split(fs, "\\.z", simplify = TRUE)[, 1])
 
 
         system(paste0("rm ", fs))

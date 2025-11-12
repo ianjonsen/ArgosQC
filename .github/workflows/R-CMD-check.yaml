@@ -68,10 +68,10 @@ jobs:
         run: |
           brew install mdbtools
 
-      - name: Install system dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          pacman -Syu mingw-w64-x86_64-mdbtools mingw-w64-i686-mdbtools mingw-w64-x86_64-libxml2
+      # - name: Install system dependencies (Windows)
+      #   if: runner.os == 'Windows'
+      #   run: |
+      #     pacman -Syu mingw-w64-x86_64-mdbtools mingw-w64-i686-mdbtools mingw-w64-x86_64-libxml2
 
       - name: Install remotes package
         run: |

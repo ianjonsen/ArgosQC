@@ -144,6 +144,7 @@ wc_qc <- function(wd,
   if(is.na(conf$model$proj)) conf$model$proj <- NULL
   if(is.na(conf$model$barrier)) conf$model$barrier <- NULL
 
+
   if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")
   } else {
