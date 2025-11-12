@@ -47,8 +47,8 @@
 ##'   * `wc.skey` (optional) the WC secret key for API access to the data portal.
 ##'   Ignored (if provided) when `harvest$download`:FALSE.
 ##'   * `dropIDs` the WC UUID(s) for specific tag data set(s) that is/are to be
-##'   ignored during the QC process. Can be NULL.
-##'
+##'   ignored during the QC process. UUID's are supplied as a .CSV file
+##'   `dropIDs.csv` with a single variable named `uuid`. Can be NULL.
 ##' * `model` config block specifies model- and data-specific parameters:
 ##'   * `model` the aniMotum SSM model to be used for the location QC - typically
 ##' either `rw` or `crw`.
@@ -148,7 +148,7 @@ wc_qc <- function(wd,
   if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")
   } else {
-    dropIDs <- conf$harvest$dropIDs
+    dropIDs <- suppressMessages(readr::read_csv(conf$harvest$dropIDs)$uuid)
   }
 
   what <- "p"
