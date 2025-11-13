@@ -121,7 +121,8 @@ Ignored (if provided) when <code>harvest$download</code>:FALSE.</p></li>
 <li><p><code>wc.skey</code> (optional) the WC secret key for API access to the data portal.
 Ignored (if provided) when <code>harvest$download</code>:FALSE.</p></li>
 <li><p><code>dropIDs</code> the WC UUID(s) for specific tag data set(s) that is/are to be
-ignored during the QC process. Can be NULL.</p></li>
+ignored during the QC process. UUID's are supplied as a .CSV file
+<code>dropIDs.csv</code> with a single variable named <code>uuid</code>. Can be NULL.</p></li>
 </ul></li>
 <li><p><code>model</code> config block specifies model- and data-specific parameters:</p><ul><li><p><code>model</code> the aniMotum SSM model to be used for the location QC - typically
 either <code>rw</code> or <code>crw</code>.</p></li>
