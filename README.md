@@ -7,9 +7,9 @@
 
 <!-- badges: end -->
 
-An R package to conduct unsupervised location quality-control of
-IMOS-deployed SMRU SRDL-CTD tag data in near real-time. {ArgosQC}
-automatically does the following:
+An R package to conduct unsupervised location quality-control of SMRU
+SRDL family of tags & Wildlife Computers tag data in near real-time.
+{ArgosQC} automatically does the following:
 
 1.  accesses SMRU or WC tag data from a local file source or from
     manufacturer’s Data portal

@@ -19,7 +19,7 @@ smru_write_ctd(
 
 \item{meta}{metadata}
 
-\item{program}{Determines structure of output metadata. Currently, either \code{imos} or \code{atn}.}
+\item{program}{Determines structure of output metadata.}
 
 \item{test}{should variables be tested for standards compliance, default is TRUE.
 Standards compliance is specific to the program. Currently, only program = \code{imos}

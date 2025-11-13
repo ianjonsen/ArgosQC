@@ -25,7 +25,8 @@ smru_write_csv(
 
 \item{meta}{metadata}
 
-\item{program}{Determines structure of output metadata. Currently, either \code{imos} or \code{atn}.}
+\item{program}{Determines structure of output metadata. The \code{imos} & \code{atn} programs
+have their own defined metadata structures, all other programs are treated as "Generic".}
 
 \item{test}{should variables be tested for standards compliance, default is TRUE.
 Standards compliance is specific to the program. Currently, only program = \code{imos}

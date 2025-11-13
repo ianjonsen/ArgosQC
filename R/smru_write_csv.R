@@ -6,7 +6,8 @@
 ##' @param fit final \code{aniMotum} fit object
 ##' @param what specify whether predicted or rerouted locations are to be used
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param program Determines structure of output metadata. The `imos` & `atn` programs
+##' have their own defined metadata structures, all other programs are treated as "Generic".
 ##' @param test should variables be tested for standards compliance, default is TRUE.
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
@@ -72,6 +73,21 @@ smru_write_csv <- function(smru_ssm,
     meta <- meta |>
       mutate(QCDateTime = now)
 
+    ## Generic case
+  } else if (!program %in% c("imos","atn")) {
+    ## If ATN data then append QC variables to metadata
+    meta <- meta |> filter(!device_id %in% dropIDs)
+
+    meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
+      select(-ctd_start, -ctd_end, -dive_start, -dive_end) |>
+      mutate(qc_method = "ArgosQC",
+             qc_version = as.character(packageVersion("ArgosQC"))) |>
+      rename(qc_proj4string = proj4string)
+
+    now <- Sys.time()
+    attr(now, "tzone") <- "UTC"
+    meta <- meta |>
+      mutate(qc_run_date = now)
   }
 
 
@@ -247,6 +263,26 @@ smru_write_csv <- function(smru_ssm,
           )
         )))
     })
+  } else if (!program %in% c("imos","atn")) {
+    lapply(1:length(out), function(i) {
+      if (nms[i] != "metadata") {
+          out[[i]] |>
+            group_by(cid) |>
+            group_split() |>
+            walk(~ suppressMessages(write_csv(
+              .x, file = paste0(file.path(path, nms[i]), "_", .x$cid[1], suffix, ".csv")
+            )))
+
+      } else {
+        out[[i]] |>
+          group_by(sattag_program) |>
+          group_split() |>
+          walk(~ suppressMessages(write_csv(
+            .x, file = paste0(file.path(path, nms[i]), "_", .x$sattag_program[1], suffix, ".csv")
+          )))
+      }
+    })
+
   }
 
   return(invisible())
@@ -259,7 +295,7 @@ smru_write_csv <- function(smru_ssm,
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param program Determines structure of output metadata.
 ##' @param test should variables be tested for standards compliance, default is TRUE.
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
@@ -412,7 +448,7 @@ smru_write_ctd <- function(smru_ssm,
     )
   }
 
-  if(program == "imos") {
+  if(program != "atn") { # imos & any other program
     ctd <- ctd |>
       filter(ref %in% meta$device_id)
   }
@@ -450,7 +486,7 @@ smru_write_ctd <- function(smru_ssm,
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param program Determines structure of output metadata.
 ##' @param test should variables be tested for standards compliance, default is TRUE.
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
@@ -602,7 +638,7 @@ smru_write_diag <- function(smru_ssm,
     )
   )
 
-  if(program == "imos") {
+  if(program != "atn") { # imos & any other program
     diag <- diag |>
       filter(ref %in% meta$device_id)
   }
@@ -634,7 +670,7 @@ smru_write_diag <- function(smru_ssm,
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param program Determines structure of output metadata.
 ##' @param path path to write .csv files
 ##' @param dropIDs individual ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
@@ -659,7 +695,7 @@ smru_write_dive <- function(smru_ssm,
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
-  if(program == "imos") {
+  if(program != "atn") { # imos & any other program
     dive <- dive |>
       filter(ref %in% meta$device_id)
   }
@@ -777,7 +813,7 @@ smru_write_gps <- function(smru_ssm,
                                                   is.na(km_from_home)))
                 ))
 
-  if(program == "imos") {
+  if(program != "atn") { # imos & any other program
     gps <- gps |>
       filter(ref %in% meta$device_id)
   }
@@ -918,7 +954,7 @@ smru_write_haulout <- function(smru_ssm,
 
   }
 
-  if(program == "imos") {
+  if(program != "atn") { # imos & any other program
     haulout <- haulout |>
       filter(ref %in% meta$device_id)
   }
@@ -979,7 +1015,7 @@ smru_write_meta <- function(meta,
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   ## remove dive, ctd start/end dates columns, add 'state_country' for AODN (based on deployment location)
-  if (program == "imos") {
+  if (program != "atn") { # imos & any other program
 
     meta <- meta |>
       mutate(
@@ -1125,7 +1161,7 @@ smru_write_cruise <- function(smru_ssm,
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
-  if(program == "imos") {
+  if(program != "atn") { # imos & any other program
     cruise <- cruise |>
       filter(ref %in% meta$device_id)
   }
@@ -1248,7 +1284,7 @@ smru_write_summary <- function(smru_ssm,
     mutate(cid = str_extract(ref,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
-  if(program == "imos") {
+  if(program != "atn") { # imos & any other program
     ## double check only device_id's in metadata are written
     ssummary <- ssummary |>
       filter(ref %in% meta$device_id)

@@ -18,7 +18,7 @@ smru_write_dive(
 
 \item{meta}{metadata}
 
-\item{program}{Determines structure of output metadata. Currently, either \code{imos} or \code{atn}.}
+\item{program}{Determines structure of output metadata.}
 
 \item{path}{path to write .csv files}
 
