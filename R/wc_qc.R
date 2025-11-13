@@ -179,6 +179,8 @@ wc_qc <- function(wd,
                   subset.ids = conf$harvest$tag.list)
 
   ## get metadata
+  if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
+  else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from WC Portal...")
   meta <- get_metadata(source = meta.source,
                        tag_data = wc,
                        tag_mfr = "wc",
@@ -190,6 +192,7 @@ wc_qc <- function(wd,
   )
 
   ## prepare location data
+  message("Preparing location data for QC...")
   locs_sf <- wc_prep_loc(
     wc,
     meta,
@@ -229,8 +232,8 @@ wc_qc <- function(wd,
   ) |>
     suppressWarnings()
 
-
-  message("Locations estimated & rerouted...")
+  if(conf$model$reroute) message("QC'd locations estimated & rerouted...")
+  else message("QC'd locations estimated...")
 
   ## Mark SSM track segments for removal in data gaps > min.gap hours long
   ##  predicted & rerouted locations are 'marked' with a `keep` column
@@ -241,6 +244,7 @@ wc_qc <- function(wd,
 
 
   ## Append SSM-estimated locations to tag datafiles
+  message("Appending QC'd locations to tag data files...")
   wc_ssm <- wc_append_ssm(
     wc = wc,
     fit = fit2,
@@ -250,10 +254,10 @@ wc_qc <- function(wd,
     dropIDs = dropIDs
   )
 
-  message("QC'd locations appended to tag data files...")
 
 
   ## Diagnostic plots
+  message("Generating QC diagnostic plots...")
   diagnostics(
     fit2,
     fit1,
@@ -271,10 +275,9 @@ wc_qc <- function(wd,
     cid = NULL
   )
 
-  message("SSM fit diagnostics generated...")
-
 
   ## write SSM-annotated datafiles to .csv
+  message("Writing QC'd data files to .csv...")
   wc_write_csv(
     wc_ssm = wc_ssm,
     fit = fit2,

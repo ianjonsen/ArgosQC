@@ -182,8 +182,8 @@ smru_qc <- function(wd,
     p2mdbtools = conf$harvest$p2mdbtools
   )
 
-  if(!is.null(conf$setup$meta.file)) message("Pulling metadata from file...")
-  else if(is.null(conf$setup$meta.file)) message("Building metadata from SMRU Portal...")
+  if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
+  else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from SMRU Portal...")
   ## Download or load metadata
   meta <- get_metadata(
       source = meta.source,
@@ -260,9 +260,9 @@ smru_ssm <- smru_append_ssm(
   dropIDs = dropIDs
 )
 
-  message("QC'd locations appended to tag data files...")
 
 ## Generate SSM fit diagnostics & SSM-predicted track map
+message("Generating QC diagnostic plots...")
 obs <- smru_clean_diag(smru, dropIDs = dropIDs)
 
 diagnostics(
@@ -280,9 +280,8 @@ diagnostics(
   cid = conf$harvest$cid
 )
 
-message("SSM fit diagnostics generated...")
-
 ## write SSM-appended files to CSV
+message("Writing QC'd data files to .csv...")
 smru_write_csv(
   smru_ssm = smru_ssm,
   fit = fit2,
