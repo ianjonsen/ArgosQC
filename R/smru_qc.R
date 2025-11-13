@@ -182,7 +182,8 @@ smru_qc <- function(wd,
     p2mdbtools = conf$harvest$p2mdbtools
   )
 
-
+  if(!is.null(conf$setup$meta.file)) message("Pulling metadata from file...")
+  else if(is.null(conf$setup$meta.file)) message("Building metadata from SMRU Portal...")
   ## Download or load metadata
   meta <- get_metadata(
       source = meta.source,
@@ -196,7 +197,7 @@ smru_qc <- function(wd,
     ) |>
       suppressMessages()
 
-
+  message("Preparing location data for QC...")
   ## Prepare location data
   locs_sf <- smru_prep_loc(
     smru,
@@ -237,7 +238,9 @@ smru_qc <- function(wd,
     centroids = conf$model$centroids
   ) |> suppressWarnings()
 
-  message("Locations estimated & rerouted...")
+  if(conf$model$reroute) message("QC'd locations estimated & rerouted...")
+  else message("QC'd locations estimated...")
+
 
 ## Mark SSM track segments for removal in data gaps > min.gap hours long
 ##  predicted & rerouted locations are 'marked' with a `keep` column
@@ -246,7 +249,7 @@ if (conf$model$cut) {
   fit2 <- ssm_mark_gaps(fit2, min.gap = conf$model$min.gap)
 }
 
-
+message("Appending QC'd locations to tag data files...")
 ## Append SSM locations to SMRU tag data files at observation times
 smru_ssm <- smru_append_ssm(
   smru = smru,

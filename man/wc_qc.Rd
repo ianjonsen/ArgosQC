@@ -57,7 +57,8 @@ Ignored (if provided) when \code{harvest$download}:FALSE.
 \item \code{wc.skey} (optional) the WC secret key for API access to the data portal.
 Ignored (if provided) when \code{harvest$download}:FALSE.
 \item \code{dropIDs} the WC UUID(s) for specific tag data set(s) that is/are to be
-ignored during the QC process. Can be NULL.
+ignored during the QC process. UUID's are supplied as a .CSV file
+\code{dropIDs.csv} with a single variable named \code{uuid}. Can be NULL.
 }
 \item \code{model} config block specifies model- and data-specific parameters:
 \itemize{
