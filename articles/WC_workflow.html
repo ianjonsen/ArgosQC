@@ -106,11 +106,6 @@ loggerhead turtles in NSW, Australia.</p>
 <center>
 <img src="images/IRAP_config_JSON.png" style="width:100.0%">
 </center>
-<p>The call within R is</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/wc_qc.html">wc_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"irap_config.json"</span><span class="op">)</span></span></code></pre></div>
-<p>where <code>test</code> is the working directory within which all
-other directories and files specified in the config file reside.</p>
 <p>The config file block parameters are similar to the config file for
 the SMRU workflow, with a few exceptions to account for differences in
 data structures. For completeness, the WC workflow block-specific
@@ -261,9 +256,9 @@ re-routing. Ignored if <code>reroute = FALSE</code>.</p>
 </li>
 <li>
 <p><code>barrier</code> an optional filepath to an alternate polygon
-data file for the land (or other) barrier. For example, higher
-resolution local coastline data can be supplied, provided the data
-extend at least <code>dist</code> km beyond the extent of the track
+data file (shapefile) for the land (or other) barrier. For example,
+higher resolution local coastline data can be supplied, provided the
+data extend at least <code>dist</code> km beyond the extent of the track
 data.</p>
 </li>
 <li>
@@ -317,6 +312,16 @@ caretta”)</p>
 </li>
 </ul>
 </li></ul>
+<p>With a completed config file, the standard call to initiate the QC
+workflow within R is:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/wc_qc.html">wc_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"irap_config.json"</span><span class="op">)</span></span></code></pre></div>
+<p>where <code>wd</code> is the file path for the working directory
+within which all QC data/metadata inputs are downloaded (or read) and
+outputs are written.</p>
+<div class="section level3">
+<h3 id="additional-details-on-config-parameters">Additional details on config parameters<a class="anchor" aria-label="anchor" href="#additional-details-on-config-parameters"></a>
+</h3>
 <p>The Wildlife Computers API credentials: <code>collab.id</code>,
 <code>wc.akey</code>, and <code>wc.skey</code> may be used to download
 data directly from the Wildlife Computers Portal, in this case, data are
@@ -325,6 +330,118 @@ written to tag-specific directories within the specified
 be used with local copies of Wildlife Computers tag data, provided they
 are stored in tag-specific directories within the <code>data.dir</code>
 directory.</p>
+<p>The <code>proj</code> argument specifies the projection (as a
+<code>proj4string</code>) to which the tag-measured locations are
+converted as input to the QC state-space model (SSM), ie. the working
+projection in <code>km</code> for the SSM. Any valid
+<code>proj4string</code> may be used, provided the units are in
+<code>km</code>. If <code>proj</code> is left as <code>NULL</code> then
+the QC algorithm will project the data differently depending on the
+centroid latitude of the tracks. The default projections are:</p>
+<table class="table">
+<colgroup>
+<col width="26%">
+<col width="73%">
+</colgroup>
+<thead><tr class="header">
+<th align="center">Central Latitude or Longitude</th>
+<th align="center">Projection (with <code>+units=km</code>)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="center">-55 to -25 or 25 to 55 Lat</td>
+<td align="center">Equidistant Conic with standard parallels at the
+tracks’ 25th &amp; 75 percentile Latitudes</td>
+</tr>
+<tr class="even">
+<td align="center">&lt; -55 or &gt; 55 Lat</td>
+<td align="center">Stereographic with origin at the tracks’
+centroid</td>
+</tr>
+<tr class="odd">
+<td align="center">-25 to 25 Lat</td>
+<td align="center">Mercator with origin at the tracks’ centroid</td>
+</tr>
+<tr class="even">
+<td align="center">-25 to 25 Lat &amp; Long straddles -180,180</td>
+<td align="center">Longitudes are shifted to 0, 360 and a Mercator with
+origin at tracks’ centroid</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>model</code> argument specifies the <code>aniMotum</code>
+SSM to be used; typically either <code>rw</code> or <code>crw</code>.
+The latter is usually less biased when data gaps are absent, the former
+is best when data gaps are present. A general recommendation is to use
+<code>model</code>:<code>rw</code> as the SSM for unsupervised (e.g.,
+NRT) QC workflows. The SSM fitting algorithm has a few fundamental
+parameters that need to be specified; <code>vmax</code> is the animals’
+maximum plausible travel rate in
+ms<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi></mi><mrow><mo>−</mo><mn>1</mn></mrow></msup><annotation encoding="application/x-tex">^{-1}</annotation></semantics></math>.
+For example, <code>vmax</code>:<code>3</code> is usually appropriate for
+seals and <code>vmax</code>:<code>2</code> for turtles. The SSM
+prediction interval in hours is specified with <code>time.step</code>.
+Decimal hours can be used for <code>time.steps</code> shorter than 1 hr.
+This time interval determines the temporal resolution of the predicted
+track. The predicted track locations provide the basis for interpolation
+to the time of each tag-measured ocean observation or behavioural event.
+Typically, 6 hours is appropriate for most Argos data collected from
+seals and turtles but a finer time interval may be required for faster
+moving species and/or more frequently measured ocean observations, and a
+coarser interval for more sporadically observed locations. Further
+details on SSM fitting to Argos and GPS data are provided in the
+associated R package <a href="https://ianjonsen.github.io/aniMotum/" class="external-link">aniMotum vignettes</a> and
+in <a href="https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.14060" class="external-link">Jonsen
+et al. 2023</a>.</p>
+<p>When animals pass close to land some SSM-predicted locations may
+implausibly lie on land. Often, this is due to the spatial and temporal
+resolution of the Argos tracking data. In these cases, SSM-predicted
+locations can be adjusted minimally off of land by setting
+<code>reroute</code>:<code>true</code>. The <a href="https://jmlondon.github.io/pathroutr/" class="external-link"><code>pathroutr</code> R
+package</a> is used for efficient rerouting. In this case, additional
+arguments should be specified:</p>
+<p><code>dist</code> - the distance in km beyond track locations from
+which coastline polygon data should be sampled (smaller provides less
+information for path re-routing, greater increase computation time)</p>
+<p><code>barrier</code> - an optional parameter that can provide an
+alternate spatial polygon dataset , as a shapefile, for the land (or
+other barriers to movement). Typically, this alternate dataset would be
+a localised, high-resolution coastline dataset.</p>
+<p><code>buffer</code> - the distance in km to buffer rerouted locations
+from the coastline</p>
+<p><code>centroid</code>- whether to include the visibility graph
+centroids for greater resolution</p>
+<p>SSM-predicted tracks can be <code>cut</code>
+(<code>cut</code>:<code>true</code>) in regions where large location
+data gaps exist. These location data gaps can occur when the tags are
+unable to transmit for extended periods or when animal surfacing occurs
+during periods of Argos satellite unavailability (more common closer to
+the equator than at higher latitudes). In this case,
+<code>min.gap</code> is used to specify the minimum data gap duration
+(h) from which to cut SSM-predicted locations. This will limit
+interpolation artefacts due to implausible SSM-predicted locations in
+excessively long data gap periods.</p>
+<p>The <code>QCmode</code> sets whether the QC is being conducted in
+delayed-mode <code>dm</code> or near real-time <code>nrt</code>.
+Delayed-mode is reserved for when tag deployments have ended and usually
+involve greater user intervention; such as making decisions on removing
+aberrant portions of a deployment (e.g., as tag batteries begin
+failing). The <code>nrt</code> mode is meant to be fully automated and
+only used while a deployment is active. In both cases, the output .CSV
+and plot file names will include the <code>QCmode</code> as a
+suffix.</p>
+<p>The diag files show the SSM fit (red) overlaid on the tag-measured
+Argos &amp;/or GPS locations (blue). The dark grey vertical bars denote
+the time period tags were actively recording locations but the seal(s)
+had not yet gone to sea (no recorded diving activity). By default, the
+QC model does not fit to data in these time periods. These plots help
+judge whether the SSM fits have artefacts that need addressing -
+typically only addressed during a delayed-mode QC workflow.</p>
+<p><img src="images/lon_coverage_lhtu.jpg" style="width:60.0%"></p>
+<p>The map file shows the SSM-predicted tracks (blue) and current last
+estimated location (red) for each deployed tag. The map files are
+annotated by the QC date so they are not overwritten by successive QC
+runs. <img src="images/map_lhtu_2025-11-13.jpg" style="width:100.0%"></p>
 <div class="section level4">
 <h4 id="output--csv-files">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files"></a>
 </h4>
@@ -350,17 +467,61 @@ data. Combined across these tag types, the following output .CSV files
 </ul>
 <p>Where one of these files can have a data structure that differs
 between specific tag types, the file names are appended with the tag
-type. For example, <code>ECDHistos</code> file structure differ between
-SCOUT DSA and SCOUT TEMP 361A tags, so these file names appear as either
-<code>ECDHistos_SCOUT_DSA</code> or
+type. For example, the <code>ECDHistos</code> file structure differs
+between SCOUT DSA and SCOUT TEMP 361A tags, so these file names appear
+as either <code>ECDHistos_SCOUT_DSA</code> or
 <code>ECDHistos_SCOUT_TEMP_361A</code>. Similar scenarios for other tag
 types/versions will be incorporated as required in future versions of
 <code>ArgosQC</code>.</p>
-<p>As with the SMRU QC output files, each of the WC QC output file names
-are appended with the species’ common name, AnimalAphiaID, the ATN
-ADRProjectID and the <code>QCmode</code> suffix - <code>_nrt</code> or
-<code>_dm</code>. The metadata structure and appended QC variables are
-the same as described for the SMRU QC workflow.</p>
+<p>In the generic metadata case, ie. for all programs other than ATN,
+each of the WC QC output file names are appended with the species’
+common name and the <code>QCmode</code> suffix - <code>_nrt</code> or
+<code>_dm</code>. For ATN data and metadata, each file is appended with
+the AnimalAphiaID, the ATN ADRProjectID and the <code>QCmode</code>
+suffix - <code>_nrt</code> or <code>_dm</code>.</p>
+</div>
+<div class="section level4">
+<h4 id="metadata--csv-file">Metadata .CSV file<a class="anchor" aria-label="anchor" href="#metadata--csv-file"></a>
+</h4>
+<p>If an input deployment metadata file is provided then the output
+metadata file contains all the original metadata records plus the
+following variables describing the QC workflow applied to the data:</p>
+<ul>
+<li>
+<code>qc_start_date</code> - the track datetime (UTC) at which the
+QC workflow was started.</li>
+<li>
+<code>qc_end_date</code> - the track datetime (UTC) at which the QC
+workflow was ended.</li>
+<li>
+<code>qc_proj4string</code> - the projection used for QC’ing the
+locations, as a proj4string.</li>
+<li>
+<code>qc_method</code> - denotes the <code>ArgosQC</code> R package
+was used.</li>
+<li>
+<code>qc_version</code> - denotes the version number of the
+<code>ArgosQC</code> R package used.</li>
+<li>
+<code>qc_run_date</code> - the datetime (UTC) when the QC was
+applied to the data.</li>
+</ul>
+</div>
+<div class="section level4">
+<h4 id="ssmoutputs--csv-file">ssmoutputs .CSV file<a class="anchor" aria-label="anchor" href="#ssmoutputs--csv-file"></a>
+</h4>
+<p>The ssmoutputs file contains the SSM-predicted locations at the
+<code>pred.int</code> specified prediction interval. The time of the
+first location is set to the time of the first tag-measured location
+passed to the model. This may or may not be the first tag-measured
+location in the tag locations data file, depending on whether the
+animal-borne tag was immediately at sea. The location coordinates are
+provided as: <code>lon</code>, <code>lat</code>, <code>x</code>,
+<code>y</code>, and location uncertainty as <code>x_se</code>,
+<code>y_se</code>. The planar coordinates and uncertainty estimates
+always have units in km. Their coordinate projection is provided in the
+metadata .CSV file (<code>qc_proj4string</code>).</p>
+</div>
 </div>
 </div>
   </div>

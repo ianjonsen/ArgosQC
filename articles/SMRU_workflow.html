@@ -258,9 +258,9 @@ re-routing. Ignored if <code>reroute = FALSE</code>.</p>
 </li>
 <li>
 <p><code>barrier</code> an optional filepath to an alternate polygon
-data file for the land (or other) barrier. For example, higher
-resolution local coastline data can be supplied, provided the data
-extend at least <code>dist</code> km beyond the extent of the track
+data file (shapefile) for the land (or other) barrier. For example,
+higher resolution local coastline data can be supplied, provided the
+data extend at least <code>dist</code> km beyond the extent of the track
 data.</p>
 </li>
 <li>
@@ -310,7 +310,8 @@ Overseas Territory”)</p>
 </li>
 </ul>
 </li></ul>
-<p>With a completed config file, the standard call within R is:</p>
+<p>With a completed config file, the standard call to initiate the QC
+workflow within R is:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/smru_qc.html">smru_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"imos_config.json"</span><span class="op">)</span></span></code></pre></div>
 <p>where <code>wd</code> is the file path for the working directory
@@ -392,6 +393,10 @@ arguments should be specified:</p>
 <p><code>dist</code> - the distance in km beyond track locations from
 which coastline polygon data should be sampled (smaller provides less
 information for path re-routing, greater increase computation time)</p>
+<p><code>barrier</code> - an optional parameter that can provide an
+alternate spatial polygon dataset , as a shapefile, for the land (or
+other barriers to movement). Typically, this alternate dataset would be
+a localised, high-resolution coastline dataset.</p>
 <p><code>buffer</code> - the distance in km to buffer rerouted locations
 from the coastline</p>
 <p><code>centroid</code>- whether to include the visibility graph
@@ -421,8 +426,8 @@ Each .CSV file includes the name of the SMRU data table, when present
 (ctd, diag, dive, haulout, summary) or the QC file (metadata,
 ssmoutputs). For QC workflows of ATN data, each of these file names is
 appended with the species’ AnimalAphiaID and the ADRProjectID. For IMOS
-and other program data, the file names are appended with the SMRU
-campaign ID.</p>
+and other programs, the file names are appended with the SMRU campaign
+ID.</p>
 <p>The diag files show the SSM fit (red) overlaid on the tag-measured
 Argos &amp;/or GPS locations (blue). The dark grey vertical bars denote
 the time period tags were actively recording locations but the seal(s)
@@ -460,23 +465,23 @@ metadata file contains all the original metadata records plus the
 following variables describing the QC workflow applied to the data:</p>
 <ul>
 <li>
-<code>QCStartDateTime</code> - the track datetime (UTC) at which the
+<code>qc_start_date</code> - the track datetime (UTC) at which the
 QC workflow was started.</li>
 <li>
-<code>QCStopDateTime</code> - the track datetime (UTC) at which the
-QC workflow was ended.</li>
+<code>qc_end_date</code> - the track datetime (UTC) at which the QC
+workflow was ended.</li>
 <li>
-<code>QCproj4string</code> - the projection used for QC’ing the
+<code>qc_proj4string</code> - the projection used for QC’ing the
 locations, as a proj4string.</li>
 <li>
-<code>QCMethod</code> - denotes the <code>ArgosQC</code> R package
+<code>qc_method</code> - denotes the <code>ArgosQC</code> R package
 was used.</li>
 <li>
-<code>QCVersion</code> - denotes the version number of the
+<code>qc_version</code> - denotes the version number of the
 <code>ArgosQC</code> R package used.</li>
 <li>
-<code>QCDateTime</code> - the datetime (UTC) when the QC was applied
-to the data.</li>
+<code>qc_run_date</code> - the datetime (UTC) when the QC was
+applied to the data.</li>
 </ul>
 <p>Note, these variables are not appended to the metadata for IMOS QC
 workflows due to IMOS - AODN metadata specifications.</p>
@@ -494,7 +499,7 @@ was immediately at sea. The location coordinates are provided as:
 location uncertainty as <code>x_se</code>, <code>y_se</code>. The planar
 coordinates and uncertainty estimates always have units in km. Their
 coordinate projection is provided in the metadata .CSV file
-(<code>QCproj4string</code>).</p>
+(<code>qc_proj4string</code>).</p>
 </div>
 </div>
 </div>
