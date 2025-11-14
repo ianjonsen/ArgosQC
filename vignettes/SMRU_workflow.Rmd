@@ -216,8 +216,8 @@ if `reroute = FALSE`.
 
 <li>
 
-`barrier` an optional filepath to an alternate polygon data file for the
-land (or other) barrier. For example, higher resolution local coastline
+`barrier` an optional filepath to an alternate polygon data file (shapefile) for
+the land (or other) barrier. For example, higher resolution local coastline
 data can be supplied, provided the data extend at least `dist` km beyond
 the extent of the track data.
 
@@ -283,7 +283,8 @@ Territory")
 
 </ul>
 
-With a completed config file, the standard call within R is:
+With a completed config file, the standard call to initiate the QC workflow 
+within R is:
 
 ```{r fn call, eval=FALSE}
 smru_qc(wd = "test", config = "imos_config.json")
@@ -343,6 +344,11 @@ rerouting. In this case, additional arguments should be specified:
 polygon data should be sampled (smaller provides less information for
 path re-routing, greater increase computation time)
 
+`barrier` - an optional parameter that can provide an alternate spatial 
+polygon dataset , as a shapefile, for the land (or other barriers to movement). 
+Typically, this alternate dataset would be a localised, high-resolution 
+coastline dataset.
+
 `buffer` - the distance in km to buffer rerouted locations from the
 coastline
 
@@ -373,8 +379,8 @@ output .CSV files were written to the specified output directory. Each
 .CSV file includes the name of the SMRU data table, when present (ctd,
 diag, dive, haulout, summary) or the QC file (metadata, ssmoutputs). For
 QC workflows of ATN data, each of these file names is appended with the
-species' AnimalAphiaID and the ADRProjectID. For IMOS and other program
-data, the file names are appended with the SMRU campaign ID.
+species' AnimalAphiaID and the ADRProjectID. For IMOS and other programs,
+the file names are appended with the SMRU campaign ID.
 
 The diag files show the SSM fit (red) overlaid on the tag-measured Argos
 &/or GPS locations (blue). The dark grey vertical bars denote the time
@@ -388,7 +394,8 @@ only addressed during a delayed-mode QC workflow.
 The map file shows the SSM-predicted tracks (blue) and current last
 estimated location (red) for each deployed tag. The map files are
 annotated by the QC date so they are not overwritten by successive QC
-runs. ![](images/map_tu123_2025-11-10.jpg){width="100%"}
+runs. 
+![](images/map_tu123_2025-11-10.jpg){width="100%"}
 
 #### Output .CSV files
 
@@ -412,18 +419,18 @@ If an input deployment/tag metadata file is provided then the output
 metadata file contains all the original metadata records plus the
 following variables describing the QC workflow applied to the data:
 
--   `QCStartDateTime` - the track datetime (UTC) at which the QC
+-   `qc_start_date` - the track datetime (UTC) at which the QC
     workflow was started.
--   `QCStopDateTime` - the track datetime (UTC) at which the QC workflow
+-   `qc_end_date` - the track datetime (UTC) at which the QC workflow
     was ended.
--   `QCproj4string` - the projection used for QC'ing the locations, as a
+-   `qc_proj4string` - the projection used for QC'ing the locations, as a
     proj4string.
--   `QCMethod` - denotes the `ArgosQC` R package was used.
--   `QCVersion` - denotes the version number of the `ArgosQC` R package
+-   `qc_method` - denotes the `ArgosQC` R package was used.
+-   `qc_version` - denotes the version number of the `ArgosQC` R package
     used.
--   `QCDateTime` - the datetime (UTC) when the QC was applied to the
+-   `qc_run_date` - the datetime (UTC) when the QC was applied to the
     data.
-
+    
 Note, these variables are not appended to the metadata for IMOS QC
 workflows due to IMOS - AODN metadata specifications.
 
@@ -437,4 +444,4 @@ tag datafile, depending on whether the animal-borne tag was immediately
 at sea. The location coordinates are provided as: `lon`, `lat`, `x`,
 `y`, and location uncertainty as `x_se`, `y_se`. The planar coordinates
 and uncertainty estimates always have units in km. Their coordinate
-projection is provided in the metadata .CSV file (`QCproj4string`).
+projection is provided in the metadata .CSV file (`qc_proj4string`).
