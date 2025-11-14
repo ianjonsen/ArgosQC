@@ -109,28 +109,222 @@ loggerhead turtles in NSW, Australia.</p>
 <p>The call within R is</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/wc_qc.html">wc_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"irap_config.json"</span><span class="op">)</span></span></code></pre></div>
+<p>where <code>test</code> is the working directory within which all
+other directories and files specified in the config file reside.</p>
 <p>The config file block parameters are similar to the config file for
-the SMRU workflow, with the following exceptions:</p>
-<p>arguments are similar to <code>atn_smru_qc()</code>, with the
-addition of Wildlife Computers API identifiers: <code>collab.id</code>,
-<code>wc.akey</code>, and <code>wc.skey</code>. These may be used to
-download data directly from the Wildlife Computers Portal, in this case,
-data are written to tag-specific directories within the specified
-<code>datadir</code> directory. The <code>collab.id</code> argument
-specifies the Wildlife Computers collaborator ID, which is required if
-the user does not own or otherwise does not have direct access to the
-data. Note, that data-sharing collaborations must be set up in the
-Wildlife Computers Portal prior to using this tool. <code>ArgosQC</code>
-who are Wildlife Computers data owners may access their data from the
-Portal simply by providing the <code>wc.akey</code> and
-<code>wc.skey</code> arguments. The <code>wc.akey</code> specifies the
-Wildlife Computers Access Key that all Portal users must have to access
-the API. The Access key is used in tandem with the <code>wc.skey</code>,
-the Wildlife Computers Secret Key. No data downloads from the Wildlife
-Computers Portal are possible without these key pairs.</p>
-<p>Alternatively, <code>atn_wc_qc()</code> may be used with local copies
-of Wildlife Computers tag data, provided they are stored in tag-specific
-directories within the <code>datadir</code> directory.</p>
+the SMRU workflow, with a few exceptions to account for differences in
+data structures. For completeness, the WC workflow block-specific
+parameters are as follows:</p>
+<ul><li>
+<p><code>setup</code> config block specifies the program overseeing data
+assembly &amp; paths to required data, metadata &amp; output
+directories:</p>
+<ul>
+<li>
+<p><code>program</code> the national (or other) program of which the
+data is a part. For example, <code>imos</code>, <code>atn</code>,
+<code>otn</code>.</p>
+</li>
+<li>
+<p><code>data.dir</code> the name of the data directory. Must reside
+within the <code>wd</code>.</p>
+</li>
+<li>
+<p><code>meta.file</code> the metadata filename. Must reside within the
+<code>wd</code>. Can be NULL, in which case, the <code>meta</code>
+config block (see below) must be present &amp; tag-specific metadata are
+acquired from the WC Data Portal.</p>
+</li>
+<li>
+<p><code>maps.dir</code> the directory path to write diagnostic maps of
+QC’d tracks.</p>
+</li>
+<li>
+<p><code>diag.dir</code> the directory path to write diagnostic
+time-series plots of QC’d lon &amp; lat.</p>
+</li>
+<li>
+<p><code>output.dir</code> the directory path to write QC output CSV
+files. Must reside within the <code>wd</code>.</p>
+</li>
+<li>
+<p><code>return.R</code> a logical indicating whether the function
+should return a list of QC-generated, internal R objects. This results
+in a single large object returned to the R work space containing the
+following elements:</p>
+<ul>
+<li>
+<p><code>dropIDs</code> the WC uuid’s dropped from the QC process</p>
+</li>
+<li>
+<p><code>wc</code> the WC tag data files downloaded from the WC Data
+Portal</p>
+</li>
+<li>
+<p><code>meta</code> the deployment metadata formatted for use in the QC
+workflow (ie. not the final output format)</p>
+</li>
+<li>
+<p><code>locations_sf</code> the projected location data to be passed as
+input to the SSM</p>
+</li>
+<li>
+<p><code>fit1</code> the initial SSM output fit object</p>
+</li>
+<li>
+<p><code>fit2</code> the final SSM output fit object including re-routed
+locations if specified.</p>
+</li>
+<li>
+<p><code>wc_ssm</code> the SSM-annotated WC tag data files. This output
+object can be useful for troubleshooting undesirable results during
+delayed-mode (supervised) QC workflows.<br></p>
+</li>
+</ul>
+</li>
+</ul>
+</li></ul>
+<ul><li>
+<p><code>harvest</code> config block specifies data harvesting
+parameters:</p>
+<ul>
+<li>
+<p><code>download</code> a logical indicating whether tag data are to be
+downloaded from the WC Data Portal API or read from the local
+<code>data.dir</code>.</p>
+</li>
+<li>
+<p><code>owner.id</code> the Wildlife Computers collaborator ID, which
+is required if the user does not own or otherwise does not have direct
+access to the tag data. Note, that data-sharing collaborations must be
+set up in the Wildlife Computers Data Portal prior to accessing via the
+API.</p>
+</li>
+<li>
+<p><code>wc.akey</code> the Wildlife Computers Access Key that all
+Portal users must have to access the API.</p>
+</li>
+<li>
+<p><code>wc.skey</code> the Wildlife Computers Secret Key.</p>
+</li>
+<li>
+<p><code>tag.list</code> a .CSV file with a single variable named
+<code>uuid</code>, providing the uuid’s to be downloaded. This ensures
+only the subset of desired tag datasets are downloaded. If not provided
+(NULL) then ALL the tag datasets attributed to the <code>owner.id</code>
+or to user providing wc-keys will be downloaded.</p>
+</li>
+<li>
+<p><code>dropIDs</code> a .CSV file with a single variable named
+<code>uuid</code>, providing the uuid’s to be ignored by the QC process.
+Can be NULL.</p>
+</li>
+<li>
+</li>
+</ul>
+</li></ul>
+<ul><li>
+<p><code>model</code> config block specifies model- and data-specific
+parameters:</p>
+<ul>
+<li>
+<p><code>model</code> the aniMotum SSM model to be used for the location
+QC - typically either <code>rw</code> or <code>crw</code>.</p>
+</li>
+<li>
+<p><code>vmax</code> for SSM fitting; max travel rate (m/s) to identify
+implausible locations</p>
+</li>
+<li>
+<p><code>time.step</code> the prediction interval (in decimal hours) to
+be used by the SSM</p>
+</li>
+<li>
+<p><code>proj</code> the proj4string to be used for the location data
+&amp; for the SSM-estimated locations. Can be NULL, which will result in
+one of 5 projections being used, depending on whether the centroid of
+the observed latitudes lies in N or S polar regions, temperate or
+equatorial regions, or if tracks straddle (or lie close to) -180,180
+longitude.</p>
+</li>
+<li>
+<p><code>reroute</code> a logical; whether QC’d tracks should be
+re-routed off of land (default is FALSE). Note, in some circumstances
+this can substantially increase processing time. Default land polygon
+data are sourced from the <code>ropensci/rnaturalearthhires</code> R
+package.</p>
+</li>
+<li>
+<p><code>dist</code> the distance in km from outside the convex hull of
+observed locations from which to select land polygon data for
+re-routing. Ignored if <code>reroute = FALSE</code>.</p>
+</li>
+<li>
+<p><code>barrier</code> an optional filepath to an alternate polygon
+data file for the land (or other) barrier. For example, higher
+resolution local coastline data can be supplied, provided the data
+extend at least <code>dist</code> km beyond the extent of the track
+data.</p>
+</li>
+<li>
+<p><code>buffer</code> the distance in km to buffer rerouted locations
+from the coastline. Ignored if <code>reroute = FALSE</code>.</p>
+</li>
+<li>
+<p><code>centroids</code> whether centroids are to be included in the
+visibility graph mesh used by the rerouting algorithm. See
+<code>?pathroutr::prt_visgraph</code> for details. Ignored if
+<code>reroute = FALSE</code>.</p>
+</li>
+<li>
+<p><code>cut</code> logical; should predicted locations be dropped if
+they lie within in a large data gap (default is FALSE).</p>
+</li>
+<li>
+<p><code>min.gap</code> the minimum data gap duration (h) to be used for
+cutting predicted locations (default is 72 h)</p>
+</li>
+<li>
+<p><code>QCmode</code> one of either <code>nrt</code> for Near Real-Time
+QC or <code>dm</code> for Delayed Mode QC.</p>
+</li>
+<li>
+<p><code>pred.int</code> the prediction interval (in hours) to be used.
+Typically, this is the same as the <code>time.step</code>.</p>
+</li>
+</ul>
+</li></ul>
+<ul><li>
+<p><code>meta</code> config block specifies species and deployment
+location information. This config block is only necessary when no
+metadata file is provided in the <code>setup</code> block.</p>
+<ul>
+<li>
+<p><code>common_name</code> the species common name (e.g., “loggerhead
+turtle”)</p>
+</li>
+<li>
+<p><code>species</code> the species scientific name (e.g., “Caretta
+caretta”)</p>
+</li>
+<li>
+<p><code>release_site</code> the location where tags were deployed
+(e.g., “NSW”)</p>
+</li>
+<li>
+<p><code>state_country</code> the country/territory name (e.g.,
+“Australia”)</p>
+</li>
+</ul>
+</li></ul>
+<p>The Wildlife Computers API credentials: <code>collab.id</code>,
+<code>wc.akey</code>, and <code>wc.skey</code> may be used to download
+data directly from the Wildlife Computers Portal, in this case, data are
+written to tag-specific directories within the specified
+<code>data.dir</code> directory. Alternatively, <code><a href="../reference/wc_qc.html">wc_qc()</a></code> may
+be used with local copies of Wildlife Computers tag data, provided they
+are stored in tag-specific directories within the <code>data.dir</code>
+directory.</p>
 <div class="section level4">
 <h4 id="output--csv-files">Output .CSV files<a class="anchor" aria-label="anchor" href="#output--csv-files"></a>
 </h4>
@@ -163,10 +357,10 @@ SCOUT DSA and SCOUT TEMP 361A tags, so these file names appear as either
 types/versions will be incorporated as required in future versions of
 <code>ArgosQC</code>.</p>
 <p>As with the SMRU QC output files, each of the WC QC output file names
-are appended with the species’ AnimalAphiaID, the ATN ADRProjectID and
-the <code>QCmode</code> suffix - <code>_nrt</code> or <code>_dm</code>.
-The metadata structure and appended QC variables are the same as
-described for the SMRU QC workflow.</p>
+are appended with the species’ common name, AnimalAphiaID, the ATN
+ADRProjectID and the <code>QCmode</code> suffix - <code>_nrt</code> or
+<code>_dm</code>. The metadata structure and appended QC variables are
+the same as described for the SMRU QC workflow.</p>
 </div>
 </div>
   </div>
