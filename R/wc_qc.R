@@ -174,9 +174,8 @@ wc_qc <- function(wd,
 
   message("Reading tag data files...")
   ## read SMRU tag file data from .mdb/source files
-  wc <- pull_data(path2data = conf$setup$data.dir,
-                  source = "wc",
-                  subset.ids = conf$harvest$tag.list)
+  wc <- wc_pull_data(path2data = conf$setup$data.dir,
+                      subset.ids = conf$harvest$tag.list)
 
   ## get metadata
   if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")

@@ -31,7 +31,7 @@ wc_append_ssm <- function(wc,
                           crs = "+proj=merc +units=km +ellps=WGS84 +no_defs") {
 
   if(any(class(fit) %in% "list")) {
-    f <- lapply(fit, function(x) {
+    fit.locs <- lapply(fit, function(x) {
       grab_QC(x, "fitted", as_sf = FALSE) |>
         rename(DeploymentID = id) |>
         filter(!DeploymentID %in% dropIDs)
@@ -57,7 +57,7 @@ wc_append_ssm <- function(wc,
            })
 
   } else if(inherits(fit, "ssm_df")) {
-    f <- grab_QC(fit, "fitted", as_sf = FALSE) |>
+    fit.locs <- grab_QC(fit, "fitted", as_sf = FALSE) |>
       rename(DeploymentID = id) |>
       filter(!DeploymentID %in% dropIDs)
 
@@ -86,7 +86,7 @@ wc_append_ssm <- function(wc,
 
     if(wc.fnms[i] == "Locations") {
       x <- wc_append_Locations(wc$Locations,
-                          f,
+                          fit.locs,
                           deploy_meta,
                           dropIDs)
 

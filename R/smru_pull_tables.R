@@ -17,6 +17,7 @@
 ##' @importFrom lubridate mdy_hms
 ##' @importFrom stringr str_split
 ##'
+##' @md
 ##' @export
 
 smru_pull_tables <- function(cids,
@@ -29,7 +30,6 @@ smru_pull_tables <- function(cids,
   ## path for MacBook Pro M1 Pro
   #p2mdbtools <- "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/"
   if(is.null(p2mdbtools)) p2mdbtools <- ""
-
   ## map data strings to tables strings
   if("argos" %in% tables) {
     idx <- which(tables == "argos")

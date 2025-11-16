@@ -62,14 +62,14 @@ get_metadata <- function(source = "smru",
 
 
   if (tag_mfr == "wc") {
-    if (!is.null(subset.ids)) {
+    if (!is.null(subset.ids) & !is.data.frame(subset.ids)) {
       ids <- read_csv(subset.ids) |>
         suppressMessages()
       if (names(ids) != "uuid" |
           length(names(ids)) != 1)
         stop("Variable name for the WC ID's to QC'd must be 'uuid'")
 
-    } else {
+      } else {
       ids <- NULL
     }
 

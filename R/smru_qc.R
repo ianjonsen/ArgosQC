@@ -175,12 +175,16 @@ smru_qc <- function(wd,
   ## Read SMRU tag file data from .mdb/source files
   ## Pull tables (diag, gps*, haulout*, ctd, dive*, cruise* & summary) from .mdb files
   ##    * if present
-  smru <- pull_data(
-    path2data = conf$setup$data.dir,
-    source = "smru",
-    cid = conf$harvest$cid,
-    p2mdbtools = conf$harvest$p2mdbtools
-  )
+  if (is.null(conf$harvest$cid)) {
+    fs <- list.files(conf$setup$data.dir)
+    fs <- fs[grep("\\.mdb", fs)]
+    cid <- str_split(fs, "\\.", simplify = TRUE)[, 1]
+  }
+
+  smru <- smru_pull_tables(cids = conf$harvest$cid,
+                          path2mdb = conf$setup$data.dir,
+                          p2mdbtools = conf$harvest$p2mdbtools)
+
 
   if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
   else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from SMRU Portal...")

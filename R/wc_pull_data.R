@@ -78,14 +78,37 @@ wc_pull_data <- function(path2data,
     }
   })
 
-  if (inherits(idx, "list"))
+  if (inherits(idx, "list")) {
     idx <- unlist(idx)
+  }
+  dirs.uuid <- str_split(dirs, "\\/", simplify = TRUE)[,2]
+  dirs.uuid <- str_split(dirs.uuid, "\\_", simplify = TRUE)[,1]
+
+  ## throw a message if any empty dataset directories found
+  if(length(which(idx == 0)) > 0) {
+    dir.idx.0 <- dirs.uuid[which(idx == 0)]
+    message(paste0("wc_pull_data() removed from the QC workflow ",
+                    length(dir.idx.0),
+                    " tag dataset(s) with no Locations data: ",
+                    dir.idx.0))
+  }
+
+  ## throw a message if any ids$uiid not in dataset directory list
+  if(any(!ids$uuid %in% dirs.uuid)) {
+
+    message(paste0("wc_pull_data() found a uuid(s): ",
+                   ids$uuid[!ids$uuid %in% dirs.uuid],
+                   " in the supplied conf$harvest$tag.lst\n ",
+                   "that is not found in the dataset directories. ",
+                   "Consider updating the tag.list file"))
+    ids <- subset(ids, uuid %in% dirs.uuid)
+  }
 
   ## reduce to only the subset in subset.ids (if !is.null)
   if(!is.null(ids)) {
     dd <- dirs[idx > 0]
     sub <- map(ids$uuid, str_detect, string = dd)
-    sub <- sapply(sub, which)
+    sub <- unlist(sapply(sub, which))
     if(length(sub) > 0) ndirs <- dd[sub]
     else ndirs <- dd
 
@@ -94,7 +117,6 @@ wc_pull_data <- function(path2data,
     idx <- idx > 20
     ndirs <- dirs[idx]
   }
-
 
   ## get all required data filenames
   fs <- lapply(1:length(ndirs), function(i) {
