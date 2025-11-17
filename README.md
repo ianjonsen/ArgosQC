@@ -33,8 +33,8 @@ You can install the main version of ArgosQC from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("ianjonsen/ArgosQC")
+# install.packages("remotes")
+remotes::install_github("ianjonsen/ArgosQC", dependencies = TRUE)
 ```
 
 ## Example
