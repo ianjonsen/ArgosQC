@@ -20,6 +20,8 @@ navbar:
           href: articles/overview.html
         - text: SMRU_config_file
           href: articles/SMRU_config_file.html
+        - text: WC_config_file
+          href: articles/WC_config_file.html
         - text: SMRU_workflow
           href: articles/SMRU_workflow.html
         - text: WC_workflow
