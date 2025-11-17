@@ -5,6 +5,9 @@
 
 <!-- badges: start -->
 
+[![ArgosQC status
+badge](https://ianjonsen.r-universe.dev/badges/ArgosQC)](https://ianjonsen.r-universe.dev)
+![R-CMD-check](https://github.com/ianjonsen/ArgosQC/actions/workflows/R-CMD-check.yaml/badge.svg?branch=main)
 <!-- badges: end -->
 
 An R package to conduct unsupervised location quality-control of SMRU
