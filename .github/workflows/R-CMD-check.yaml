@@ -57,11 +57,11 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "22.04"))')
 
-      - name: "[Custom block] [Linux] Install mdbtools"
+      - name: "[Custom block] [Linux] Install mdbtools & igraph dependency"
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y mdbtools
+          sudo apt-get install -y mdbtools libglpk-dev
 
       - name: "[Custom block] [macOS] Install mdbtools"
         if: runner.os == 'macOS'
