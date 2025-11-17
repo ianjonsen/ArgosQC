@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SMRU_config_file • ArgosQC</title>
+<title>WC_config_file • ArgosQC</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="../favicon-48x48.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -16,7 +16,7 @@
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
-<script src="../pkgdown.js"></script><meta property="og:title" content="SMRU_config_file">
+<script src="../pkgdown.js"></script><meta property="og:title" content="WC_config_file">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -91,35 +91,31 @@
       </header><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1 data-toc-skip>SMRU_config_file</h1>
+      <h1 data-toc-skip>WC_config_file</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/ianjonsen/ArgosQC/blob/main/vignettes/SMRU_config_file.Rmd" class="external-link"><code>vignettes/SMRU_config_file.Rmd</code></a></small>
-      <div class="hidden name"><code>SMRU_config_file.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/ianjonsen/ArgosQC/blob/main/vignettes/WC_config_file.Rmd" class="external-link"><code>vignettes/WC_config_file.Rmd</code></a></small>
+      <div class="hidden name"><code>WC_config_file.Rmd</code></div>
 
     </div>
 
     
     
 <div class="section level2">
-<h2 id="smru-qc-config-file-structure">SMRU QC config file structure<a class="anchor" aria-label="anchor" href="#smru-qc-config-file-structure"></a>
+<h2 id="wildlife-computers-qc-config-file-structure">Wildlife Computers QC config file structure<a class="anchor" aria-label="anchor" href="#wildlife-computers-qc-config-file-structure"></a>
 </h2>
-<p>All ArgosQC workflows are structured using a JSON config file. The
-config file is hierarchical in structure with as many as 4 blocks:
-<code>setup</code>, <code>harvest</code>, <code>model</code>, and
-<code>meta</code>. The <code>meta</code> block is only required if no
-metadata file is provided in the <code>setup</code> block. These files
-can be constructed manually or programmatically and provide the ability
-to define certain aspects of the QC workflow. Below is the config file
-for an IMOS QC workflow on SMRU GPS SRDL-CTD tags deployed on olive
-ridley turtles on the Tiwi Islands, Australia. All SMRU tag data are
-organised by deployment campaign ids, e.g., <code>ct188</code>. A
-separate QC workflow (config file) must be generated for each deployment
-campaign.</p>
+<p>The Wildlife Computers JSON config file has the same 4-block
+structure as the SMRU config file (see <a href="SMRU_config_file.html">SMRU_config_file</a>). The
+<code>meta</code> block is similarly optional, however, some of the
+parameters within the blocks differ. Below is the config file for a
+NSWOO (IRAP) QC workflow on WC SPOT6 tags deployed on loggerhead turtles
+in NSW, Australia.</p>
 <center>
-<img src="images/IMOS_config_JSON.png" style="width:100.0%">
+<img src="images/IRAP_config_JSON.png" style="width:100.0%">
 </center>
-<p>The block-specific parameters are as follows:</p>
+<p>The slightly different config parameter structure accounts for
+differences in data structures between the 2 manufacturers’ tags. The WC
+config parameters are as follows:</p>
 <ul><li>
 <p><code>setup</code> config block specifies the program overseeing data
 assembly &amp; paths to required data, metadata &amp; output
@@ -127,20 +123,18 @@ directories:</p>
 <ul>
 <li>
 <p><code>program</code> the national (or other) program of which the
-data is a part. Current options are: <code>imos</code> or
-<code>atn</code>.</p>
+data is a part. For example, <code>imos</code>, <code>atn</code>,
+<code>otn</code>.</p>
 </li>
 <li>
 <p><code>data.dir</code> the name of the data directory. Must reside
-within the <code>wd</code>. The directory will be created if it doesn’t
-exist.</p>
+within the <code>wd</code>.</p>
 </li>
 <li>
 <p><code>meta.file</code> the metadata filename. Must reside within the
 <code>wd</code>. Can be NULL, in which case, the <code>meta</code>
 config block (see below) must be present &amp; tag-specific metadata are
-scraped from the SMRU data server (provided SMRU server access
-credentials are supplied - see <code>harvest</code> block, below).</p>
+acquired from the WC Data Portal.</p>
 </li>
 <li>
 <p><code>maps.dir</code> the directory path to write diagnostic maps of
@@ -148,7 +142,7 @@ QC’d tracks.</p>
 </li>
 <li>
 <p><code>diag.dir</code> the directory path to write diagnostic
-time-series plots of QC’d lon &amp; lat variables.</p>
+time-series plots of QC’d lon &amp; lat.</p>
 </li>
 <li>
 <p><code>output.dir</code> the directory path to write QC output CSV
@@ -161,21 +155,18 @@ in a single large object returned to the R work space containing the
 following elements:</p>
 <ul>
 <li>
-<p><code>cid</code> the SMRU campaign ID</p>
+<p><code>dropIDs</code> the WC uuid’s dropped from the QC process</p>
 </li>
 <li>
-<p><code>dropIDs</code> the SMRU Reference ID’s dropped from the QC
-process</p>
+<p><code>wc</code> the WC tag data files downloaded from the WC Data
+Portal</p>
 </li>
 <li>
-<p><code>smru</code> the SMRU tag data tables extracted from the
-downloaded .mdb file</p>
+<p><code>meta</code> the deployment metadata formatted for use in the QC
+workflow (ie. not the final output format)</p>
 </li>
 <li>
-<p><code>meta</code> the working metadata</p>
-</li>
-<li>
-<p><code>locs_sf</code> the projected location data to be passed as
+<p><code>locations_sf</code> the projected location data to be passed as
 input to the SSM</p>
 </li>
 <li>
@@ -186,9 +177,9 @@ input to the SSM</p>
 locations if specified.</p>
 </li>
 <li>
-<p><code>smru_ssm</code> the SSM-annotated SMRU tag data tables. This
-output object can be useful for troubleshooting undesirable results
-during delayed-mode (supervised) QC workflows.<br></p>
+<p><code>wc_ssm</code> the SSM-annotated WC tag data files. This output
+object can be useful for troubleshooting undesirable results during
+delayed-mode (supervised) QC workflows.<br></p>
 </li>
 </ul>
 </li>
@@ -200,31 +191,36 @@ parameters:</p>
 <ul>
 <li>
 <p><code>download</code> a logical indicating whether tag data are to be
-downloaded from the SMRU data server or read from the local
+downloaded from the WC Data Portal API or read from the local
 <code>data.dir</code>.</p>
 </li>
 <li>
-<p><code>cid</code> SMRU campaign ID.</p>
+<p><code>owner.id</code> the Wildlife Computers collaborator ID, which
+is required if the user does not own or otherwise does not have direct
+access to the tag data. Note, that data-sharing collaborations must be
+set up in the Wildlife Computers Data Portal prior to accessing via the
+API.</p>
 </li>
 <li>
-<p><code>smru.usr</code> SMRU data server username as a string.</p>
+<p><code>wc.akey</code> the Wildlife Computers Access Key that all
+Portal users must have to access the API.</p>
 </li>
 <li>
-<p><code>smru.pwd</code> SMRU data server password as a string.</p>
+<p><code>wc.skey</code> the Wildlife Computers Secret Key.</p>
 </li>
 <li>
-<p><code>timeout</code> extends the download timeout period a specified
-number of seconds for slower internet connections.</p>
+<p><code>tag.list</code> a .CSV file with a single variable named
+<code>uuid</code>, providing the uuid’s to be downloaded. This ensures
+only the subset of desired tag datasets are downloaded. If not provided
+(NULL) then ALL the tag datasets attributed to the <code>owner.id</code>
+or to user providing wc-keys will be downloaded.</p>
 </li>
 <li>
-<p><code>dropIDs</code> the SMRU ref ID’s that are to be ignored during
-the QC process. Can be NULL.</p>
+<p><code>dropIDs</code> a .CSV file with a single variable named
+<code>uuid</code>, providing the uuid’s to be ignored by the QC process.
+Can be NULL.</p>
 </li>
 <li>
-<p><code>p2mdbtools</code> (optional) provides the path to the mdbtools
-library (required extract data from <code>.mdb</code> -Microsoft Access
-Database files) if it is installed in a non-standard location (e.g., on
-Macs when installed via Homebrew). Can be set to NULL otherwise.<br></p>
 </li>
 </ul>
 </li></ul>
@@ -293,6 +289,10 @@ cutting predicted locations (default is 72 h)</p>
 <p><code>QCmode</code> one of either <code>nrt</code> for Near Real-Time
 QC or <code>dm</code> for Delayed Mode QC.</p>
 </li>
+<li>
+<p><code>pred.int</code> the prediction interval (in hours) to be used.
+Typically, this is the same as the <code>time.step</code>.</p>
+</li>
 </ul>
 </li></ul>
 <ul><li>
@@ -301,33 +301,41 @@ location information. This config block is only necessary when no
 metadata file is provided in the <code>setup</code> block.</p>
 <ul>
 <li>
-<p><code>common_name</code> the species common name (e.g., “southern
-elephant seal”)</p>
+<p><code>common_name</code> the species common name (e.g., “loggerhead
+turtle”)</p>
 </li>
 <li>
-<p><code>species</code> the species scientific name (e.g., “Mirounga
-leonina”)</p>
+<p><code>species</code> the species scientific name (e.g., “Caretta
+caretta”)</p>
 </li>
 <li>
 <p><code>release_site</code> the location where tags were deployed
-(e.g., “Iles Kerguelen”)</p>
+(e.g., “NSW”)</p>
 </li>
 <li>
-<p><code>state_country</code> the country/territory name (e.g., “French
-Overseas Territory”)</p>
+<p><code>state_country</code> the country/territory name (e.g.,
+“Australia”)</p>
 </li>
 </ul>
 </li></ul>
 <p>With a completed config file, the standard call to initiate the QC
 workflow within R is:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/smru_qc.html">smru_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"imos_config.json"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/wc_qc.html">wc_qc</a></span><span class="op">(</span>wd <span class="op">=</span> <span class="st">"test"</span>, config <span class="op">=</span> <span class="st">"irap_config.json"</span><span class="op">)</span></span></code></pre></div>
 <p>where <code>wd</code> is the file path for the working directory
 within which all QC data/metadata inputs are downloaded (or read) and
 outputs are written.</p>
 <div class="section level3">
 <h3 id="additional-details-on-config-parameters">Additional details on config parameters<a class="anchor" aria-label="anchor" href="#additional-details-on-config-parameters"></a>
 </h3>
+<p>The Wildlife Computers API credentials: <code>collab.id</code>,
+<code>wc.akey</code>, and <code>wc.skey</code> may be used to download
+data directly from the Wildlife Computers Portal, in this case, data are
+written to tag-specific directories within the specified
+<code>data.dir</code> directory. Alternatively, <code><a href="../reference/wc_qc.html">wc_qc()</a></code> may
+be used with local copies of Wildlife Computers tag data, provided they
+are stored in tag-specific directories within the <code>data.dir</code>
+directory.</p>
 <p>The <code>proj</code> argument specifies the projection (as a
 <code>proj4string</code>) to which the tag-measured locations are
 converted as input to the QC state-space model (SSM), ie. the working
@@ -424,7 +432,7 @@ delayed-mode <code>dm</code> or near real-time <code>nrt</code>.
 Delayed-mode is reserved for when tag deployments have ended and usually
 involve greater user intervention; such as making decisions on removing
 aberrant portions of a deployment (e.g., as tag batteries begin
-failing). The <code>nrt</code> mode is mean to be fully automated and
+failing). The <code>nrt</code> mode is meant to be fully automated and
 only used while a deployment is active. In both cases, the output .CSV
 and plot file names will include the <code>QCmode</code> as a
 suffix.</p>
