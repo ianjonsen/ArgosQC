@@ -15,7 +15,7 @@
 ##' @importFrom purrr walk
 ##' @importFrom assertthat assert_that
 ##'
-##' @export
+##' @keywords internal
 
 push_2_aodn <- function(cids,
                         path = NULL,

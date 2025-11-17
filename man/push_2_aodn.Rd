@@ -35,3 +35,4 @@ push_2_aodn(
 \description{
 zip .csv files by campaign id & sync with AODN incoming server via rsync
 }
+\keyword{internal}
