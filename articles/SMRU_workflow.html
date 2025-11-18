@@ -106,21 +106,25 @@
 </h2>
 <p>The first step to initiate any <code>ArgosQC</code> workflow is to
 construct a <code>JSON</code> config file (see <a href="SMRU_config_file.html">SMRU_config_file</a>).</p>
-<p>In the above example, the main QC outputs were written to files. The
-QC output .CSV files were written to the specified output directory.
-Each .CSV file includes the name of the SMRU data table, when present
-(ctd, diag, dive, haulout, summary) or the QC file (metadata,
-ssmoutputs). For QC workflows of ATN data, each of these file names is
-appended with the species’ AnimalAphiaID and the ADRProjectID. For IMOS
+<p>In this example, the main QC outputs were written to .CSV files in
+the specified output directory, <code>output.dir</code>. Each .CSV file
+includes the name of the SMRU data table, when present
+(<code>ctd</code>, <code>diag</code>, <code>dive</code>,
+<code>haulout</code>, <code>summary</code>) or the QC file
+(<code>metadata</code>, <code>ssmoutputs</code>). For QC workflows with
+ATN data, each of these file names is appended with the species’
+<code>AnimalAphiaID</code> and the <code>ADRProjectID</code>. For IMOS
 and other programs, the file names are appended with the SMRU campaign
-ID.</p>
+ID (e.g., <code>ct182</code>).</p>
 <p>The diag files show the SSM fit (red) overlaid on the tag-measured
 Argos &amp;/or GPS locations (blue). The dark grey vertical bars denote
 the time period tags were actively recording locations but the seal(s)
-had not yet gone to sea (no recorded diving activity). By default, the
-QC model does not fit to data in these time periods. These plots help
-judge whether the SSM fits have artefacts that need addressing -
-typically only addressed during a delayed-mode QC workflow. <img src="images/lat_coverage_tu123.jpg" style="width:100.0%"></p>
+either had not yet gone to sea (no recorded diving activity - left
+side), or the CTD sensor had failed (e.g., grey bar on right side of
+<code>tu123-Catherine-25</code>). By default, the QC model does not fit
+to data in these time periods. These plots help judge whether the SSM
+fits have artefacts that need addressing - typically only addressed
+during a delayed-mode QC workflow. <img src="images/lat_coverage_tu123.jpg" style="width:100.0%"></p>
 <p>The map file shows the SSM-predicted tracks (blue) and current last
 estimated location (red) for each deployed tag. The map files are
 annotated by the QC date so they are not overwritten by successive QC
