@@ -20,8 +20,8 @@ knitr::opts_chunk$set(
 ## Wildlife Computers QC config file structure
 
 The Wildlife Computers 
-JSON config file has the same 4-block structure as the SMRU config file (see 
-[SMRU_config_file](SMRU_config_file.html)). The `meta` block is similarly 
+JSON config file has the same 4-block structure as the [SMRU_config_file](SMRU_config_file.html). 
+The `meta` block is similarly 
 optional, however, some of the parameters within the blocks differ. Below is the
 config file for a NSWOO (IRAP) QC workflow on WC SPOT6 tags deployed on 
 loggerhead turtles in NSW, Australia.
