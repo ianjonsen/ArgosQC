@@ -52,6 +52,15 @@ library(ArgosQC)
 smru_qc(wd = "test", config = "test_conf.json")
 ```
 
+See the vignettes on config file structures for
+[SMRU](https://ianjonsen.github.io/ArgosQC/articles/SMRU_config_file.html)
+or
+[WC](https://ianjonsen.github.io/ArgosQC/articles/WC_config_file.html)
+tag data and
+[SMRU](https://ianjonsen.github.io/ArgosQC/articles/SMRU_workflow.html)
+or [WC](https://ianjonsen.github.io/ArgosQC/articles/WC_workflow.html)
+workflows.
+
 # Acknowledgements:
 
 ### Financial support for the development of this software is provided by:
