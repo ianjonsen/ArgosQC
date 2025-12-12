@@ -177,6 +177,7 @@ wc_qc <- function(wd,
   wc <- wc_pull_data(path2data = conf$setup$data.dir,
                       subset.ids = conf$harvest$tag.list)
 
+
   ## get metadata
   if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
   else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from WC Portal...")
@@ -238,7 +239,7 @@ wc_qc <- function(wd,
   ##  predicted & rerouted locations are 'marked' with a `keep` column
   ## (TRUE = keep, FALSE = ignore). Executed only if conf$model$cut = TRUE
   if (conf$model$cut) {
-    fit2 <- ssm_mark_gaps(fit2[[i]], min.gap = conf$model$min.gap)
+    fit2 <- ssm_mark_gaps(fit2, min.gap = conf$model$min.gap)
   }
 
 

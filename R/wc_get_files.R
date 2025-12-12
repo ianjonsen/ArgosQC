@@ -199,7 +199,8 @@ wc_get_files <- function(dest = NULL,
         if(length(idx.drop) > 0) fs.d <- fs[-idx.drop]
 
         unzip(zipfile = ifelse(exists("fs.d"), fs.d, fs),
-              exdir = str_split(fs, "\\.z", simplify = TRUE)[, 1])
+              exdir = str_split(fs, "\\.z", simplify = TRUE)[, 1]) |>
+          suppressWarnings()
 
         if(exists("fs.d")) system(paste0("rm ", fs.d))
         system(paste0("rm ", fs))
