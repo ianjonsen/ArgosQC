@@ -15,7 +15,7 @@
 ##' obtained via `download_data()` - supplied by `get_metadata()`
 ##' @param tag_data a list of SMRU data tables as output by `pull_data`.
 ##'
-##' @importFrom dplyr select mutate filter rename left_join everything case_when
+##' @importFrom dplyr select mutate filter rename left_join everything case_when lag
 ##' @importFrom rvest read_html html_elements html_table
 ##' @importFrom stringr str_detect str_sub
 ##' @importFrom stats weighted.mean median
@@ -67,21 +67,41 @@ wc_build_meta_generic <- function(ids,
     select(-is_tag_serial,
            -device_id)
 
-
   ## calculate Embark date, lon, lat & join to metadata
   ids <- tag_meta |>
     filter(is.na(deploy_date)) |>
     pull(DeploymentID)
 
-  embark_meta <- tag_data$Locations |>
-    filter(DeploymentID %in% ids) |>
-    group_by(DeploymentID) |>
-    filter(Date <= Date[1] + 86400 * 1) |>
-    arrange(Date, .by_group = TRUE) |>
-    summarise(embark_date = median(Date),
-              embark_longitude = weighted.mean(Longitude, w = 1/`Error radius`),
-              embark_latitude = weighted.mean(Latitude, w = 1/`Error radius`)
-              )
+  ## First check that there is no huge time gap between 1st several & subsequent locations
+  ##  eg. caused by turning tag on at factory, research facility, etc... prior to
+  ##  actual deployment
+
+  first.locs <- tag_data$Locations |>
+    filter(DeploymentID %in% ids)
+  first.locs <- split(first.locs, first.locs$DeploymentID)
+  st.idx <- sapply(first.locs, function(x) {
+    x <- dplyr::slice_head(x, n = 10)
+    dt <- difftime(x$Date, dplyr::lag(x$Date), units = "hours") |>
+      as.numeric()
+    if(any(dt > 12)) which.max(dt) + 1
+    else 1
+  })
+
+  embark_dat <- tag_data$Locations |>
+    filter(DeploymentID %in% ids)
+  embark_dat <- split(embark_dat, embark_dat$DeploymentID)
+
+  embark_meta <- lapply(1:length(embark_dat), function(i) {
+    x <- subset(embark_dat[[i]], Date >= Date[st.idx[i]] & Date <= (Date[st.idx[i]] + 86400)) |>
+      arrange(Date)
+
+    with(x, data.frame(DeploymentID = DeploymentID[1],
+                       embark_date = median(Date),
+                       embark_longitude = weighted.mean(Longitude, w = 1/`Error radius`),
+                       embark_latitude = weighted.mean(Latitude, w = 1/`Error radius`)
+                       ))
+  }) |>
+    bind_rows()
 
   tag_meta <- left_join(tag_meta, embark_meta, by = c("DeploymentID" = "DeploymentID")) |>
     mutate(common_name = meta.args$common_name,

@@ -193,11 +193,15 @@ wc_get_files <- function(dest = NULL,
         req_perform(path = file.path(dest, paste0(deps$id[i], "_", deps$tag[i], ".zip")))
 
       if (unzip) {
+        ## sub-setting needed here to remove NA_NA.zip downloads when they exist
         fs <- file.path(dest, list.files(dest, pattern = "*.zip"))
-        unzip(zipfile = fs,
+        idx.drop <- grep("NA|\\_NA.zip", fs)
+        if(length(idx.drop) > 0) fs.d <- fs[-idx.drop]
+
+        unzip(zipfile = ifelse(exists("fs.d"), fs.d, fs),
               exdir = str_split(fs, "\\.z", simplify = TRUE)[, 1])
 
-
+        if(exists("fs.d")) system(paste0("rm ", fs.d))
         system(paste0("rm ", fs))
       }
 
