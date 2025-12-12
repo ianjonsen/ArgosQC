@@ -15,7 +15,8 @@
 ##' obtained via `download_data()` - supplied by `get_metadata()`
 ##' @param tag_data a list of SMRU data tables as output by `pull_data`.
 ##'
-##' @importFrom dplyr select mutate filter rename left_join everything case_when lag
+##' @importFrom dplyr select mutate filter rename left_join everything case_when
+##' @importFrom dplyr lag slice_head
 ##' @importFrom rvest read_html html_elements html_table
 ##' @importFrom stringr str_detect str_sub
 ##' @importFrom stats weighted.mean median
@@ -80,8 +81,8 @@ wc_build_meta_generic <- function(ids,
     filter(DeploymentID %in% ids)
   first.locs <- split(first.locs, first.locs$DeploymentID)
   st.idx <- sapply(first.locs, function(x) {
-    x <- dplyr::slice_head(x, n = 10)
-    dt <- difftime(x$Date, dplyr::lag(x$Date), units = "hours") |>
+    x <- slice_head(x, n = 10)
+    dt <- difftime(x$Date, lag(x$Date), units = "hours") |>
       as.numeric()
     if(any(dt > 12)) which.max(dt) + 1
     else 1
