@@ -162,6 +162,7 @@ wc_get_files <- function(dest = NULL,
 
       } else {
         ids <- NULL
+        message("tag.list not provided in config file, downloading all accessible data...")
       }
 
     ## check for duplicate ptt id's & return tag metadata and stop process with

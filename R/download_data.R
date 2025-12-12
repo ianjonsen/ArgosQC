@@ -66,7 +66,7 @@ download_data <- function(dest = NULL,
                  a.key = wc.akey,
                  s.key = wc.skey,
                  owner.id = owner.id,
-                 subset.ids,
+                 subset.ids = subset.ids,
                  ...,
                  download = download,
                  return.tag.meta = TRUE)

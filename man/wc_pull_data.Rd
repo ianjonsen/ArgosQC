@@ -4,7 +4,7 @@
 \alias{wc_pull_data}
 \title{Pull data from Wildlife Computers tag data files}
 \usage{
-wc_pull_data(path2data, subset.ids)
+wc_pull_data(path2data, subset.ids = NULL)
 }
 \arguments{
 \item{path2data}{path to all WC tag data files.}

@@ -35,7 +35,7 @@
 ##' @export
 
 wc_pull_data <- function(path2data,
-                         subset.ids) {
+                         subset.ids = NULL) {
 
   ## All known WC data files to be QC'd + regex expressions to obtain latest
   ##    WC-post-processed Locations and FastGPS files
