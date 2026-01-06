@@ -213,36 +213,64 @@ diagnostics <-
                  ncol = 6)
     )
 
-    if(QCmode == "nrt" & tag_mfr == "smru") {
-      p.lat <- suppressWarnings(p.lat + geom_rect(
-        data = meta |> filter(!is.na(start_date),
-                              !is.na(ctd_start)),
-        aes(
-          xmin = start_date,
-          xmax = ctd_start,
-          ymin = -Inf,
-          ymax = Inf
-        ),
-        alpha = 0.5,
-        fill = grey(0.1),
-        colour = NA
-      ) +
-        geom_rect(
-          data = meta |> filter(!is.na(end_date),
-                                !is.na(ctd_end)),
+    if(tag_mfr == "smru") {
+      if(QCmode == "nrt") {
+        p.lat <- suppressWarnings(p.lat + geom_rect(
+          data = meta |> filter(!is.na(start_date),
+                                !is.na(ctd_start)),
           aes(
-            xmin = ctd_end,
-            xmax = end_date,
+            xmin = start_date,
+            xmax = ctd_start,
             ymin = -Inf,
             ymax = Inf
           ),
           alpha = 0.5,
           fill = grey(0.1),
           colour = NA
-        ))
+        ) +
+          geom_rect(
+            data = meta |> filter(!is.na(end_date),
+                                  !is.na(ctd_end)),
+            aes(
+              xmin = ctd_end,
+              xmax = end_date,
+              ymin = -Inf,
+              ymax = Inf
+            ),
+            alpha = 0.5,
+            fill = grey(0.1),
+            colour = NA
+          ))
 
-    } else if(QCmode == "dm" | tag_mfr == "wc") {
-
+      } else if(QCmode == "dm") {
+        p.lat <- suppressWarnings(p.lat + geom_rect(
+          data = meta |> filter(!is.na(start_date),
+                                !is.na(dive_start)),
+          aes(
+            xmin = start_date,
+            xmax = dive_start,
+            ymin = -Inf,
+            ymax = Inf
+          ),
+          alpha = 0.5,
+          fill = grey(0.1),
+          colour = NA
+        ) +
+          geom_rect(
+            data = meta |> filter(!is.na(end_date),
+                                  !is.na(dive_end)),
+            aes(
+              xmin = dive_end,
+              xmax = end_date,
+              ymin = -Inf,
+              ymax = Inf
+            ),
+            alpha = 0.5,
+            fill = grey(0.1),
+            colour = NA
+          ))
+      }
+    } else if(tag_mfr == "wc") {
       p.lat <- suppressWarnings(p.lat + geom_rect(
         data = meta |> filter(!is.na(start_date),
                               !is.na(QC_start_date)),
@@ -269,6 +297,7 @@ diagnostics <-
           fill = grey(0.1),
           colour = NA
         ))
+
     }
 
     if(!is.null(cid)) {
@@ -308,35 +337,64 @@ diagnostics <-
           ncol = 6
         ))
 
-    if(QCmode == "nrt" & tag_mfr == "smru") {
-      p.lon <- suppressWarnings(p.lon + geom_rect(
-        data = meta |> filter(!is.na(start_date),
-                              !is.na(ctd_start)),
-        aes(
-          xmin = start_date,
-          xmax = ctd_start,
-          ymin = -Inf,
-          ymax = Inf
-        ),
-        alpha = 0.5,
-        fill = grey(0.1),
-        colour = NA
-      ) +
-        geom_rect(
-          data = meta |> filter(!is.na(end_date),
-                                !is.na(ctd_end)),
+    if(tag_mfr == "smru") {
+      if(QCmode == "nrt") {
+        p.lon <- suppressWarnings(p.lon + geom_rect(
+          data = meta |> filter(!is.na(start_date),
+                                !is.na(ctd_start)),
           aes(
-            xmin = ctd_end,
-            xmax = end_date,
+            xmin = start_date,
+            xmax = ctd_start,
             ymin = -Inf,
             ymax = Inf
           ),
           alpha = 0.5,
           fill = grey(0.1),
           colour = NA
-        ))
+        ) +
+          geom_rect(
+            data = meta |> filter(!is.na(end_date),
+                                  !is.na(ctd_end)),
+            aes(
+              xmin = ctd_end,
+              xmax = end_date,
+              ymin = -Inf,
+              ymax = Inf
+            ),
+            alpha = 0.5,
+            fill = grey(0.1),
+            colour = NA
+          ))
 
-    } else if(QCmode == "dm" | tag_mfr == "wc") {
+      } else if(QCmode == "dm") {
+        p.lon <- suppressWarnings(p.lon + geom_rect(
+          data = meta |> filter(!is.na(start_date),
+                                !is.na(dive_start)),
+          aes(
+            xmin = start_date,
+            xmax = dive_start,
+            ymin = -Inf,
+            ymax = Inf
+          ),
+          alpha = 0.5,
+          fill = grey(0.1),
+          colour = NA
+        ) +
+          geom_rect(
+            data = meta |> filter(!is.na(end_date),
+                                  !is.na(dive_end)),
+            aes(
+              xmin = dive_end,
+              xmax = end_date,
+              ymin = -Inf,
+              ymax = Inf
+            ),
+            alpha = 0.5,
+            fill = grey(0.1),
+            colour = NA
+          ))
+      }
+    } else if(tag_mfr == "wc") {
       p.lon <- suppressWarnings(p.lon + geom_rect(
         data = meta |> filter(!is.na(start_date),
                               !is.na(QC_start_date)),
@@ -363,6 +421,7 @@ diagnostics <-
           fill = grey(0.1),
           colour = NA
         ))
+
     }
 
     if (!is.null(cid)) {
