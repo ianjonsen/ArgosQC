@@ -1036,7 +1036,9 @@ smru_write_meta <- function(meta,
     meta <- meta |>
       mutate(age_class = case_when(
         age_class == "juv" ~ "juvenile",
-        age_class == "juvenille" ~ "juvenile"
+        age_class == "juvenille" ~ "juvenile",
+        age_class == "subadult" ~ "subadult",
+        age_class == "adult" ~ "adult"
       ))
 
     ## check metadata schema compliance to AODN standard

@@ -300,7 +300,7 @@ smru_write_csv(
 message("QC workflow completed")
 
 if (as.logical(conf$setup$return.R)) {
-  return(list(cid=conf$harvest$cid,
+  return(list(config=conf,
               dropIDs=dropIDs,
               smru=smru,
               meta=meta,

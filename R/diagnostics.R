@@ -243,32 +243,38 @@ diagnostics <-
           ))
 
       } else if(QCmode == "dm") {
-        p.lat <- suppressWarnings(p.lat + geom_rect(
-          data = meta |> filter(!is.na(start_date),
-                                !is.na(dive_start)),
-          aes(
-            xmin = start_date,
-            xmax = dive_start,
-            ymin = -Inf,
-            ymax = Inf
-          ),
-          alpha = 0.5,
-          fill = grey(0.1),
-          colour = NA
-        ) +
-          geom_rect(
-            data = meta |> filter(!is.na(end_date),
-                                  !is.na(dive_end)),
+        if("dive_start" %in% names(meta)) {
+          d <- meta |> filter(!is.na(start_date),
+                              !is.na(dive_start),
+                              !is.na(end_date),
+                              !is.na(dive_end))
+
+          p.lat <- suppressWarnings(p.lat + geom_rect(
+            data = d,
             aes(
-              xmin = dive_end,
-              xmax = end_date,
+              xmin = start_date,
+              xmax = dive_start,
               ymin = -Inf,
               ymax = Inf
             ),
             alpha = 0.5,
             fill = grey(0.1),
             colour = NA
-          ))
+          ) +
+            geom_rect(
+              data = d,
+              aes(
+                xmin = dive_end,
+                xmax = end_date,
+                ymin = -Inf,
+                ymax = Inf
+              ),
+              alpha = 0.5,
+              fill = grey(0.1),
+              colour = NA
+            ))
+
+        }
       }
     } else if(tag_mfr == "wc") {
       p.lat <- suppressWarnings(p.lat + geom_rect(
@@ -367,9 +373,14 @@ diagnostics <-
           ))
 
       } else if(QCmode == "dm") {
+        if("dive_start" %in% names(meta)) {
+          d <- meta |> filter(!is.na(start_date),
+                              !is.na(dive_start),
+                              !is.na(end_date),
+                              !is.na(dive_end))
+
         p.lon <- suppressWarnings(p.lon + geom_rect(
-          data = meta |> filter(!is.na(start_date),
-                                !is.na(dive_start)),
+          data = d,
           aes(
             xmin = start_date,
             xmax = dive_start,
@@ -381,8 +392,7 @@ diagnostics <-
           colour = NA
         ) +
           geom_rect(
-            data = meta |> filter(!is.na(end_date),
-                                  !is.na(dive_end)),
+            data = d,
             aes(
               xmin = dive_end,
               xmax = end_date,
@@ -393,6 +403,7 @@ diagnostics <-
             fill = grey(0.1),
             colour = NA
           ))
+        }
       }
     } else if(tag_mfr == "wc") {
       p.lon <- suppressWarnings(p.lon + geom_rect(
