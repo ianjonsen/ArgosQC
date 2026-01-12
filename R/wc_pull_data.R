@@ -134,7 +134,7 @@ wc_pull_data <- function(path2data,
   ## drop the 2 regex expressions from the filenames
   datafiles <- datafiles[-grep("\\[", datafiles)]
 
-  wc <- suppressWarnings(lapply(fs, function(x) {
+  wc <- lapply(fs, function(x) {
     out <- lapply(1:length(x), function(i) {
       xx <- read_csv(x[[i]],
                      show_col_types = FALSE,
@@ -154,14 +154,18 @@ wc_pull_data <- function(path2data,
 
       if(nrow(xx) > 0) {
         ## parse filename strings to isolate UUID & add to datafile as DeploymentID
-        tmp <- unique(str_split(x[[i]], "\\/", simplify = TRUE)[, grep("\\_", str_split(x[[i]], "\\/", simplify = TRUE))])
-        if (length(tmp > 1))
-          tmp <- tmp[2]
+        idx <- grep("\\_", str_split(x[[i]], "\\/", simplify = TRUE))
+        foo <- unique(str_split(x[[i]], "\\/", simplify = TRUE)[, idx])
+
+        # if(length(foo > 1)) {
+        #   foo <- foo[2]
+        # }
+
         ## removes _suffix (Tag serial number) if present
-        tmp2 <- str_split(tmp[grep("[0-9]+", tmp)], "\\_", simplify = TRUE)[, 1]
+        tmp <- str_split(foo, "\\_", simplify = TRUE)[,1]
 
         xx |>
-          mutate(DeploymentID = tmp2) |>
+          mutate(DeploymentID = tmp) |>
           select(DeploymentID, everything())
 
       } else {
@@ -171,7 +175,7 @@ wc_pull_data <- function(path2data,
     nms <- str_split(str_split(x, "\\.", simplify = TRUE)[,1], "-(?=[^-]+$)", simplify = TRUE)[,2]
     names(out) <- nms
     out
-  }))
+  })
 
   ## Locations df
   ## Need to ensure variable names are exactly the same before binding df rows

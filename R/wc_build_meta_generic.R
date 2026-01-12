@@ -68,43 +68,63 @@ wc_build_meta_generic <- function(ids,
     select(-is_tag_serial,
            -device_id)
 
-  ## calculate Embark date, lon, lat & join to metadata
-  ids <- tag_meta |>
-    filter(is.na(deploy_date)) |>
-    pull(DeploymentID)
 
-  ## First check that there is no huge time gap between 1st several & subsequent locations
-  ##  eg. caused by turning tag on at factory, research facility, etc... prior to
-  ##  actual deployment
+  ## If any NA's in tag_meta$deploy_date then calculate Embark date, lon, lat & join to metadata
+  if (any(is.na(tag_meta$deploy_date))) {
+    ids. <- tag_meta |>
+      filter(is.na(deploy_date)) |>
+      pull(DeploymentID)
 
-  first.locs <- tag_data$Locations |>
-    filter(DeploymentID %in% ids)
-  first.locs <- split(first.locs, first.locs$DeploymentID)
-  st.idx <- sapply(first.locs, function(x) {
-    x <- slice(x, 1:20)
-    dt <- difftime(x$Date, lag(x$Date), units = "hours") |>
-      as.numeric()
-    if(any(dt > 12)) which.max(dt) + 1
-    else 1
-  })
+    ## First check that there is no huge time gap between 1st several & subsequent locations
+    ##  eg. caused by turning tag on at factory, research facility, etc... prior to
+    ##  actual deployment
 
-  embark_dat <- tag_data$Locations |>
-    filter(DeploymentID %in% ids)
-  embark_dat <- split(embark_dat, embark_dat$DeploymentID)
+    first.locs <- tag_data$Locations |>
+      filter(DeploymentID %in% ids.)
+    first.locs <- split(first.locs, first.locs$DeploymentID)
+    st.idx <- sapply(first.locs, function(x) {
+      x <- slice(x, 1:20)
+      dt <- difftime(x$Date, lag(x$Date), units = "hours") |>
+        as.numeric()
+      if (any(dt > 12))
+        which.max(dt) + 1
+      else
+        1
+    })
 
-  embark_meta <- lapply(1:length(embark_dat), function(i) {
-    x <- subset(embark_dat[[i]], Date >= Date[st.idx[i]] & Date <= (Date[st.idx[i]] + 86400)) |>
-      arrange(Date)
+    embark_dat <- tag_data$Locations |>
+      filter(DeploymentID %in% ids.)
+    embark_dat <- split(embark_dat, embark_dat$DeploymentID)
 
-    with(x, data.frame(DeploymentID = DeploymentID[1],
-                       embark_date = median(Date),
-                       embark_longitude = weighted.mean(Longitude, w = 1/`Error radius`),
-                       embark_latitude = weighted.mean(Latitude, w = 1/`Error radius`)
-                       ))
-  }) |>
-    bind_rows()
+    embark_meta <- lapply(1:length(embark_dat), function(i) {
+      x <- subset(embark_dat[[i]], Date >= Date[st.idx[i]] &
+                    Date <= (Date[st.idx[i]] + 86400)) |>
+        arrange(Date)
 
-  tag_meta <- left_join(tag_meta, embark_meta, by = c("DeploymentID" = "DeploymentID")) |>
+      with(
+        x,
+        data.frame(
+          DeploymentID = DeploymentID[1],
+          embark_date = median(Date),
+          embark_longitude = weighted.mean(Longitude, w = 1 /
+                                             `Error radius`),
+          embark_latitude = weighted.mean(Latitude, w = 1 /
+                                            `Error radius`)
+        )
+      )
+    }) |>
+      bind_rows()
+
+    tag_meta <- left_join(tag_meta, embark_meta, by = c("DeploymentID" = "DeploymentID"))
+
+  } else {
+    tag_meta <- tag_meta |>
+      mutate(embark_date = NA,
+             embark_longitude = NA,
+             embark_latitude = NA)
+  }
+
+   tag_meta <- tag_meta |>
     mutate(common_name = meta.args$common_name,
            species = meta.args$species) |>
     mutate(release_site = meta.args$release_site) |>
