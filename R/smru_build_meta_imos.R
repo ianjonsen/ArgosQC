@@ -49,6 +49,10 @@ smru_build_meta_imos <- function(cid,
     str_replace_all("-", "_") |>
     str_replace_all("/", "_")
 
+  if(!"wmo" %in% names(tag_meta)) {
+    tag_meta <- tag_meta |> mutate(wmo = NA)
+  }
+
   tag_meta <- tag_meta |>
     rename(
       device_id = reference,
