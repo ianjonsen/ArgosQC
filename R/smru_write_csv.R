@@ -1111,6 +1111,9 @@ smru_write_meta <- function(meta,
       )
     )
     if(test) {
+      if(suffix == "_test") {
+        tests[5] <- TRUE
+      }
       fails <- names(meta)[which(!tests)]
       if (length(fails) > 0)
         stop(paste0("non-compliant metadata records found in: ", fails, "\n"))

@@ -1,8 +1,8 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.9-10
-Date: 2026-01-12
+Version: 0.9-11
+Date: 2026-01-20
 Author: Ian Jonsen [aut, cre, cph]           
 Maintainer: Ian Jonsen <jonsen@stochastic-qc.org>
 Description: An automated Argos location quality control process for Argos location data from satellite tags. Functions automatically download and collate data from one of several potential remote source: a user-supplied URL, a user-supplied Google Drive link, a user-supplied Dropbox link, the SMRU server, or the Wildlife Computers Portal API. The package matches deployment data with user-supplied deployment metadata; projects location data from lon,lat to a user-supplied projection or a default projection; fits user-specified SSM's in 2 passes to estimate most plausible locations; collates results by species & deployment program; generates diagnostic plots & maps; appends predicted locations at tag-measured event times to the tag manufacturer activity files such as CTD profiles, dive records, haulout records, and the Argos and (when present) GPS location files; saves activity files as .csv in one of several possible schema (IMOS ATF, ATN, User-defined); pushes QC'd files to a user-specified server or saves to a local archive (zipfile).

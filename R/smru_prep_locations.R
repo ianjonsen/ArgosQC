@@ -11,6 +11,7 @@
 ##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
 ##' which results in one of 4 possible projections applied automatically, based on
 ##' the centroid of the tracks. See `overview` vignette for details.
+##' @param extent geographic extent of locations, in longlat, to consider in QC
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case diag is not right-truncated & date of first dive is used
 ##' for the track start date
@@ -19,7 +20,7 @@
 ##' @importFrom dplyr ungroup rename select
 ##' @importFrom assertthat assert_that
 ##' @importFrom sf st_as_sf st_transform
-##' @importFrom stringr str_extract
+##' @importFrom stringr str_extract str_split
 ##' @importFrom aniMotum format_data
 ##'
 ##' @export
@@ -29,10 +30,17 @@ smru_prep_loc <- function(smru,
                           meta,
                           dropIDs = NULL,
                           crs = NULL,
+                          extent = NULL,
                           QCmode = NULL) {
 
   assert_that(is.list(smru))
   if(is.null(QCmode)) stop("QCmode not specified in config file")
+
+  ## turn extent string into a numeric vector
+  if(!is.null(extent)) {
+    ex <- unlist(str_split(extent, ",")) |> as.numeric()
+    if(length(ex) != 4) stop("'subset.region' not properly defined in config file as a lon-lat extent string. See ?smru_qc for details")
+  }
 
   ## clean step
   if("semi_major_axis" %in% names(smru$diag)) {
@@ -93,8 +101,11 @@ smru_prep_loc <- function(smru,
      ungroup()
   }
 
+  ## drop unused IDs & locations beyond specified longlat extent
   diag <- diag |>
-    filter(!ref %in% dropIDs)
+    filter(!ref %in% dropIDs) |>
+    filter(lon >= ex[1] & lon <= ex[2],
+           lat >= ex[3] & lat <= ex[4])
 
   ## truncate & convert to sf geometry steps
   if("device_id" %in% names(meta)) {
@@ -108,13 +119,13 @@ smru_prep_loc <- function(smru,
     }
 
 
-    if(QCmode == "nrt") {
+    if(QCmode == "nrt" | QCmode == "test") {
       ## left- and right-truncate tracks
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "device_id")) |>
         filter(date >= ctd_start & date <= ctd_end) |>
         dplyr::select(-ctd_start, -ctd_end)
-    } else {
+    } else if(QCmode == "dm") {
       if("dive_start" %in% names(meta)) {
       ## only left-truncate tracks with date of first dive
       diag <- diag |>
@@ -170,13 +181,13 @@ smru_prep_loc <- function(smru,
       )) |>
       mutate(dive_end = as.POSIXct(dive_end, origin = "1970-01-01", tz = "UTC"))
 
-    if(QCmode == "nrt") {
+    if(QCmode == "nrt" | QCmode == "test") {
       ## left- and right-truncate tracks
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "DeploymentID")) |>
         filter(date >= ctd_start & date <= ctd_end) |>
         dplyr::select(-ctd_start, -ctd_end, -dive_end)
-    } else {
+    } else if(QCmode == "dm") {
       ## only left-truncate tracks with date of first dive
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "DeploymentID")) |>

@@ -51,6 +51,10 @@
 ##'   * `dropIDs` the SMRU ref ID's that are to be ignored during the QC process.
 ##'   SMRU ref ID's must be supplied as a .CSV file `dropIDs.csv` with a single
 ##'   variable named `ref`. Can be NULL.
+##'   * `QCextent` a comma-separated string giving the longitude & latitude
+##'   extent (e.g., "-180,180,-90,-0") beyond which locations are removed. This
+##'   is useful for trimming out locations at SMRU, St Andrews where tags are
+##'   initially turned on for testing prior to shipping. Can be NULL.
 ##'   * `p2mdbtools` (optional) provides the path to the mdbtools library if it
 ##'   is installed in a non-standard location (e.g., on Macs when installed via
 ##'   Homebrew).
@@ -135,6 +139,7 @@ smru_qc <- function(wd,
 
   ## Set parameters from JSON NA to R NULL
   if(is.na(conf$harvest$dropIDs)) conf$harvest$dropIDs <- NULL
+  if(is.na(conf$harvest$QCextent)) conf$harvest$QCextent <- NULL
 
   if(any(!"p2mdbtools" %in% names(conf$harvest),
      is.na(conf$harvest$p2mdbtools))) {
@@ -208,9 +213,9 @@ smru_qc <- function(wd,
     meta,
     dropIDs = dropIDs,
     crs = conf$model$proj,
+    extent = conf$harvest$QCextent,
     QCmode = conf$model$QCmode
   )
-
 
   message("Fitting QC SSM - first pass...")
 
@@ -244,7 +249,6 @@ smru_qc <- function(wd,
 
   if(conf$model$reroute) message("QC'd locations estimated & rerouted...")
   else message("QC'd locations estimated...")
-
 
 ## Mark SSM track segments for removal in data gaps > min.gap hours long
 ##  predicted & rerouted locations are 'marked' with a `keep` column

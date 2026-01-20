@@ -214,7 +214,7 @@ diagnostics <-
     )
 
     if(tag_mfr == "smru") {
-      if(QCmode == "nrt") {
+      if(QCmode == "nrt" | QCmode == "test") {
         p.lat <- suppressWarnings(p.lat + geom_rect(
           data = meta |> filter(!is.na(start_date),
                                 !is.na(ctd_start)),
@@ -344,7 +344,7 @@ diagnostics <-
         ))
 
     if(tag_mfr == "smru") {
-      if(QCmode == "nrt") {
+      if(QCmode == "nrt" | QCmode == "test") {
         p.lon <- suppressWarnings(p.lon + geom_rect(
           data = meta |> filter(!is.na(start_date),
                                 !is.na(ctd_start)),

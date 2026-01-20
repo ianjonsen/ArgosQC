@@ -58,6 +58,10 @@ seconds for slower internet connections.
 \item \code{dropIDs} the SMRU ref ID's that are to be ignored during the QC process.
 SMRU ref ID's must be supplied as a .CSV file \code{dropIDs.csv} with a single
 variable named \code{ref}. Can be NULL.
+\item \code{QCextent} a comma-separated string giving the longitude & latitude
+extent (e.g., "-180,180,-90,-0") beyond which locations are removed. This
+is useful for trimming out locations at SMRU, St Andrews where tags are
+initially turned on for testing prior to shipping. Can be NULL.
 \item \code{p2mdbtools} (optional) provides the path to the mdbtools library if it
 is installed in a non-standard location (e.g., on Macs when installed via
 Homebrew).
