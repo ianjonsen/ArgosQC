@@ -170,6 +170,7 @@ wc_prep_loc <- function(wc,
   ##  spurious locations immediately after the first location, which is often
   ##  a user-measured GPS location. Assume dist >= 1000km + spd>=500km/h imply
   ##  spurious locations
+
   locs <- locs |>
     group_by(DeploymentID) |>
     mutate(dist = track_distance_to(lon, lat, first(lon), first(lat))/1000) |>

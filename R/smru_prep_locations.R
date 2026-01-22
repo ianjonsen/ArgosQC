@@ -40,7 +40,10 @@ smru_prep_loc <- function(smru,
   if(!is.null(extent)) {
     ex <- unlist(str_split(extent, ",")) |> as.numeric()
     if(length(ex) != 4) stop("'subset.region' not properly defined in config file as a lon-lat extent string. See ?smru_qc for details")
-  }
+
+  } else if (is.null(extent)) {
+      ex <- c(-180,180,-90,90)
+    }
 
   ## clean step
   if("semi_major_axis" %in% names(smru$diag)) {

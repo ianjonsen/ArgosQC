@@ -135,43 +135,53 @@ wc_pull_data <- function(path2data,
   datafiles <- datafiles[-grep("\\[", datafiles)]
 
   wc <- lapply(fs, function(x) {
+    ## get DeploymentID for each x
+    xx <- unlist(str_split(x, "\\/"))
+    xx <- xx[grep("\\_", xx)] |> unique()
+    if(length(xx) > 1) {
+      xx <- xx[2]
+    }
+
+    xx <- str_split(xx, "\\_", simplify = TRUE)[,1]
+
     out <- lapply(1:length(x), function(i) {
-      xx <- read_csv(x[[i]],
+      xxx <- read_csv(x[[i]],
                      show_col_types = FALSE,
                      name_repair = "unique_quiet") |>
         suppressMessages()
 
       ## detect & account for any leading blank rows in .csv files
-      nn <- rowSums(is.na(xx)) == ncol(xx)
+      nn <- rowSums(is.na(xxx)) == ncol(xxx)
       ns <- sum(nn)
       if(ns > 0 & 1 %in% which(nn)) {
-        xx <- read_csv(x[[i]],
+        xxx <- read_csv(x[[i]],
                        show_col_types = FALSE,
                        name_repair = "unique_quiet",
                        skip = ns+1) |>
           suppressMessages()
       }
+      # print(nrow(xx))
+      # if(nrow(xx) > 0) {
+      #   ## parse filename strings to isolate UUID & add to datafile as DeploymentID
+      #   idx <- grep("\\_", str_split(x[[i]], "\\/", simplify = TRUE))
+      #   foo <- unique(str_split(x[[i]], "\\/", simplify = TRUE)[, idx])
+      #
+      #   if(length(foo > 1)) {
+      #     foo <- foo[2]
+      #   }
+      #
+      #   ## removes _suffix (Tag serial number) if present
+      #   tmp <- str_split(foo, "\\_", simplify = TRUE)[,1]
 
-      if(nrow(xx) > 0) {
-        ## parse filename strings to isolate UUID & add to datafile as DeploymentID
-        idx <- grep("\\_", str_split(x[[i]], "\\/", simplify = TRUE))
-        foo <- unique(str_split(x[[i]], "\\/", simplify = TRUE)[, idx])
-
-        if(length(foo > 1)) {
-          foo <- foo[2]
-        }
-
-        ## removes _suffix (Tag serial number) if present
-        tmp <- str_split(foo, "\\_", simplify = TRUE)[,1]
-
-        xx |>
-          mutate(DeploymentID = tmp) |>
+        xxx |>
+          mutate(DeploymentID = xx) |>
           select(DeploymentID, everything())
 
-      } else {
-        NULL
-      }
+      # } else {
+      #   NULL
+      # }
     })
+
     nms <- str_split(str_split(x, "\\.", simplify = TRUE)[,1], "-(?=[^-]+$)", simplify = TRUE)[,2]
     names(out) <- nms
     out
