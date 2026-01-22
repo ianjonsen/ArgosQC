@@ -157,9 +157,9 @@ wc_pull_data <- function(path2data,
         idx <- grep("\\_", str_split(x[[i]], "\\/", simplify = TRUE))
         foo <- unique(str_split(x[[i]], "\\/", simplify = TRUE)[, idx])
 
-        # if(length(foo > 1)) {
-        #   foo <- foo[2]
-        # }
+        if(length(foo > 1)) {
+          foo <- foo[2]
+        }
 
         ## removes _suffix (Tag serial number) if present
         tmp <- str_split(foo, "\\_", simplify = TRUE)[,1]
@@ -457,7 +457,6 @@ wc_pull_data <- function(path2data,
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
     suppressWarnings()
-
 
   ## Combine into single wc list
   wc <- list(Locations,
