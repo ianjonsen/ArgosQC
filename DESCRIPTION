@@ -1,8 +1,8 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.9-13
-Date: 2026-01-22
+Version: 0.9-13.1
+Date: 2026-01-30
 Author: Ian Jonsen [aut, cre, cph]           
 Maintainer: Ian Jonsen <jonsen@stochastic-qc.org>
 Description: An automated Argos location quality control process for Argos location data from satellite tags. Functions automatically download and collate data from one of several potential remote source: a user-supplied URL, a user-supplied Google Drive link, a user-supplied Dropbox link, the SMRU server, or the Wildlife Computers Portal API. The package matches deployment data with user-supplied deployment metadata; projects location data from lon,lat to a user-supplied projection or a default projection; fits user-specified SSM's in 2 passes to estimate most plausible locations; collates results by species & deployment program; generates diagnostic plots & maps; appends predicted locations at tag-measured event times to the tag manufacturer activity files such as CTD profiles, dive records, haulout records, and the Argos and (when present) GPS location files; saves activity files as .csv in one of several possible schema (IMOS ATF, ATN, User-defined); pushes QC'd files to a user-specified server or saves to a local archive (zipfile).
@@ -13,35 +13,35 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
 Imports: 
-    furrr,
-    future,
-    dplyr,
-    tidyr,
-    lubridate,
+    furrr (>= 0.3.1),
+    future (>= 1.69.0),
+    dplyr (>= 1.1.4),
+    tidyr (>= 1.3.2),
+    lubridate (>= 1.9.4),
     assertthat,
-    purrr,
-    readr,
-    stringr,
-    sf,
+    purrr (>= 1.2.1),
+    readr (>= 2.1.6),
+    stringr (>= 1.6.0),
+    sf (>= 1.0-24),
     kableExtra,
-    ggplot2,
-    rnaturalearth,
+    ggplot2 (>= 4.0.1),
+    rnaturalearth (>= 1.2.0),
     snakecase,
-    aniMotum,
-    XML,
-    httr2,
-    openssl,
-    rvest,
-    tibble,
-    traipse,
-    usethis,
-    vctrs,
-    jsonlite,
+    aniMotum (>= 1.2-15),
+    XML (>= 3.99-0.20),
+    httr2 (>= 1.2.2),
+    openssl (>= 2.3.4),
+    rvest (>= 1.0.5),
+    tibble (>= 3.3.1),
+    traipse (>= 0.3.0),
+    usethis (>= 3.2.1),
+    vctrs (>= 0.7.1),
+    jsonlite (>= 2.0.0),
     testthat,
     rnaturalearthdata
 Depends: 
-    R (>= 4.1.0)
-SystemRequirements: GDAL (>= 2.4.2), GEOS (>= 3.7.0), PROJ (>= 5.2.0), pandoc (>=2.7.3)
+    R (>= 4.5.2)
+SystemRequirements: GDAL (>= 3.8.5), GEOS (>= 3.13.0), PROJ (>= 9.5.1), pandoc (>=3.8.3)
 Roxygen: list(markdown = TRUE)
 Remotes: 
   jmlondon/pathroutr,
