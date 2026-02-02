@@ -44,13 +44,6 @@ smru_prep_loc <- function(smru,
   #     ex <- c(-180,180,-90,90)
   #   }
 
-  ## drop locations within 15km of SMRU HQ
-  HQ.ll <- data.frame(lon = -2.7967, lat = 56.3398) |>
-    sf::st_as_sf(coords = c("lon","lat"), crs = 4326)
-
-  HQ.buf <- HQ.ll |>
-    sf::st_buffer(dist = 15000)
-
 
   ## clean step
   if("semi_major_axis" %in% names(smru$diag)) {
@@ -114,23 +107,6 @@ smru_prep_loc <- function(smru,
   ## drop unused IDs
   diag <- diag |>
     filter(!ref %in% dropIDs)
-
-
-  ## If locations remain at SMRU HQ then remove all those within 15km of HQ
-  tmp <- diag |>
-    st_as_sf(coords = c("lon","lat"), crs = 4326)
-  tmp.f <- unique(tmp$ref)
-  tmp.lst <- split(tmp, tmp$ref)
-  diag.lst <- split(diag, diag$ref)
-
-  ## remove by max date within 15km of HQ, in case any but the last loc are
-  ##  beyond the 15 km circle due to large Argos errors
-  diag <- lapply(1:length(tmp.lst), function(i) {
-    win <- st_within(tmp.lst[[i]], HQ.buf) |> as.matrix() |> as.vector()
-    last.date <- max(tmp.lst[[i]]$date[win == TRUE])
-    diag.lst[[i]][tmp.lst[[i]]$date > last.date,]
-  }) |>
-    bind_rows()
 
 
   ## truncate & convert to sf geometry steps
@@ -310,6 +286,7 @@ smru_prep_loc <- function(smru,
 
   diag_sf <- diag_sf |>
     dplyr::select(ref, cid, d_sf)
+
 
   return(diag_sf)
 

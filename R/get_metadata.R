@@ -211,6 +211,7 @@ get_metadata <- function(source = "smru",
     if ("dive" %in% names(tag_data)) {
       dive_se <- tag_data$dive |>
         mutate(ref = as.character(ref)) |>
+#        filter(!is.na(lon), !is.na(lat)) |> ## should drop any dives associated w tag testing
         select(ref, de_date, max_dep) |>
         group_by(ref) |>
         summarise(
@@ -223,6 +224,7 @@ get_metadata <- function(source = "smru",
     if ("ctd" %in% names(tag_data)) {
       ctd_se <- tag_data$ctd |>
         mutate(ref = as.character(ref)) |>
+#        filter(!is.na(lon), !is.na(lat)) |> ## should drop any profiles associated w tag testing
         select(ref, end_date) |>
         group_by(ref) |>
         summarise(
@@ -277,7 +279,6 @@ get_metadata <- function(source = "smru",
                      )
                    })
   }
-
 
   return(meta)
 
