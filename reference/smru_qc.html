@@ -21,7 +21,7 @@ within the wrapper fn."><meta property="og:image" content="https://ianjonsen.git
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9-13.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9-14</span>
       </span>
     </div>
 
@@ -134,10 +134,6 @@ seconds for slower internet connections.</p></li>
 <li><p><code>dropIDs</code> the SMRU ref ID's that are to be ignored during the QC process.
 SMRU ref ID's must be supplied as a .CSV file <code>dropIDs.csv</code> with a single
 variable named <code>ref</code>. Can be NULL.</p></li>
-<li><p><code>QCextent</code> a comma-separated string giving the longitude &amp; latitude
-extent (e.g., "-180,180,-90,-0") beyond which locations are removed. This
-is useful for trimming out locations at SMRU, St Andrews where tags are
-initially turned on for testing prior to shipping. Can be NULL.</p></li>
 <li><p><code>p2mdbtools</code> (optional) provides the path to the mdbtools library if it
 is installed in a non-standard location (e.g., on Macs when installed via
 Homebrew).</p></li>

@@ -20,7 +20,7 @@ diag files by species."><meta property="og:image" content="https://ianjonsen.git
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9-13.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9-14</span>
       </span>
     </div>
 
@@ -79,14 +79,7 @@ diag files by species.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">smru_prep_loc</span><span class="op">(</span></span>
-<span>  <span class="va">smru</span>,</span>
-<span>  <span class="va">meta</span>,</span>
-<span>  dropIDs <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  crs <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  extent <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  QCmode <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">smru_prep_loc</span><span class="op">(</span><span class="va">smru</span>, <span class="va">meta</span>, dropIDs <span class="op">=</span> <span class="cn">NULL</span>, crs <span class="op">=</span> <span class="cn">NULL</span>, QCmode <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -109,10 +102,6 @@ diag files by species.</p>
 <dd><p>a proj4string to re-project diag locations from longlat. Default is NULL
 which results in one of 4 possible projections applied automatically, based on
 the centroid of the tracks. See <code>overview</code> vignette for details.</p></dd>
-
-
-<dt id="arg-extent">extent<a class="anchor" aria-label="anchor" href="#arg-extent"></a></dt>
-<dd><p>geographic extent of locations, in longlat, to consider in QC</p></dd>
 
 
 <dt id="arg-qcmode">QCmode<a class="anchor" aria-label="anchor" href="#arg-qcmode"></a></dt>
