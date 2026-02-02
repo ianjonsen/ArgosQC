@@ -70,9 +70,9 @@ wc_build_meta_generic <- function(ids,
 
 
   ## If any NA's in tag_meta$deploy_date then calculate Embark date, lon, lat & join to metadata
-  if (any(is.na(tag_meta$deploy_date))) {
+  if (any(is.na(tag_meta$deploy_date), is.na(tag_meta$deploy_lon), is.na(tag_meta$deploy_lat))) {
     ids. <- tag_meta |>
-      filter(is.na(deploy_date)) |>
+      filter((is.na(deploy_date) | is.na(deploy_lon)) & DeploymentID %in% unique(tag_data$Locations$DeploymentID)) |>
       pull(DeploymentID)
 
     ## First check that there is no huge time gap between 1st several & subsequent locations
@@ -84,7 +84,7 @@ wc_build_meta_generic <- function(ids,
     first.locs <- split(first.locs, first.locs$DeploymentID)
     st.idx <- sapply(first.locs, function(x) {
       x <- slice(x, 1:20)
-      dt <- difftime(x$Date, lag(x$Date), units = "hours") |>
+      dt <- difftime(x$Date, lag(x$Date), units = "hours")[-1] |>
         as.numeric()
       if (any(dt > 12))
         which.max(dt) + 1
@@ -107,9 +107,9 @@ wc_build_meta_generic <- function(ids,
           DeploymentID = DeploymentID[1],
           embark_date = median(Date),
           embark_longitude = weighted.mean(Longitude, w = 1 /
-                                             `Error radius`),
+                                             ifelse(is.na(`Error radius`), 1, `Error radius`)),
           embark_latitude = weighted.mean(Latitude, w = 1 /
-                                            `Error radius`)
+                                            ifelse(is.na(`Error radius`), 1, `Error radius`))
         )
       )
     }) |>
@@ -162,7 +162,6 @@ wc_build_meta_generic <- function(ids,
            mass,
            mass_measurement,
            mass_unit)
-
 
   return(tag_meta)
 

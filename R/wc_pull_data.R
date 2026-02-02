@@ -212,6 +212,14 @@ wc_pull_data <- function(path2data,
     "Comment"
   )
 
+  ## drop locations within 15km of WC HQ
+  HQ.ll <- data.frame(lon = -122.1344, lat = 47.6777) |>
+    st_as_sf(coords = c("lon","lat"), crs = 4326)
+
+  HQ.buf <- HQ.ll |>
+    st_buffer(dist = 15000)
+
+
   Locations <- lapply(wc, function(x) {
     if(nrow(x$Locations) > 0) {
       xx <- x$Locations |>
@@ -235,7 +243,45 @@ wc_pull_data <- function(path2data,
     arrange(Date, by_group = DeploymentID) |>
     suppressMessages()
 
+  ## If locations remain at WC HQ then remove all those within 15km of HQ
+  tmp <- Locations |>
+    st_as_sf(coords = c("Longitude","Latitude"), crs = 4326)
+  tmp.f <- unique(tmp$DeployID)
+  tmp.lst <- split(tmp, tmp$DeployID)
+  locs.lst <- split(Locations, Locations$DeployID)
 
+  ## remove by max date within 15km of HQ, in case any but the last loc are
+  ##  beyond the 15 km circle due to large Argos errors
+  Locations1 <- lapply(1:length(tmp.lst), function(i) {
+    win <- st_within(tmp.lst[[i]], HQ.buf) |> as.matrix() |> as.vector()
+    if(sum(win) > 0) {
+      last.date <- max(tmp.lst[[i]]$Date[win == TRUE], na.rm = TRUE)
+      locs.lst[[i]][tmp.lst[[i]]$Date > last.date,]
+    } else {
+      locs.lst[[i]]
+    }
+  }) |>
+    bind_rows()
+
+  ## Stop the workflow here if no Locations occur beyond 15km radius of HQ
+  if(nrow(Locations1) == 0) stop("All downloaded Locations are at Wildlife Computers HQ, no data to QC...", call. = FALSE)
+
+  tmp <- unique(Locations$DeploymentID)[!unique(Locations$DeploymentID) %in% unique(Locations1$DeploymentID)]
+  if(length(tmp) > 1) {
+    message(paste0(length(tmp),
+                   " tags were removed from the QC workflow because no locations occurred beyond Wildlife Computers HQ:\n ",
+                   tmp))
+
+  } else if (length(tmp == 1)) {
+    message(paste0(length(tmp),
+                   " tag was removed from the QC workflow because no locations occurred beyond Wildlife Computers HQ:\n ",
+                   tmp))
+
+  }
+
+  Locations <- Locations1
+
+  first.dates <- Locations |> group_by(DeploymentID) |> summarise(md = min(Date, na.rm = TRUE))
 
   ## FastGPS df
   FastGPS <- lapply(wc, function(x) {
@@ -277,6 +323,10 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), Date[1], md)) |>
+    filter(Date >= md) |>
+    select(-md) |>
     suppressMessages()
 
   ECDHistos_SCOUT_DSA <- lapply(wc, function(x) {
@@ -299,6 +349,11 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(End = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), Start[1], md)) |>
+    mutate(md = ifelse(is.na(md), End[1], md)) |>
+    filter(Start >= md, End >= md) |>
+    select(-md) |>
     suppressMessages()
 
 
@@ -318,7 +373,9 @@ wc_pull_data <- function(path2data,
     list_drop_empty() |>
     suppressWarnings()
 
-  if(length(Histos) > 0) Histos <- Histos |>
+
+  if(length(Histos) > 0) {
+    Histos <- Histos |>
     bind_rows() |>
     mutate(
       day = str_split(Date, " ", simplify = TRUE)[, 2],
@@ -328,7 +385,12 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), Date[1], md)) |>
+    filter(Date >= md) |>
+    select(-md) |>
     suppressWarnings()
+  }
 
   ## MixLayer df's
   MixLayer <- lapply(wc, function(x) {
@@ -339,7 +401,8 @@ wc_pull_data <- function(path2data,
   }) |>
     list_drop_empty()
 
-  if(length(MixLayer) > 0) MixLayer <- MixLayer |>
+  if(length(MixLayer) > 0) {
+    MixLayer <- MixLayer |>
     bind_rows() |>
     mutate(
       day = str_split(Date, " ", simplify = TRUE)[, 2],
@@ -349,7 +412,12 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), Date[1], md)) |>
+    filter(Date >= md) |>
+    select(-md) |>
     suppressMessages()
+  }
 
 
   ## PDTs df's
@@ -371,6 +439,10 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), Date[1], md)) |>
+    filter(Date >= md) |>
+    select(-md) |>
     suppressMessages()
 
 
@@ -400,6 +472,12 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(SegmentStart = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), DiveStart[1], md)) |>
+    mutate(md = ifelse(is.na(md), SegmentStart[1], md)) |>
+    filter(DiveStart >= md,
+           SegmentStart >= md) |>
+    select(-md) |>
     suppressWarnings()
 
 
@@ -422,6 +500,10 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), Date[1], md)) |>
+    filter(Date >= md) |>
+    select(-md) |>
     suppressWarnings()
 
 
@@ -444,6 +526,10 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(EndMax = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), EndMax[1], md)) |>
+    filter(EndMax >= md) |>
+    select(-md) |>
     suppressWarnings()
 
 
@@ -466,6 +552,10 @@ wc_pull_data <- function(path2data,
            time = ifelse(time == "", NA, time)) |>
     mutate(Date = dmy_hms(paste(day, time), tz = "UTC")) |>
     select(-day, -time) |>
+    left_join(first.dates, by = "DeploymentID") |>
+    mutate(md = ifelse(is.na(md), Date[1], md)) |>
+    filter(Date >= md) |>
+    select(-md) |>
     suppressWarnings()
 
   ## Combine into single wc list
