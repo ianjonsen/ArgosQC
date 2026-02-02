@@ -11,7 +11,6 @@
 ##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
 ##' which results in one of 4 possible projections applied automatically, based on
 ##' the centroid of the tracks. See `overview` vignette for details.
-##' @param extent geographic extent of locations, in longlat, to consider in QC
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
 ##' in latter case diag is not right-truncated & date of first dive is used
 ##' for the track start date
@@ -30,20 +29,28 @@ smru_prep_loc <- function(smru,
                           meta,
                           dropIDs = NULL,
                           crs = NULL,
-                          extent = NULL,
+#                          extent = NULL,
                           QCmode = NULL) {
 
   assert_that(is.list(smru))
   if(is.null(QCmode)) stop("QCmode not specified in config file")
 
-  ## turn extent string into a numeric vector
-  if(!is.null(extent)) {
-    ex <- unlist(str_split(extent, ",")) |> as.numeric()
-    if(length(ex) != 4) stop("'subset.region' not properly defined in config file as a lon-lat extent string. See ?smru_qc for details")
+  # ## turn extent string into a numeric vector
+  # if(!is.null(extent)) {
+  #   ex <- unlist(str_split(extent, ",")) |> as.numeric()
+  #   if(length(ex) != 4) stop("'subset.region' not properly defined in config file as a lon-lat extent string. See ?smru_qc for details")
+  #
+  # } else if (is.null(extent)) {
+  #     ex <- c(-180,180,-90,90)
+  #   }
 
-  } else if (is.null(extent)) {
-      ex <- c(-180,180,-90,90)
-    }
+  ## drop locations within 15km of SMRU HQ
+  HQ.ll <- data.frame(lon = -2.7967, lat = 56.3398) |>
+    sf::st_as_sf(coords = c("lon","lat"), crs = 4326)
+
+  HQ.buf <- HQ.ll |>
+    sf::st_buffer(dist = 15000)
+
 
   ## clean step
   if("semi_major_axis" %in% names(smru$diag)) {
@@ -104,11 +111,27 @@ smru_prep_loc <- function(smru,
      ungroup()
   }
 
-  ## drop unused IDs & locations beyond specified longlat extent
+  ## drop unused IDs
   diag <- diag |>
-    filter(!ref %in% dropIDs) |>
-    filter(lon >= ex[1] & lon <= ex[2],
-           lat >= ex[3] & lat <= ex[4])
+    filter(!ref %in% dropIDs)
+
+
+  ## If locations remain at SMRU HQ then remove all those within 15km of HQ
+  tmp <- diag |>
+    st_as_sf(coords = c("lon","lat"), crs = 4326)
+  tmp.f <- unique(tmp$ref)
+  tmp.lst <- split(tmp, tmp$ref)
+  diag.lst <- split(diag, diag$ref)
+
+  ## remove by max date within 15km of HQ, in case any but the last loc are
+  ##  beyond the 15 km circle due to large Argos errors
+  diag <- lapply(1:length(tmp.lst), function(i) {
+    win <- st_within(tmp.lst[[i]], HQ.buf) |> as.matrix() |> as.vector()
+    last.date <- max(tmp.lst[[i]]$date[win == TRUE])
+    diag.lst[[i]][tmp.lst[[i]]$date > last.date,]
+  }) |>
+    bind_rows()
+
 
   ## truncate & convert to sf geometry steps
   if("device_id" %in% names(meta)) {
@@ -128,6 +151,7 @@ smru_prep_loc <- function(smru,
         left_join(deploy_meta, by = c("ref" = "device_id")) |>
         filter(date >= ctd_start & date <= ctd_end) |>
         dplyr::select(-ctd_start, -ctd_end)
+
     } else if(QCmode == "dm") {
       if("dive_start" %in% names(meta)) {
       ## only left-truncate tracks with date of first dive
@@ -190,6 +214,7 @@ smru_prep_loc <- function(smru,
         left_join(deploy_meta, by = c("ref" = "DeploymentID")) |>
         filter(date >= ctd_start & date <= ctd_end) |>
         dplyr::select(-ctd_start, -ctd_end, -dive_end)
+
     } else if(QCmode == "dm") {
       ## only left-truncate tracks with date of first dive
       diag <- diag |>
@@ -202,6 +227,8 @@ smru_prep_loc <- function(smru,
     stop("Unrecognized ID variable, please check source of metadata")
 
   }
+
+
 
 ## Define reprojection functions based on whether crs is NULL or specified
   if (is.null(crs)) {
