@@ -185,7 +185,6 @@ smru_qc <- function(wd,
                           path2mdb = conf$setup$data.dir,
                           p2mdbtools = conf$harvest$p2mdbtools)
 
-
   if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
   else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from SMRU Portal...")
   ## Download or load metadata

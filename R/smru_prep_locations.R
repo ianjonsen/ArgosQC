@@ -108,7 +108,6 @@ smru_prep_loc <- function(smru,
   diag <- diag |>
     filter(!ref %in% dropIDs)
 
-
   ## truncate & convert to sf geometry steps
   if("device_id" %in% names(meta)) {
     if("dive_start" %in% names(meta)) {

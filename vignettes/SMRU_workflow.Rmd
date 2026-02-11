@@ -17,10 +17,34 @@ knitr::opts_chunk$set(
 )
 ```
 
-## SMRU SRDL-CTD tag QC workflow
+## SMRU SRDL tag QC workflow
 
 The first step to initiate any `ArgosQC` workflow is to construct a `JSON`
 config file (see [SMRU_config_file](SMRU_config_file.html)).
+
+The SMRU SRDL tag QC workflow has a number of data/metadata processing, model fitting, 
+data file annotation and output steps. Each of these steps is encapsulated in
+an ArgosQC function: 
+
+Table 1. SMRU SRDL tag QC workflow functions listed in order of operation. For 
+standard near real-time (NRT) QC workflows, these functions are implemented via the
+wrapper function, `smru_qc()`. 
+
+
+|   SMRU QC function    |   Description                   |
+|:----------------:|:------------------------------------:|
+| `download_data`     |   Downloads tag data .mdb file from SMRU server & writes to the specified `data.dir`.  See `?download_data` for an example |
+| `smru_pull_tables`  | Extracts tag data files from the downloaded .mdb file to a named list object in the R workspace, See `?smru_pull_tables` for an example. |
+| `get_metadata`  | Either loads deployment metadata from a CSV file specified in the `config` file `setup` block, or builds the metadata from the tag manufacturer's data portal in combination with species and deployment site attributes provided in the `config` file `meta` block. See `?get_metadata` for an example.|
+| `smru_prep_loc` | Prepares location data for SSM fitting by restructuring the SMRU diag & gps (if present) tag data files, truncating start and end dates (for NRT QC) based on dates of first & last CTD profile, projecting locations from lon-lat to the `config` file specified proj4string. See `?smru_prep_loc` for an example.|
+| `multi_filter`  | Applies a 1st pass of the SSM model using parameters specified in the `config` file `model` block. SSM's are fit in parallel across n available processors. See `?multi_filter` for an example.|
+| `redo_multi_filter` | Applies a 2nd pass to refit the SSM to any tag location datasets that failed to converge on the first pass. Uses automatically revised parameters to help ensure convergence. Reroutes any locations off of land, if `model:reroute:true` in `config` file. See `?redo_multi_filter` for an example.|
+| `ssm_mark_gaps` | 
+
+If a more complicated NRT workflow is required, e.g., with custom processing in 
+between the standard workflow steps, the functions can be called separately from
+an R script. This is also the recommended approach for all delayed-mode 
+(supervised) QC workflows.
 
 In this example, the main QC outputs were written to .CSV files in the specified 
 output directory, `output.dir`. Each

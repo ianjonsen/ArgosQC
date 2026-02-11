@@ -227,20 +227,21 @@ smru_write_csv <- function(smru_ssm,
   if (program == "imos") {
     lapply(1:length(out), function(i) {
       if (nms[i] != "metadata") {
-        if(nms[i] != "gps") { ## required as AODN currently will not accept gps data tables
+        # comment out below to turn on GPS table submission to AODN as new pipeline accepts GPS files - fir 2026 deployments
+ #       if(nms[i] != "gps") { ## required as AODN currently will not accept gps data tables
         out[[i]] |>
           group_by(cid) |>
           group_split() |>
           walk(~ suppressMessages(write_csv(
-            .x, file = paste0(file.path(path, nms[i]), "_", .x$cid[1], suffix, ".csv")
+            .x, file = paste0(path, "/", "IMOS_ATF-SATTAG_Location-QC_", nms[i], "_", .x$cid[1], suffix, ".csv")
           )))
-        }
+ #       }
       } else {
         out[[i]] |>
           group_by(sattag_program) |>
           group_split() |>
           walk(~ suppressMessages(write_csv(
-            .x, file = paste0(file.path(path, nms[i]), "_", .x$sattag_program[1], suffix, ".csv")
+            .x, file = paste0(path, "/", "IMOS_ATF-SATTAG_Location-QC_", nms[i], "_", .x$sattag_program[1], suffix, ".csv")
           )))
       }
     })
@@ -637,6 +638,13 @@ smru_write_diag <- function(smru_ssm,
       }
     )
   )
+  if(!tests[13]) {
+    ## fixes case where freq may = 0, which violates AODN data expectations
+    ##  IS FREQ = 0 acceptable - ask Clint?
+    diag$freq[diag$freq <= 0] <- 1
+    tests[13] <- TRUE
+  }
+
 
   if(program != "atn") { # imos & any other program
     diag <- diag |>
@@ -798,6 +806,8 @@ smru_write_gps <- function(smru_ssm,
                   is.character(ref),
                   is.integer(ptt),
                   inherits(d_date, "POSIXct"),
+                  inherits(d_date_tag, "POSIXct"),
+                  inherits(submitted, "POSIXct"),
                   all(is.double(lat), ((lat >= -90 &
                                           lat <= 90) |
                                          is.na(lat))),

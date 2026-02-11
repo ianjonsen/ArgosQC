@@ -10,7 +10,7 @@
 ##' homebrew-installed mdbtools @ /opt/homebrew/Cellar/mdbtools/1.0.0/bin/
 ##' @param verbose turn on/off progress indicator
 ##'
-##' @importFrom dplyr select mutate bind_rows
+##' @importFrom dplyr select mutate bind_rows case_when
 ##' @importFrom future plan
 ##' @importFrom furrr future_map
 ##' @importFrom purrr pmap
@@ -129,7 +129,12 @@ smru_pull_tables <- function(cids,
 
   if(any(names(smru) %in% "gps")) {
     smru$gps <- smru$gps |>
-      mutate(d_date = mdy_hms(d_date, tz = "UTC"))
+      mutate(d_date = mdy_hms(d_date, tz = "UTC")) |>
+      mutate(submitted = mdy_hms(submitted, tz = "UTC")) |>
+      mutate(d_date_tag = case_when(
+        is.na(d_date_tag) ~ NA,
+        !is.na(d_date_tag) ~ mdy_hms(d_date_tag, tz = "UTC")
+      ))
 
     ## If locations remain at SMRU HQ then remove all those within 15km of HQ
     tmp <- smru$gps |>
