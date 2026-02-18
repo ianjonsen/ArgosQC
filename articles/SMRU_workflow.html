@@ -37,7 +37,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">ArgosQC</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9-143</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.9-144</span>
       </span>
     </div>
 
@@ -112,11 +112,13 @@ of these steps is encapsulated in an ArgosQC function:</p>
 <p>Table 1. SMRU SRDL tag QC workflow functions listed in order of
 operation. For standard near real-time (NRT) QC workflows, these
 functions are implemented via the wrapper function,
-<code><a href="../reference/smru_qc.html">smru_qc()</a></code>.</p>
+<code><a href="../reference/smru_qc.html">smru_qc()</a></code>. For examples of how to implement the individual
+functions refer to the R help pages, e.g., type
+<code><a href="../reference/download_data.html">?download_data</a></code> in the R console.</p>
 <table class="table">
 <colgroup>
-<col width="32%">
-<col width="67%">
+<col width="26%">
+<col width="73%">
 </colgroup>
 <thead><tr class="header">
 <th align="center">SMRU QC function</th>
@@ -126,8 +128,7 @@ functions are implemented via the wrapper function,
 <tr class="odd">
 <td align="center"><code>download_data</code></td>
 <td align="center">Downloads tag data .mdb file from SMRU server &amp;
-writes to the specified <code>data.dir</code>. See
-<code><a href="../reference/download_data.html">?download_data</a></code> for an example</td>
+writes to the specified <code>data.dir</code>.</td>
 </tr>
 <tr class="even">
 <td align="center"><code>smru_pull_tables</code></td>
@@ -141,8 +142,7 @@ to a named list object in the R workspace, See
 specified in the <code>config</code> file <code>setup</code> block, or
 builds the metadata from the tag manufacturer’s data portal in
 combination with species and deployment site attributes provided in the
-<code>config</code> file <code>meta</code> block. See
-<code><a href="../reference/get_metadata.html">?get_metadata</a></code> for an example.</td>
+<code>config</code> file <code>meta</code> block.</td>
 </tr>
 <tr class="even">
 <td align="center"><code>smru_prep_loc</code></td>
@@ -150,15 +150,13 @@ combination with species and deployment site attributes provided in the
 restructuring the SMRU diag &amp; gps (if present) tag data files,
 truncating start and end dates (for NRT QC) based on dates of first
 &amp; last CTD profile, projecting locations from lon-lat to the
-<code>config</code> file specified proj4string. See
-<code><a href="../reference/smru_prep_loc.html">?smru_prep_loc</a></code> for an example.</td>
+<code>config</code> file specified proj4string.</td>
 </tr>
 <tr class="odd">
 <td align="center"><code>multi_filter</code></td>
 <td align="center">Applies a 1st pass of the SSM model using parameters
 specified in the <code>config</code> file <code>model</code> block.
-SSM’s are fit in parallel across n available processors. See
-<code><a href="../reference/multi_filter.html">?multi_filter</a></code> for an example.</td>
+SSM’s are fit in parallel across n available processors.</td>
 </tr>
 <tr class="even">
 <td align="center"><code>redo_multi_filter</code></td>
@@ -166,19 +164,43 @@ SSM’s are fit in parallel across n available processors. See
 location datasets that failed to converge on the first pass. Uses
 automatically revised parameters to help ensure convergence. Reroutes
 any locations off of land, if <code>model:reroute:true</code> in
-<code>config</code> file. See <code><a href="../reference/redo_multi_filter.html">?redo_multi_filter</a></code> for an
-example.</td>
+<code>config</code> file.</td>
 </tr>
 <tr class="odd">
 <td align="center"><code>ssm_mark_gaps</code></td>
-<td align="center"></td>
+<td align="center">Identifies &amp; marks SSM predicted &amp; rerouted
+locations in track segments with data gaps of a specified minimum
+duration. Typically used in DM QC’s only.</td>
+</tr>
+<tr class="even">
+<td align="center"><code>smru_append_ssm</code></td>
+<td align="center">Appends SMRU tag data files with SSM-derived
+coordinates &amp; uncertainty (lon,lat,x,y, x.se, y.se) for each
+record.</td>
+</tr>
+<tr class="odd">
+<td align="center"><code>smru_clean_diag</code></td>
+<td align="center">Restructures the diag file for diagnostic plots</td>
+</tr>
+<tr class="even">
+<td align="center"><code>diagnostics</code></td>
+<td align="center">Generates a map of all QC’d tracks &amp; time-series
+plots of longitude &amp; latitude for quick assessment of SSM fit to the
+tag location datasets.</td>
+</tr>
+<tr class="odd">
+<td align="center"><code>smru_write_csv</code></td>
+<td align="center">Combines QC-annotated tag data files across
+individual tags, applies tests for expected variables types and ranges
+(IMOS only for now), writes data files to CSV as final QC outputs</td>
 </tr>
 </tbody>
 </table>
 <p>If a more complicated NRT workflow is required, e.g., with custom
 processing in between the standard workflow steps, the functions can be
-called separately from an R script. This is also the recommended
-approach for all delayed-mode (supervised) QC workflows.</p>
+called separately from an R script so that intermediate results can be
+checked. This is also the recommended approach for all delayed-mode
+(supervised) QC workflows.</p>
 <p>In this example, the main QC outputs were written to .CSV files in
 the specified output directory, <code>output.dir</code>. Each .CSV file
 includes the name of the SMRU data table, when present
