@@ -28,27 +28,26 @@ an ArgosQC function:
 
 Table 1. SMRU SRDL tag QC workflow functions listed in order of operation. For 
 standard near real-time (NRT) QC workflows, these functions are implemented via the
-wrapper function, `smru_qc()`. 
+wrapper function, `smru_qc()`. For examples of how to implement the individual functions refer to the R help pages, e.g., type `?download_data` in the R console.
 
 
 |   SMRU QC function    |   Description                   |
-|:----------------:|:------------------------------------:|
-| `download_data`     |   Downloads tag data .mdb file from SMRU server & writes to the specified `data.dir`.  See `?download_data` for an example |
+|:-------------:|:---------------------------------------:|
+| `download_data`     |   Downloads tag data .mdb file from SMRU server & writes to the specified `data.dir`. |
 | `smru_pull_tables`  | Extracts tag data files from the downloaded .mdb file to a named list object in the R workspace, See `?smru_pull_tables` for an example. |
-| `get_metadata`  | Either loads deployment metadata from a CSV file specified in the `config` file `setup` block, or builds the metadata from the tag manufacturer's data portal in combination with species and deployment site attributes provided in the `config` file `meta` block. See `?get_metadata` for an example.|
-| `smru_prep_loc` | Prepares location data for SSM fitting by restructuring the SMRU diag & gps (if present) tag data files, truncating start and end dates (for NRT QC) based on dates of first & last CTD profile, projecting locations from lon-lat to the `config` file specified proj4string. See `?smru_prep_loc` for an example.|
-| `multi_filter`  | Applies a 1st pass of the SSM model using parameters specified in the `config` file `model` block. SSM's are fit in parallel across n available processors. See `?multi_filter` for an example.|
-| `redo_multi_filter` | Applies a 2nd pass to refit the SSM to any tag location datasets that failed to converge on the first pass. Uses automatically revised parameters to help ensure convergence. Reroutes any locations off of land, if `model:reroute:true` in `config` file. See `?redo_multi_filter` for an example.|
-| `ssm_mark_gaps` | Identifies & marks SSM predicted & rerouted locations in track segments with data gaps of a specified minimum duration. Typically used in DM QC's only. See `?ssm-mark_gaps` for an example. |
-| `smru_append_ssm` | Appends SMRU tag data files with SSM-derived coordinates & uncertainty (lon,lat,x,y, x.se, y.se) for each record. See `?smru_append_ssm` for an example  |
+| `get_metadata`  | Either loads deployment metadata from a CSV file specified in the `config` file `setup` block, or builds the metadata from the tag manufacturer's data portal in combination with species and deployment site attributes provided in the `config` file `meta` block. |
+| `smru_prep_loc` | Prepares location data for SSM fitting by restructuring the SMRU diag & gps (if present) tag data files, truncating start and end dates (for NRT QC) based on dates of first & last CTD profile, projecting locations from lon-lat to the `config` file specified proj4string. |
+| `multi_filter`  | Applies a 1st pass of the SSM model using parameters specified in the `config` file `model` block. SSM's are fit in parallel across n available processors. |
+| `redo_multi_filter` | Applies a 2nd pass to refit the SSM to any tag location datasets that failed to converge on the first pass. Uses automatically revised parameters to help ensure convergence. Reroutes any locations off of land, if `model:reroute:true` in `config` file. |
+| `ssm_mark_gaps` | Identifies & marks SSM predicted & rerouted locations in track segments with data gaps of a specified minimum duration. Typically used in DM QC's only.  |
+| `smru_append_ssm` | Appends SMRU tag data files with SSM-derived coordinates & uncertainty (lon,lat,x,y, x.se, y.se) for each record.  |
 | `smru_clean_diag` | Restructures the diag file for diagnostic plots |
 | `diagnostics` | Generates a map of all QC'd tracks & time-series plots of longitude & latitude for quick assessment of SSM fit to the tag location datasets. |
 | `smru_write_csv`  | Combines QC-annotated tag data files across individual tags, applies tests for expected variables types and ranges (IMOS only for now), writes data files to CSV as final QC outputs |
 
 If a more complicated NRT workflow is required, e.g., with custom processing in 
 between the standard workflow steps, the functions can be called separately from
-an R script. This is also the recommended approach for all delayed-mode 
-(supervised) QC workflows.
+an R script so that intermediate results can be checked. This is also the recommended approach for all delayed-mode (supervised) QC workflows.
 
 In this example, the main QC outputs were written to .CSV files in the specified 
 output directory, `output.dir`. Each

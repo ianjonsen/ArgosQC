@@ -52,3 +52,17 @@ then only the Wildlife Computers tag deployment metadata is downloaded.}
 Satellite tracking data are accessed from the SMRU data server,
 or accessed from the Wildlife Computers Portal API via the \code{source} argument.
 }
+\examples{
+\dontrun{
+  download_data(
+    dest = file.path(wd, config$setup$data.dir),
+    source = "smru",
+    cid = config$harvest$cid,
+    user = config$harvest$smru.usr,
+    pwd = config$harvest$smru.pwd,
+    timeout = config$harvest$timeout
+    )
+}
+
+
+}

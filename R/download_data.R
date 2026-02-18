@@ -23,6 +23,19 @@
 ##' @importFrom utils unzip
 ##' @importFrom usethis create_download_url
 ##'
+##' @examples
+##' \dontrun{
+##'   download_data(
+##'     dest = file.path(wd, config$setup$data.dir),
+##'     source = "smru",
+##'     cid = config$harvest$cid,
+##'     user = config$harvest$smru.usr,
+##'     pwd = config$harvest$smru.pwd,
+##'     timeout = config$harvest$timeout
+##'     )
+##' }
+##'
+##'
 ##' @export
 
 download_data <- function(dest = NULL,
