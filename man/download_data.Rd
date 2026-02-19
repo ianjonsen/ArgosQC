@@ -51,9 +51,15 @@ then only the Wildlife Computers tag deployment metadata is downloaded.}
 \description{
 Satellite tracking data are accessed from the SMRU data server,
 or accessed from the Wildlife Computers Portal API via the \code{source} argument.
+Data files are saved to the \code{data.dir} specified in the JSON config file.
+SMRU tag data are currently downloaded as a single \code{.mdb} (Microsoft Access
+Database) file. Wildlife Computers tag data are downloaded as a series of \code{.CSV}
+files saved in tag-specific directories (uniquely named with WC UUID's).
+Wildlife Computers data, partial deployment metadata are output as an R object.
 }
 \examples{
 \dontrun{
+## SMRU data download
   download_data(
     dest = file.path(wd, config$setup$data.dir),
     source = "smru",
@@ -62,6 +68,18 @@ or accessed from the Wildlife Computers Portal API via the \code{source} argumen
     pwd = config$harvest$smru.pwd,
     timeout = config$harvest$timeout
     )
+
+## Wildlife Computers data download & deployment metadata acquisition
+wc.deploy.meta <- download_data(
+                    dest = file.path(wd, config$setup$data.dir),
+                    source = "wc",
+                    unzip = TRUE,
+                    wc.akey = config$harvest$wc.akey,
+                    wc.skey = config$harvest$wc.skey,
+                    subset.ids = config$harvest$tag.list,
+                    download = TRUE,
+                    owner.id = config$harvest$owner.id
+                    )
 }
 
 

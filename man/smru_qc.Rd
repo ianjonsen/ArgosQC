@@ -115,8 +115,3 @@ specified in a JSON config file, including program - currently, IMOS, ATN or OTN
 The program field determines the specific ArgosQC workflow functions called
 within the wrapper fn.
 }
-\examples{
-\dontrun{
-  smru_qc(wd = "working_dir", config = "config_ct185.json")
-}
-}
