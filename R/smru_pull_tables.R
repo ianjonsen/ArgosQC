@@ -51,7 +51,7 @@ smru_pull_tables <- function(cids,
 
     ## read data from tables
     for(i in tab) {
-      system(paste0(p2mdbtools, "mdb-export -b strip ", file, " ", shQuote(i), " > ", f))
+      system(paste0(p2mdbtools, "mdb-export -b strip ", shQuote(file), " ", shQuote(i), " > ", f))
       d <- read.csv(f)
       names(d) <- casefold(names(d))
       if(length(tab) == 1) {
