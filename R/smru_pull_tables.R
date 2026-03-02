@@ -64,7 +64,7 @@ smru_pull_tables <- function(cids,
 
       if(verbose) message("    Running: ", cmd)
 
-      # Run command and capture output directly (this worked for you before!)
+      # Run command and capture output
       output <- tryCatch({
         system(cmd, intern = TRUE)
       }, error = function(e) {
@@ -76,7 +76,7 @@ smru_pull_tables <- function(cids,
       if(!is.null(output) && length(output) > 0) {
         # Check if it's an error message
         if(length(output) == 1 && grepl("^Wrong|^Usage|^Error", output[1])) {
-          if(verbose) message("    ✗ Command returned error: ", output[1])
+          if(verbose) message("  Command returned error: ", output[1])
           D[[table_name]] <- NULL
         } else {
           # Write to temp file for CSV parsing
@@ -96,10 +96,10 @@ smru_pull_tables <- function(cids,
           } else {
             D[[table_name]] <- d
           }
-          if(verbose) message("    ✓ ", nrow(d), " rows")
+          if(verbose) message("  OK: ", nrow(d), " rows")
         }
       } else {
-        if(verbose) message("    ✗ No output from command")
+        if(verbose) message("  Error: No output from command")
         D[[table_name]] <- NULL
       }
     }
