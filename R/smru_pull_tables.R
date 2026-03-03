@@ -39,29 +39,72 @@ smru_pull_tables <- function(cids,
 
   get.fn <- function(file, tab) {
 
-    f <- tempfile()
-    ## read tables present in .mdb file
-    tmp <- system(paste0(p2mdbtools, "mdb-tables ", file), intern = TRUE) |>
-      str_split("\\ ", simplify = TRUE) |>
-      as.vector()
+    # Get table list
+    cmd_tables <- paste0("mdb-tables -1 ", shQuote(file))
+    tmp <- system(cmd_tables, intern = TRUE)
+    tmp <- trimws(gsub("\r", "", tmp))
 
+    # Find matching tables
     tab <- tmp[tmp %in% tab]
+
+    if(length(tab) == 0) {
+      if(verbose) message("No matching tables found in ", basename(file))
+      return(NULL)
+    }
+
     D <- vector("list", length(tab))
     names(D) <- tab
 
-    ## read data from tables
-    for(i in tab) {
-      system(paste0(p2mdbtools, "mdb-export -b strip ", file, " ", shQuote(i), " > ", f))
-      d <- read.csv(f)
-      names(d) <- casefold(names(d))
-      if(length(tab) == 1) {
-        D <- d
-      }
-      else {
-        D[[i]] <- d
+    # Loop through each table
+    for(table_name in tab) {
+      if(verbose) message("  Exporting table: ", table_name)
+
+      # Build command WITHOUT redirection - use intern=TRUE to capture output
+      cmd <- paste0("mdb-export -b strip ", shQuote(file), " ", shQuote(table_name))
+
+      if(verbose) message("    Running: ", cmd)
+
+      # Run command and capture output
+      output <- tryCatch({
+        system(cmd, intern = TRUE)
+      }, error = function(e) {
+        if(verbose) message("    Error: ", e$message)
+        NULL
+      })
+
+      # Process the output
+      if(!is.null(output) && length(output) > 0) {
+        # Check if it's an error message
+        if(length(output) == 1 && grepl("^Wrong|^Usage|^Error", output[1])) {
+          if(verbose) message("  Command returned error: ", output[1])
+          D[[table_name]] <- NULL
+        } else {
+          # Write to temp file for CSV parsing
+          f <- tempfile(fileext = ".csv")
+          f <- gsub("\\\\", "/", f)
+          writeLines(output, f)
+
+          # Read the CSV
+          d <- read.csv(f, stringsAsFactors = FALSE)
+          names(d) <- casefold(names(d))
+
+          # Clean up
+          unlink(f)
+
+          if(length(tab) == 1) {
+            D <- d
+          } else {
+            D[[table_name]] <- d
+          }
+          if(verbose) message("  OK: ", nrow(d), " rows")
+        }
+      } else {
+        if(verbose) message("  Error: No output from command")
+        D[[table_name]] <- NULL
       }
     }
-    D
+
+    return(D)
   }
 
   if(length(cids) > 1) {
