@@ -131,7 +131,7 @@ wc_ssm_outputs <- function(fit,
     if (ts <= pred.int)
       x[seq(1, nrow(x), by = ceiling(pred.int / ts)), ]
     else
-      stop(paste0("time stelocsis > ", pred.int, " h, can't subsample to ", pred.int, " h"))
+      stop(paste0("time step > ", pred.int, " h, can't subsample to ", pred.int, " h"))
   }) |> bind_rows()
 
   ## calc QC start and end dates for each deployment - to be appended to metadata

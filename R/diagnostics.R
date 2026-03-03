@@ -54,7 +54,7 @@ diagnostics <-
     my.aes <- aes_lst(conf = FALSE,
                       line = ifelse(lines, TRUE, FALSE),
                       obs = ifelse(obs, TRUE, FALSE))
-    my.aes$df$size[1] <- 0.5
+    my.aes$df$size[1] <- 1
 
     if(obs) {
       my.aes$df$size[4] <- 0.75
@@ -127,7 +127,8 @@ diagnostics <-
         group_by(id) |>
         summarise(geometry = geometry[n(), ])
 
-      flocs <- grab_QC(fit, what = "f")
+     flocs <- grab_QC(fit, what = "f")
+     plocs <- grab_QC(fit, what = "p")
 
       suppressMessages(map_QC(
         fit,
@@ -193,6 +194,8 @@ diagnostics <-
 
     flocs <- flocs |>
       rename(device_id = id)
+    # plocs <- plocs |>
+    #   rename(device_id = id)
 
     dd <-
       olocs |>
@@ -203,11 +206,16 @@ diagnostics <-
 
     ## Latitude coverage plots
     p.lat <- suppressWarnings(ggplot(olocs) +
-      geom_point(aes(date, lat), col = "blue") +
-      geom_point(data = flocs,
-                 aes(date, lat),
-                 size = 0.25,
-                 col = 'red') +
+      geom_point(aes(date, lat), col = "dodgerblue", size = 1.5) +
+        # geom_point(data = plocs,
+        #            aes(date, lat),
+        #            size = 0.75,
+        #            col = "darkorange3") +
+        geom_point(data = flocs,
+                   aes(date, lat),
+                   size = 0.75,
+                   col = 'firebrick',
+                  alpha = 0.7) +
       facet_wrap(vars(device_id),
                  scales = "free",
                  ncol = 6)
@@ -306,6 +314,8 @@ diagnostics <-
 
     }
 
+    p.lat <- p.lat + ylim(min(flocs$lat), max(flocs$lat))
+
     if(!is.null(cid)) {
       suppressWarnings(ggsave(
         file.path(dpath,
@@ -314,7 +324,7 @@ diagnostics <-
         width = 15,
         height = 20,
         units = "in",
-        dpi = 150
+        dpi = 200
       ))
 
     } else {
@@ -325,7 +335,7 @@ diagnostics <-
         width = 15,
         height = 20,
         units = "in",
-        dpi = 150
+        dpi = 200
       ))
     }
 
@@ -333,11 +343,15 @@ diagnostics <-
 
     ## Longitude coverage plots
     p.lon <- suppressWarnings(ggplot(olocs) +
-      geom_point(aes(date, lon), col = "blue") +
-      geom_point(data = flocs,
+      geom_point(aes(date, lon), col = "dodgerblue", size = 1.5) +
+        # geom_point(data = plocs,
+        #            aes(date, lon),
+        #            size = 0.75,
+        #            col = "orange") +
+        geom_point(data = flocs,
                  aes(date, lon),
-                 size = 0.25,
-                 col = 'red') +
+                 size = 0.75,
+                 col = 'firebrick') +
         facet_wrap(vars(device_id),
           scales = "free",
           ncol = 6
@@ -434,6 +448,8 @@ diagnostics <-
         ))
 
     }
+
+    p.lon <- p.lon + ylim(min(flocs$lon), max(flocs$lon))
 
     if (!is.null(cid)) {
       suppressWarnings(ggsave(
