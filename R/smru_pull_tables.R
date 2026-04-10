@@ -181,6 +181,7 @@ smru_pull_tables <- function(cids,
 
     ## If locations remain at SMRU HQ then remove all those within 15km of HQ
     tmp <- smru$gps |>
+      filter(!is.na(lon), !is.na(lat)) |>
       st_as_sf(coords = c("lon","lat"), crs = 4326)
     tmp.f <- unique(tmp$ref)
     tmp.lst <- split(tmp, tmp$ref)
