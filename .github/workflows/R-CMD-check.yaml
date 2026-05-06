@@ -78,7 +78,7 @@ jobs:
         uses: [setup-any-binary-tool](https://github.com/marketplace/actions/setup-any-binary-tool)@v1.0.1
         with:
           name: "mdbtools"
-          version: "1.0.1"
+          version: "1.0.0"
           url: "https://github.com"
 
       - name: Install remotes package
