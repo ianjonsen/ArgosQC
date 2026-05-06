@@ -40,7 +40,7 @@ smru_pull_tables <- function(cids,
   get.fn <- function(file, tab) {
 
     # Get table list
-    cmd_tables <- paste0("mdb-tables -1 ", shQuote(file))
+    cmd_tables <- paste0(file.path(p2mdbtools, "mdb-tables"), " -1 ", shQuote(file))
     tmp <- system(cmd_tables, intern = TRUE)
     tmp <- trimws(gsub("\r", "", tmp))
 
@@ -60,7 +60,7 @@ smru_pull_tables <- function(cids,
       if(verbose) message("  Exporting table: ", table_name)
 
       # Build command WITHOUT redirection - use intern=TRUE to capture output
-      cmd <- paste0("mdb-export -b strip ", shQuote(file), " ", shQuote(table_name))
+      cmd <- paste0(file.path(p2mdbtools, "mdb-export"), " -b strip ", shQuote(file), " ", shQuote(table_name))
 
       if(verbose) message("    Running: ", cmd)
 
