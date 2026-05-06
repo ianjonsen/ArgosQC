@@ -42,6 +42,20 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+
+      - name: Run MSYS2 command
+        shell: msys2 {0}
+        run: |
+          gcc --version
+          pacman -Q
+
       - name: Query dependencies
         run: |
           install.packages('remotes')
