@@ -71,8 +71,8 @@ jobs:
       - name: "[Windows] Install specific system libs"
         if: runner.os == 'Windows'
         run: |
-          pacman -Syu --noconfirm mingw-w64-x86_64-pkg-config mingw-w64-x86_64-toolchain mingw-w64-x86_64-mdbtools mingw-w64-x86_64-libxml2
-        shell: bash
+          pacman -Syu --noconfirm mingw-w64-x86_64-mdbtools mingw-w64-x86_64-libxml2
+        shell: msys2 {0}
 
       - name: Install remotes package
         run: |
