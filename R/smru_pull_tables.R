@@ -15,7 +15,7 @@
 ##' @importFrom furrr future_map
 ##' @importFrom purrr pmap
 ##' @importFrom lubridate mdy_hms
-##' @importFrom stringr str_split
+##' @importFrom stringr str_split str_remove
 ##' @importFrom sf st_as_sf st_buffer st_within
 ##'
 ##' @md
@@ -28,9 +28,13 @@ smru_pull_tables <- function(cids,
                              verbose = FALSE
 ) {
 
-  ## path for MacBook Pro M1 Pro
-  #p2mdbtools <- "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/"
-  if(is.null(p2mdbtools)) p2mdbtools <- ""
+  ## check for mdbtools install when p2mdbtools is NULL
+  if(is.null(p2mdbtools)) {
+    p2mdbtools <- Sys.which("mdb-tables")
+    if(nchar(p2mdbtools) > 0) p2mdbtools <- str_remove(p2mdbtools, "mdb-tables")
+    else p2mdbtools <- NULL
+  }
+
   ## map data strings to tables strings
   if("argos" %in% tables) {
     idx <- which(tables == "argos")
