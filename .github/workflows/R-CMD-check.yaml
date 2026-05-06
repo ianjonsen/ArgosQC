@@ -71,8 +71,15 @@ jobs:
       - name: "[Windows] Install specific system libs"
         if: runner.os == 'Windows'
         run: |
-          pacman -Syu --noconfirm mingw-w64-x86_64-pkg-config mingw-w64-x86_64-fftw mingw-w64-x86_64-mdbtools mingw-w64-i686-mdbtools mingw-w64-x86_64-libxml2
+          pacman -Syu --noconfirm mingw-w64-x86_64-pkg-config mingw-w64-x86_64-fftw mingw-w64-x86_64-libxml2
         shell: bash
+
+      - name: Setup MDBTools (Windows)
+        uses: [setup-any-binary-tool](https://github.com/marketplace/actions/setup-any-binary-tool)@v1.0.1
+        with:
+          name: "mdbtools"
+          version: "1.0.1"
+          url: "https://github.com"
 
       - name: Install remotes package
         run: |
