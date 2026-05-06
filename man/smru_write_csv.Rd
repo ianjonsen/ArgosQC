@@ -10,6 +10,7 @@ smru_write_csv(
   what,
   meta,
   program = "imos",
+  proj = NULL,
   test = TRUE,
   path = NULL,
   dropIDs = NULL,
@@ -27,6 +28,10 @@ smru_write_csv(
 
 \item{program}{Determines structure of output metadata. The \code{imos} & \code{atn} programs
 have their own defined metadata structures, all other programs are treated as "Generic".}
+
+\item{proj}{the proj4string specified in the .JSON config file & used to project
+the location data prior to SSM fitting. It is passed in here to be added to the
+output metadata .CSV file}
 
 \item{test}{should variables be tested for standards compliance, default is TRUE.
 Standards compliance is specific to the program. Currently, only program = \code{imos}

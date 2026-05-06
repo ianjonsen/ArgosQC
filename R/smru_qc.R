@@ -289,6 +289,7 @@ smru_write_csv(
   what = what,
   meta = meta,
   program = conf$setup$program,
+  proj = conf$model$proj,
   path = file.path(wd, conf$setup$output.dir),
   dropIDs = dropIDs,
   suffix = paste0("_", conf$model$QCmode)

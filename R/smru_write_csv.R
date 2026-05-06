@@ -8,6 +8,9 @@
 ##' @param meta metadata
 ##' @param program Determines structure of output metadata. The `imos` & `atn` programs
 ##' have their own defined metadata structures, all other programs are treated as "Generic".
+##' @param proj the proj4string specified in the .JSON config file & used to project
+##' the location data prior to SSM fitting. It is passed in here to be added to the
+##' output metadata .CSV file
 ##' @param test should variables be tested for standards compliance, default is TRUE.
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
@@ -27,6 +30,7 @@ smru_write_csv <- function(smru_ssm,
                         what,
                         meta,
                         program = "imos",
+                        proj = NULL,
                         test = TRUE,
                         path = NULL,
                         dropIDs = NULL,
@@ -55,6 +59,16 @@ smru_write_csv <- function(smru_ssm,
         select(-ctd_start, -ctd_end)
 
     }
+
+    meta <- meta |>
+      mutate(qc_method = "ArgosQC",
+             qc_version = as.character(packageVersion("ArgosQC")),
+             qc_proj4string = proj)
+
+    now <- Sys.time()
+    attr(now, "tzone") <- "UTC"
+    meta <- meta |>
+      mutate(qc_run_date = now)
 
   } else if (program == "atn") {
 
@@ -227,7 +241,7 @@ smru_write_csv <- function(smru_ssm,
   if (program == "imos") {
     lapply(1:length(out), function(i) {
       if (nms[i] != "metadata") {
-        # comment out below to turn on GPS table submission to AODN as new pipeline accepts GPS files - fir 2026 deployments
+        # comment out below to turn on GPS table submission to AODN as new pipeline accepts GPS files - for 2026 deployments
  #       if(nms[i] != "gps") { ## required as AODN currently will not accept gps data tables
         out[[i]] |>
           group_by(cid) |>
@@ -1074,7 +1088,11 @@ smru_write_meta <- function(meta,
         actual_mass,
         state_country,
         qc_start_date,
-        qc_end_date
+        qc_end_date,
+        qc_method,
+        qc_version,
+        qc_proj4string,
+        qc_run_date
       ) |>
       filter(!is.na(qc_start_date),
              !is.na(qc_end_date))
@@ -1117,7 +1135,11 @@ smru_write_meta <- function(meta,
                                        is.na(actual_mass)),
         is.character(state_country),
         any(inherits(qc_start_date, "POSIXct"), is.na(qc_start_date)),
-        any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date))
+        any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date)),
+        is.character(qc_method),
+        is.character(qc_version),
+        is.character(qc_proj4string),
+        any(inherits(qc_run_date, "POSIXct"), is.na(qc_run_date))
       )
     )
     if(test) {
