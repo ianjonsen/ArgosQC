@@ -42,4 +42,5 @@ utils::globalVariables(c("dt", "lon1", "lat1", "x1", "y1", "x.se1", "y,se1",
    "phosi_secs", "last_location", "program_number", "ptt_decimal", "location_date",
    "first_uplink_date", "last_uplink_date", "last_loc_date", "deploy_longitude",
    "deploy_latitude", "last_loc_lon", "last_loc_lat", "i", "length_measurement",
-   "length_unit", "mass_measurement", "mass_unit", "loc_meta","uuid"))
+   "length_unit", "mass_measurement", "mass_unit", "loc_meta","uuid","submitted","md",
+   "qc_method", "qc_method_version", "qc_version", "qc_proj4string", "qc_run_date", "argos"))
