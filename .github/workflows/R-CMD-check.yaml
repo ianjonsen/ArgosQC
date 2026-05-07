@@ -71,7 +71,7 @@ jobs:
       - name: "[Custom block] [Windows] Install mdbtools with Chocolatey"
         if: runner.os == 'Windows'
         run: |
-          choco install mdbtools -y
+          choco install --pre mdbtools -y
 
       - name: Install remotes package
         run: |
