@@ -43,16 +43,10 @@ smru_pull_tables <- function(cids,
 
   get.fn <- function(file, tab) {
 
-    # Get table list - Platform-dependent
-    if(.Platform$OS.type == "windows") {
-      cmd_tables <- paste0(file.path(p2mdbtools, "mdb-tables "), shQuote(file))
-      tmp <- system(cmd_tables, intern = TRUE)
-      tmp <- trimws(gsub("\r", "", tmp))
-
-    } else if(.Platform$OS.type == "unix") {
-      cmd_tables <- paste0(p2mdbtools, "mdb-tables -1 ", shQuote(file))
-      tmp <- system(cmd_tables, intern = TRUE)
-    }
+    # Get table list
+    cmd_tables <- paste0(file.path(p2mdbtools, "mdb-tables"), " -1 ", shQuote(file))
+    tmp <- system(cmd_tables, intern = TRUE)
+    tmp <- trimws(gsub("\r", "", tmp))
 
     # Find matching tables
     tab <- tmp[tmp %in% tab]

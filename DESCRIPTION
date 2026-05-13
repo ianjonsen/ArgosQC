@@ -1,7 +1,7 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.9-16.9002
+Version: 0.9-16.9001
 Date: 2026-05-06
 Author: Ian Jonsen [aut, cre, cph]           
 Maintainer: Ian Jonsen <jonsen@stochastic-qc.org>
@@ -40,7 +40,7 @@ Imports:
     testthat,
     rnaturalearthdata
 Depends: 
-    R (>= 4.5.0)
+    R (>= 4.5.2)
 SystemRequirements: GDAL (>= 3.8.5), GEOS (>= 3.13.0), PROJ (>= 9.5.1), pandoc (>=3.8.3)
 Roxygen: list(markdown = TRUE)
 Remotes: 

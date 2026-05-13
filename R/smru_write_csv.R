@@ -62,7 +62,7 @@ smru_write_csv <- function(smru_ssm,
 
     meta <- meta |>
       mutate(qc_method = "ArgosQC",
-             qc_version = as.character(packageVersion("ArgosQC")),
+             qc_method_version = as.character(packageVersion("ArgosQC")),
              qc_proj4string = proj)
 
     now <- Sys.time()
@@ -1090,7 +1090,7 @@ smru_write_meta <- function(meta,
         qc_start_date,
         qc_end_date,
         qc_method,
-        qc_version,
+        qc_method_version,
         qc_proj4string,
         qc_run_date
       ) |>
@@ -1137,7 +1137,7 @@ smru_write_meta <- function(meta,
         any(inherits(qc_start_date, "POSIXct"), is.na(qc_start_date)),
         any(inherits(qc_end_date, "POSIXct"), is.na(qc_end_date)),
         is.character(qc_method),
-        is.character(qc_version),
+        is.character(qc_method_version),
         is.character(qc_proj4string),
         any(inherits(qc_run_date, "POSIXct"), is.na(qc_run_date))
       )
