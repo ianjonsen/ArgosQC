@@ -1,7 +1,7 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.9-16.9002
+Version: 0.9-16.9003
 Date: 2026-05-15
 Author: Ian Jonsen [aut, cre, cph]           
 Maintainer: Ian Jonsen <jonsen@stochastic-qc.org>

@@ -15,7 +15,7 @@
 ##' @importFrom furrr future_map
 ##' @importFrom purrr pmap
 ##' @importFrom lubridate mdy_hms
-##' @importFrom stringr str_split str_remove
+##' @importFrom stringr str_split
 ##' @importFrom sf st_as_sf st_buffer st_within
 ##'
 ##' @md
@@ -30,8 +30,12 @@ smru_pull_tables <- function(cids,
 
   ## check for mdbtools install when p2mdbtools is NULL
   if(is.null(p2mdbtools)) {
+    ## finds mdbtools location in a platform-independent way
+    ## Sys.which returns full path with filename in the correct platform-dependent manner
+    ## dirname strips filename from the path
+    ## normalizePath ensures result of dirname(p2mdbtools) is platform-independent
     p2mdbtools <- Sys.which("mdb-tables")
-    if(nchar(p2mdbtools) > 0) p2mdbtools <- str_remove(p2mdbtools, "mdb-tables")
+    if(nchar(p2mdbtools) > 0 ) p2mdbtools <- normalizePath(dirname(p2mdbtools), mustWork = FALSE)
     else p2mdbtools <- NULL
   }
 
