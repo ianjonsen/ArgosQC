@@ -58,7 +58,7 @@ smru_get_mdb <-
       )
 
       suppressWarnings(unzip(file.path(dest, paste0(cid, ".zip")), exdir = file.path(dest, ".")))
-      system(paste0("rm ", file.path(dest, paste0(cid, ".zip"))))
+      file.remove(file.path(dest, paste0(cid, ".zip")))
     }
 
       out <- cid %>% walk(~ fn(
