@@ -6,8 +6,8 @@
 ##' @param fit final \code{aniMotum} fit object
 ##' @param what specify whether predicted or rerouted locations are to be used
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. The `imos` & `atn` programs
-##' have their own defined metadata structures, all other programs are treated as "Generic".
+##' @param program Determines structure of output metadata. The `imos`, `otn`, & `atn` programs
+##' have their own defined metadata structures, any other program name is treated as "Generic" but may not work properly.
 ##' @param proj the proj4string specified in the .JSON config file & used to project
 ##' the location data prior to SSM fitting. It is passed in here to be added to the
 ##' output metadata .CSV file
@@ -747,7 +747,7 @@ smru_write_dive <- function(smru_ssm,
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param program Determines structure of output metadata. Currently, `imos`, `otn`, or `atn`.
 ##' @param test should variables be tested for standards compliance, default is TRUE.
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
@@ -870,7 +870,7 @@ smru_write_gps <- function(smru_ssm,
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param program Determines structure of output metadata. Currently, `imos`, `otn`, or `atn`.
 ##' @param test should variables be tested for standards compliance, default is TRUE.
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
@@ -1010,7 +1010,7 @@ smru_write_haulout <- function(smru_ssm,
 ##' @description Apply AODN tests to metadata table, write to .csv - format depends on program (IMOS, ATN)
 ##'
 ##' @param meta metadata
-##' @param program Determines structure of output metadata. Currently, either `imos` or `atn`.
+##' @param program Determines structure of output metadata. Currently, either `imos`, `otn`, or `atn`.
 ##' @param test should variables be tested for standards compliance, default is TRUE.
 ##' Standards compliance is specific to the program. Currently, only program = `imos`
 ##' has defined variable standard against which output compliance is tested.
@@ -1039,7 +1039,7 @@ smru_write_meta <- function(meta,
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
 
   ## remove dive, ctd start/end dates columns, add 'state_country' for AODN (based on deployment location)
-  if (program != "atn") { # imos & any other program
+  if (program == "imos") { # only test if program is imos
 
     meta <- meta |>
       mutate(
@@ -1159,6 +1159,8 @@ smru_write_meta <- function(meta,
 
     meta <- meta |> filter(!DeploymentID %in% dropIDs)
 
+  } else if (program == "otn") {
+    meta
   }
 
   return(meta)

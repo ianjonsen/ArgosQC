@@ -20,7 +20,7 @@ get_metadata(
 }
 \arguments{
 \item{source}{the source of the deployment metadata, current options are
-\code{imos}, \code{smru}, or \code{atn}. If \code{source = 'imos'} or \code{source = 'atn'} then
+\code{imos}, \code{otn}, \code{smru}, or \code{atn}. If \code{source = 'imos'} or \code{source = 'atn'} then
 metadata are obtained from user-provided .CSV file via the config.json file.
 If \code{sourcce = 'smru'} then metadata are built from a combination of SMRU
 server details & deployment details in the config.json file.}

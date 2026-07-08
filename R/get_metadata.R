@@ -6,7 +6,7 @@
 ##' the GPS (if present) or Argos location file.
 ##'
 ##' @param source the source of the deployment metadata, current options are
-##' `imos`, `smru`, or `atn`. If `source = 'imos'` or `source = 'atn'` then
+##' `imos`, `otn`, `smru`, or `atn`. If `source = 'imos'` or `source = 'atn'` then
 ##' metadata are obtained from user-provided .CSV file via the config.json file.
 ##' If `sourcce = 'smru'` then metadata are built from a combination of SMRU
 ##' server details & deployment details in the config.json file.
@@ -277,6 +277,40 @@ get_metadata <- function(source = "smru",
                        dropIDs = dropIDs,
                        file = file
                      )
+                   },
+                   otn = {
+                     meta <- read_csv(file, col_types = "cciiccccddcTTccdddc")
+                     if(any(!names(meta) %in% c("sattag_program",
+                     "device_id",
+                     "ptt",
+                     "body",
+                     "device_wmo_ref",
+                     "tag_type",
+                     "common_name",
+                     "species",
+                     "release_longitude",
+                     "release_latitude",
+                     "release_site",
+                     "release_date",
+                     "recovery_date",
+                     "age_class",
+                     "sex",
+                     "length",
+                     "estimated_mass",
+                     "actual_mass",
+                     "state_country"))) stop("incorrectly structured metadata file, ensure the .CSV file contains only these fields:\n
+                            sattag_program,device_id,ptt,body,device_wmo_ref,tag_type,common_name,species,release_longitude,release_latitude,release_site,release_date,recovery_date,age_class,sex,length,estimated_mass,actual_mass,state_country")
+
+                     if ("dive" %in% names(tag_data)) {
+                       meta <- meta |>
+                         left_join(dive_se, by = c("device_id" = "ref"))
+                     }
+                     if ("ctd" %in% names(tag_data)) {
+                       meta <- meta |>
+                         left_join(ctd_se, by = c("device_id" = "ref"))
+                     }
+                     meta
+
                    })
   }
 
