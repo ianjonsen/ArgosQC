@@ -158,7 +158,15 @@ smru_pull_tables <- function(cids,
     }
 
     ## If locations remain at SMRU HQ then remove all those within 15km of HQ
-    tmp <- smru$diag |>
+    tmp <- smru$diag
+    if(all(is.character(tmp$lon))) {
+      tmp <- tmp |>
+        mutate(lon = str_replace(lon, "\\,", "."),
+               lat = str_replace(lat, "\\,", ".")) |>
+        mutate(lon = as.numeric(lon),
+               lat = as.numeric(lat))
+    }
+    tmp <- tmp |>
       st_as_sf(coords = c("lon","lat"), crs = 4326)
     tmp.f <- unique(tmp$ref)
     tmp.lst <- split(tmp, tmp$ref)
@@ -178,36 +186,42 @@ smru_pull_tables <- function(cids,
       bind_rows()
   }
 
-  if(any(names(smru) %in% "gps")) {
-    smru$gps <- smru$gps |>
-      mutate(d_date = mdy_hms(d_date, tz = "UTC")) |>
-      mutate(submitted = mdy_hms(submitted, tz = "UTC")) |>
-      mutate(d_date_tag = case_when(
-        is.na(d_date_tag) ~ NA,
-        !is.na(d_date_tag) ~ mdy_hms(d_date_tag, tz = "UTC")
-      ))
-
-    ## If locations remain at SMRU HQ then remove all those within 15km of HQ
-    tmp <- smru$gps |>
-      filter(!is.na(lon), !is.na(lat)) |>
-      st_as_sf(coords = c("lon","lat"), crs = 4326)
-    tmp.f <- unique(tmp$ref)
-    tmp.lst <- split(tmp, tmp$ref)
-    gps.lst <- split(smru$gps, smru$gps$ref)
-
-    ## remove by max date within 15km of HQ, in case any but the last loc are
-    ##  beyond the 15 km circle
-    smru$gps <- lapply(1:length(tmp.lst), function(i) {
-      win <- st_within(tmp.lst[[i]], HQ.buf) |> as.matrix() |> as.vector()
-      if(sum(win) > 0) {
-        last.date <- max(tmp.lst[[i]]$d_date[win == TRUE], na.rm = TRUE)
-        gps.lst[[i]][tmp.lst[[i]]$d_date > last.date,]
-      } else {
-        gps.lst[[i]]
+  if (any(names(smru) %in% "gps")) {
+    if (nrow(smru$gps) > 0) {
+      smru$gps <- smru$gps |>
+        mutate(d_date = mdy_hms(d_date, tz = "UTC")) |>
+        mutate(submitted = mdy_hms(submitted, tz = "UTC"))
+      if("d_date_tag" %in% names(smru$gps)) {
+        smru$gps <- smru$gps |>
+          mutate(d_date_tag = case_when(
+            is.na(d_date_tag) ~ NA,!is.na(d_date_tag) ~ mdy_hms(d_date_tag, tz = "UTC")
+          ))
       }
-    }) |>
-      bind_rows()
 
+      ## If locations remain at SMRU HQ then remove all those within 15km of HQ
+      tmp <- smru$gps |>
+        filter(!is.na(lon), !is.na(lat)) |>
+        st_as_sf(coords = c("lon", "lat"), crs = 4326)
+      tmp.f <- unique(tmp$ref)
+      tmp.lst <- split(tmp, tmp$ref)
+      gps.lst <- split(smru$gps, smru$gps$ref)
+
+      ## remove by max date within 15km of HQ, in case any but the last loc are
+      ##  beyond the 15 km circle
+      smru$gps <- lapply(1:length(tmp.lst), function(i) {
+        win <- st_within(tmp.lst[[i]], HQ.buf) |> as.matrix() |> as.vector()
+        if (sum(win) > 0) {
+          last.date <- max(tmp.lst[[i]]$d_date[win == TRUE], na.rm = TRUE)
+          gps.lst[[i]][tmp.lst[[i]]$d_date > last.date, ]
+        } else {
+          gps.lst[[i]]
+        }
+      }) |>
+        bind_rows()
+
+      ## remove gps table if all locations within HQ.buf
+      if(nrow(smru$gps) == 0) smru[["gps"]] <- NULL
+    }
   }
 
   first.dates <- smru$diag |> group_by(ref) |> summarise(md = min(d_date, na.rm = TRUE))
