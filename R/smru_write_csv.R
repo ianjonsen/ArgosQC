@@ -469,7 +469,7 @@ smru_write_ctd <- function(smru_ssm,
   }
 
   if (program == "imos" & test) {
-    if(which(!tests) == 7) {
+    if(all(sum(!tests) > 0, 7 %in% which(!tests))) {
       ctd <- ctd |>
         mutate(n_cond = as.integer(n_cond, na.rm = TRUE))
 
