@@ -151,6 +151,14 @@ smru_pull_tables <- function(cids,
     mutate(iq = as.integer(iq)) |>
     suppressWarnings()
 
+    if(all(is.character(smru$diag$lon))) {
+      smru$diag <- smru$diag |>
+        mutate(lon = str_replace(lon, "\\,", "."),
+               lat = str_replace(lat, "\\,", ".")) |>
+        mutate(lon = as.numeric(lon),
+               lat = as.numeric(lat))
+    }
+
     ## replace ref's with _ with -
     if(min(smru$diag$d_date, na.rm=TRUE) < ISOdate(2006,01,01,tz="UTC")) {
       smru$diag <- smru$diag |>
