@@ -114,16 +114,18 @@ smru_append_ssm <- function(smru,
       filter(!ref %in% dropIDs) |>
       mutate(lon = round(lon, 6), lat = round(lat, 6))
 
-    if("ds_date" %in% names(smru$dive)) {
-      dive <- dive |>
-        mutate(ds_date = ifelse(
-          str_detect(ds_date, regex("[a-z]", TRUE)),
-          ymd_hms(ds_date, tz = "UTC"),
-          mdy_hms(ds_date, tz = "UTC")
-        )) |>
-        mutate(ds_date = as.POSIXct(ds_date, tz = "UTC", origin = "1970-01-01"))
+    if ("ds_date" %in% names(smru$dive)) {
+      if (!"POSIXt" %in% class(dive$ds_date)) {
+        dive <- dive |>
+          mutate(ds_date = ifelse(
+            str_detect(ds_date, regex("[a-z]", TRUE)),
+            ymd_hms(ds_date, tz = "UTC"),
+            mdy_hms(ds_date, tz = "UTC")
+          )) |>
+          mutate(ds_date = as.POSIXct(ds_date, tz = "UTC", origin = "1970-01-01"))
 
-      class(dive$ds_date) <- c("POSIXct", "POSIXt")
+        class(dive$ds_date) <- c("POSIXct", "POSIXt")
+      }
     }
 
     dive <- ssm_locs %>%
