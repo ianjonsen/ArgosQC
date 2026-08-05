@@ -154,9 +154,13 @@ smru_pull_tables <- function(cids,
     if(all(is.character(smru$diag$lon))) {
       smru$diag <- smru$diag |>
         mutate(lon = str_replace(lon, "\\,", "."),
-               lat = str_replace(lat, "\\,", ".")) |>
+               lat = str_replace(lat, "\\,", "."),
+               alt_lon = str_replace(alt_lon, "\\,", "."),
+               alt_lat = str_replace(alt_lat, "\\,", ".")) |>
         mutate(lon = as.numeric(lon),
-               lat = as.numeric(lat))
+               lat = as.numeric(lat),
+               alt_lon = as.numeric(alt_lon),
+               alt_lat = as.numeric(alt_lat))
     }
 
     ## replace ref's with _ with -
@@ -273,6 +277,14 @@ smru_pull_tables <- function(cids,
       filter(end_date >= md) |>
       select(-md)
 
+    if(all(is.character(smru$ctd$lon))) {
+      smru$ctd <- smru$ctd |>
+        mutate(lon = str_replace(lon, "\\,", "."),
+               lat = str_replace(lat, "\\,", ".")) |>
+        mutate(lon = as.numeric(lon),
+               lat = as.numeric(lat))
+    }
+
     if("created" %in% names(smru$ctd)) {
       smru$ctd <- smru$ctd |>
         mutate(created = mdy_hms(created, tz = "UTC"))
@@ -296,7 +308,15 @@ smru_pull_tables <- function(cids,
       filter(de_date >= md) |>
       select(-md)
 
-    if("ds_date" %in% smru$dive) {
+    if(all(is.character(smru$dive$lon))) {
+      smru$dive <- smru$dive |>
+        mutate(lon = str_replace(lon, "\\,", "."),
+               lat = str_replace(lat, "\\,", ".")) |>
+        mutate(lon = as.numeric(lon),
+               lat = as.numeric(lat))
+    }
+
+    if("ds_date" %in% names(smru$dive)) {
       smru$dive <- smru$dive |>
         mutate(ds_date = mdy_hms(ds_date, tz = "UTC")) |>
         left_join(first.dates, by = "ref") |>
@@ -304,7 +324,7 @@ smru_pull_tables <- function(cids,
         filter(ds_date >= md) |>
         select(-md)
     }
-    if("de_date_tag" %in% smru$dive) {
+    if("de_date_tag" %in% names(smru$dive)) {
       smru$dive <- smru$dive |>
         mutate(de_date_tag = ifelse(!is.na(de_date_tag),
                                     mdy_hms(de_date_tag, tz = "UTC"),
@@ -326,7 +346,7 @@ smru_pull_tables <- function(cids,
         filter(s_date >= md & e_date >= md) |>
         select(-md)
 
-      if ("s_date_tag" %in% smru$summary) {
+      if ("s_date_tag" %in% names(smru$summary)) {
         smru$summary <- smru$summary |>
           mutate(s_date_tag = ifelse(
             !is.na(s_date_tag),
@@ -334,7 +354,7 @@ smru_pull_tables <- function(cids,
             s_date_tag
           ))
       }
-      if ("e_date_tag" %in% smru$summary) {
+      if ("e_date_tag" %in% names(smru$summary)) {
         smru$summary <- smru$summary |>
           mutate(e_date_tag = ifelse(
             !is.na(e_date_tag),
@@ -366,7 +386,7 @@ smru_pull_tables <- function(cids,
         filter(s_date >= md & e_date >= md) |>
         select(-md)
 
-      if ("s_date_tag" %in% smru$cruise) {
+      if ("s_date_tag" %in% names(smru$cruise)) {
         smru$cruise <- smru$cruise |>
           mutate(s_date_tag = ifelse(
             !is.na(s_date_tag),
@@ -374,7 +394,7 @@ smru_pull_tables <- function(cids,
             s_date_tag
           ))
       }
-      if ("e_date_tag" %in% smru$cruise) {
+      if ("e_date_tag" %in% names(smru$cruise)) {
         smru$cruise <- smru$cruise |>
           mutate(e_date_tag = ifelse(
             !is.na(e_date_tag),
