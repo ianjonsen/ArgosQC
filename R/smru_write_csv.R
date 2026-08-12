@@ -718,6 +718,16 @@ smru_write_dive <- function(smru_ssm,
                              regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
 
   if(program != "atn") { # imos & any other program
+
+    if(all(!c("tagging_id","de_date_tag") %in% names(dive))) {
+      dive <- dive |>
+        mutate(tagging_id = NA,
+               de_date_tag = NA) |>
+        select(1:56, tagging_id, de_date_tag, everything())
+    }
+
+
+
     dive <- dive |>
       filter(ref %in% meta$device_id)
   }
@@ -929,6 +939,14 @@ smru_write_haulout <- function(smru_ssm,
   )
   haulout <- haulout |>
     select(any_of(vars))
+
+  if(all(!c("tagging_id","s_date_tag","e_date_tag") %in% names(haulout))) {
+    haulout <- haulout |>
+      mutate(tagging_id = NA,
+             s_date_tag = NA,
+             e_date_tag = NA) |>
+      select(1:12, tagging_id, s_date_tag, e_date_tag, everything())
+  }
 
   if(any(!c("phosi_secs","wet_n","wet_min","wet_max","wet_mean","wet_sd","tagging_id","s_date_tag","e_date_tag") %in%
          names(haulout))) {
@@ -1325,6 +1343,14 @@ smru_write_summary <- function(smru_ssm,
 
   if(program != "atn") { # imos & any other program
     ## double check only device_id's in metadata are written
+    if(all(!c("tagging_id","s_date_tag","e_date_tag") %in% names(ssummary))) {
+      ssummary <- ssummary |>
+        mutate(tagging_id = NA,
+               s_date_tag = NA,
+               e_date_tag = NA) |>
+        select(1:48, tagging_id, s_date_tag, e_date_tag, everything())
+
+    }
     ssummary <- ssummary |>
       filter(ref %in% meta$device_id)
   }
