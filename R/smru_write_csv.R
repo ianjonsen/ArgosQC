@@ -1343,6 +1343,8 @@ smru_write_summary <- function(smru_ssm,
 
   if(program != "atn") { # imos & any other program
     ## double check only device_id's in metadata are written
+    if(all(is.na(ssummary$sd_depth))) ssummary$sd_depth <- 0
+
     if(all(!c("tagging_id","s_date_tag","e_date_tag") %in% names(ssummary))) {
       ssummary <- ssummary |>
         mutate(tagging_id = NA,
