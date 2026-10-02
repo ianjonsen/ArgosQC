@@ -59,6 +59,10 @@ Ignored (if provided) when \code{harvest$download}:FALSE.
 \item \code{dropIDs} the WC UUID(s) for specific tag data set(s) that is/are to be
 ignored during the QC process. UUID's are supplied as a .CSV file
 \code{dropIDs.csv} with a single variable named \code{uuid}. Can be NULL.
+\item \code{trimIDs} (optional; delayed-mode QC only) a .CSV file of per-deployment
+track truncation dates, with a \code{ref} column holding the DeploymentID and an
+\code{end_date} and/or \code{start_date} column (UTC). See \code{trim_locs()}. Can be NULL
+or absent. The QC stops if \code{trimIDs} is set and \code{QCmode} is not \code{dm}.
 }
 \item \code{model} config block specifies model- and data-specific parameters:
 \itemize{

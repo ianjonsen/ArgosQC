@@ -49,6 +49,10 @@
 ##'   * `dropIDs` the WC UUID(s) for specific tag data set(s) that is/are to be
 ##'   ignored during the QC process. UUID's are supplied as a .CSV file
 ##'   `dropIDs.csv` with a single variable named `uuid`. Can be NULL.
+##'   * `trimIDs` (optional; delayed-mode QC only) a .CSV file of per-deployment
+##'   track truncation dates, with a `ref` column holding the DeploymentID and an
+##'   `end_date` and/or `start_date` column (UTC). See `trim_locs()`. Can be NULL
+##'   or absent. The QC stops if `trimIDs` is set and `QCmode` is not `dm`.
 ##' * `model` config block specifies model- and data-specific parameters:
 ##'   * `model` the aniMotum SSM model to be used for the location QC - typically
 ##' either `rw` or `crw`.
@@ -151,6 +155,15 @@ wc_qc <- function(wd,
     dropIDs <- suppressMessages(readr::read_csv(conf$harvest$dropIDs)$uuid)
   }
 
+  ## per-deployment track truncation (delayed-mode QC only)
+  if (is.null(conf$harvest$trimIDs) || all(is.na(conf$harvest$trimIDs))) {
+    conf$harvest$trimIDs <- NULL
+  } else if (!identical(as.character(conf$model$QCmode), "dm")) {
+    stop("'trimIDs' is set in ", config, " but QCmode is \"", conf$model$QCmode, "\". ",
+         "Track truncation can only be used in delayed-mode QC (QCmode = \"dm\").",
+         call. = FALSE)
+  }
+
   what <- "p"
   if(conf$model$reroute) what <- "r"
 
@@ -201,6 +214,12 @@ wc_qc <- function(wd,
     program = conf$setup$program,
     QCmode = conf$model$QCmode
   )
+
+  ## truncate individual tracks (delayed-mode QC only; see trim_locs())
+  if (!is.null(conf$harvest$trimIDs)) {
+    message("Truncating tracks listed in ", conf$harvest$trimIDs, "...")
+    locs_sf <- trim_locs(locs_sf, file = conf$harvest$trimIDs, QCmode = conf$model$QCmode)
+  }
 
 
   ## FIT QC SSM in 2 passes

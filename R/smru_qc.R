@@ -51,6 +51,11 @@
 ##'   * `dropIDs` the SMRU ref ID's that are to be ignored during the QC process.
 ##'   SMRU ref ID's must be supplied as a .CSV file `dropIDs.csv` with a single
 ##'   variable named `ref`. Can be NULL.
+##'   * `trimIDs` (optional; delayed-mode QC only) a .CSV file of per-deployment
+##'   track truncation dates, with a `ref` column and an `end_date` and/or
+##'   `start_date` column (UTC). See `trim_locs()`; draft files can be made with
+##'   `smru_suggest_trim()`. Can be NULL or absent. The QC stops if `trimIDs` is
+##'   set and `QCmode` is not `dm`.
 ##'   * `p2mdbtools` (optional) provides the path to the mdbtools library if it
 ##'   is installed in a non-standard location (e.g., on Macs when installed via
 ##'   Homebrew).
@@ -150,6 +155,15 @@ smru_qc <- function(wd,
     dropIDs <- suppressMessages(readr::read_csv(conf$harvest$dropIDs)$ref)
   }
 
+  ## per-deployment track truncation (delayed-mode QC only)
+  if (is.null(conf$harvest$trimIDs) || all(is.na(conf$harvest$trimIDs))) {
+    conf$harvest$trimIDs <- NULL
+  } else if (!identical(as.character(conf$model$QCmode), "dm")) {
+    stop("'trimIDs' is set in ", config, " but QCmode is \"", conf$model$QCmode, "\". ",
+         "Track truncation can only be used in delayed-mode QC (QCmode = \"dm\").",
+         call. = FALSE)
+  }
+
   ## Define the QC locations - p = predicted; r = rerouted
   what <- "p"
   if(conf$model$reroute) what <- "r"
@@ -209,6 +223,12 @@ smru_qc <- function(wd,
     crs = conf$model$proj,
     QCmode = conf$model$QCmode
   )
+
+  ## truncate individual tracks (delayed-mode QC only; see trim_locs())
+  if (!is.null(conf$harvest$trimIDs)) {
+    message("Truncating tracks listed in ", conf$harvest$trimIDs, "...")
+    locs_sf <- trim_locs(locs_sf, file = conf$harvest$trimIDs, QCmode = conf$model$QCmode)
+  }
 
   message("Fitting QC SSM - first pass...")
 

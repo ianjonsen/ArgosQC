@@ -132,6 +132,9 @@ smru_append_ssm <- function(smru,
       group_by(ref) %>%
       do(locs = approx.fn(., smru.table = dive, date.var = "de_date")) %>%
       unnest(cols = c(locs)) %>%
+      ## one interpolated row per ref and time: rows sharing a time otherwise
+      ##  multiply in the join (k rows sharing a time would become k^2 rows)
+      distinct(ref, date, .keep_all = TRUE) %>%
       left_join(dive, ., by = c("ref", c("de_date" = "date"))) |>
       suppressWarnings()
 
@@ -203,6 +206,9 @@ smru_append_ssm <- function(smru,
       group_by(ref) %>%
       do(locs = approx.fn(., smru.table = diag, date.var = "d_date")) %>%
       unnest(cols = c(locs)) %>%
+      ## one interpolated row per ref and time: rows sharing a time otherwise
+      ##  multiply in the join (k rows sharing a time would become k^2 rows)
+      distinct(ref, date, .keep_all = TRUE) %>%
       left_join(diag, ., by = c("ref", c("d_date" = "date"))) |>
       suppressWarnings()
 

@@ -58,6 +58,11 @@ seconds for slower internet connections.
 \item \code{dropIDs} the SMRU ref ID's that are to be ignored during the QC process.
 SMRU ref ID's must be supplied as a .CSV file \code{dropIDs.csv} with a single
 variable named \code{ref}. Can be NULL.
+\item \code{trimIDs} (optional; delayed-mode QC only) a .CSV file of per-deployment
+track truncation dates, with a \code{ref} column and an \code{end_date} and/or
+\code{start_date} column (UTC). See \code{trim_locs()}; draft files can be made with
+\code{smru_suggest_trim()}. Can be NULL or absent. The QC stops if \code{trimIDs} is
+set and \code{QCmode} is not \code{dm}.
 \item \code{p2mdbtools} (optional) provides the path to the mdbtools library if it
 is installed in a non-standard location (e.g., on Macs when installed via
 Homebrew).
