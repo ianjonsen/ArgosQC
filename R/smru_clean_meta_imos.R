@@ -123,6 +123,20 @@ smru_clean_meta_imos <- function(cid,
     filter(sattag_program %in% cid) %>%
     filter(!device_id %in% dropIDs)
 
+  ## stop if any SMRU_Ref appears more than once in the metadata file, as
+  ##  duplicated device_id's duplicate every location in the subsequent joins
+  dup_ids <- unique(meta$device_id[duplicated(meta$device_id)])
+  if(length(dup_ids) > 0) {
+    dup_info <- vapply(dup_ids, function(id) {
+      paste0(id, " (", paste(format(meta$release_date[meta$device_id == id], "%Y-%m-%d"),
+                             collapse = ", "), ")")
+    }, character(1))
+    stop("Duplicated SMRU_Ref in metadata file: ",
+         paste(dup_info, collapse = "; "),
+         ". Remove or correct these rows before running the QC.",
+         call. = FALSE)
+  }
+
   ## append dive start and end dates for (alternate) track truncation
   ##  to be used as alternate on final, delayed-mode (manual) QC
   if ("dive" %in% names(smru)) {
