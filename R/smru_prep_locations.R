@@ -129,10 +129,28 @@ smru_prep_loc <- function(smru,
 
     } else if(QCmode == "dm") {
       if("dive_start" %in% names(meta)) {
-      ## only left-truncate tracks with date of first dive
+      ## only left-truncate tracks with date of first dive. A deployment with
+      ##  no dive records has dive_start = NA; use its first CTD profile date
+      ##  instead so the deployment is not silently dropped from the QC
+      refs_in_diag <- unique(diag$ref)
+      no_dive <- deploy_meta |>
+        filter(device_id %in% refs_in_diag, is.na(dive_start), !is.na(ctd_start)) |>
+        pull(device_id)
+      no_start <- deploy_meta |>
+        filter(device_id %in% refs_in_diag, is.na(dive_start), is.na(ctd_start)) |>
+        pull(device_id)
+      if(length(no_dive) > 0) {
+        message("No dive records; tracks left-truncated at first CTD profile instead: ",
+                paste(no_dive, collapse = ", "))
+      }
+      if(length(no_start) > 0) {
+        message("No dive or CTD records; deployments excluded from QC: ",
+                paste(no_start, collapse = ", "))
+      }
+
       diag <- diag |>
         left_join(deploy_meta, by = c("ref" = "device_id")) |>
-        filter(date >= dive_start) |>
+        filter(date >= dplyr::coalesce(dive_start, ctd_start)) |>
         dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
 
       } else {
