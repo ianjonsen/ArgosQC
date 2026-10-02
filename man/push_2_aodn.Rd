@@ -2,7 +2,7 @@
 % Please edit documentation in R/push_2_aodn.R
 \name{push_2_aodn}
 \alias{push_2_aodn}
-\title{sync to AODN}
+\title{Zip QC'd .csv files for transfer to AODN}
 \usage{
 push_2_aodn(
   cids,
@@ -16,23 +16,26 @@ push_2_aodn(
 )
 }
 \arguments{
-\item{cids}{campaign ids to zip and sync}
+\item{cids}{campaign ids to zip}
 
-\item{path}{path to write .csv files}
+\item{path}{path to the QC'd .csv files}
 
-\item{user}{AODN incoming server username as a string}
+\item{user}{no longer used (formerly the rsync username); ignored}
 
-\item{host}{rsync server address}
+\item{host}{no longer used (formerly the rsync server); ignored}
 
-\item{dest}{destination directory on host server}
+\item{dest}{no longer used (formerly the rsync destination); ignored}
 
-\item{pwd}{AODN incoming server pwd as a string}
+\item{pwd}{no longer used (formerly the rsync password); ignored}
 
-\item{nopush}{zip files but don't push to AODN incoming server (for testing)}
+\item{nopush}{must be \code{TRUE}; transfer to AODN is done by sftp outside this
+function}
 
 \item{suffix}{suffix to add to zip files (_nrt or _dm)}
 }
 \description{
-zip .csv files by campaign id & sync with AODN incoming server via rsync
+Zips the QC'd .csv files of each campaign into
+\verb{<cid><suffix>.zip} in \code{path}, then deletes the .csv files. The zip files are
+transferred to AODN by sftp outside this function.
 }
 \keyword{internal}

@@ -8,11 +8,14 @@ smru_suggest_trim(
   wd,
   config,
   draft_file = NULL,
-  plot_dir = NULL,
-  max_spread = 50,
-  max_drift = 20,
-  haulout_window = 2,
-  min_post = 2,
+  plot_file = NULL,
+  min_post_days = 2,
+  stationary_radius_km = 30,
+  min_stationary_days = 2,
+  sparse_mean = 10,
+  very_sparse_daily = 5,
+  final_haulout_days = 2,
+  min_final_haulout_hours = 6,
   keep_days = 0,
   plots = TRUE
 )
@@ -25,45 +28,49 @@ smru_suggest_trim(
 \item{draft_file}{path for the draft truncation file. Default:
 \verb{<cid>_trimIDs_draft.csv} in \code{wd}}
 
-\item{plot_dir}{directory for the review plots. Default: \code{trim_review} inside
+\item{plot_file}{path for the review PDF. Default: \verb{trim_review_<cid>.pdf} in
 the config's \code{diag.dir}. Use \code{plots = FALSE} to skip the plots}
 
-\item{max_spread}{largest spread (km) of locations counted as stationary}
+\item{min_post_days}{minimum days of locations after the anchor for rules 2
+and 3}
 
-\item{max_drift}{largest drift (km) between the median positions of the first
-and second halves of the locations counted as stationary}
+\item{stationary_radius_km}{largest distance (km) of a daily median position
+from the median position of the final run of days (rule 2)}
 
-\item{haulout_window}{days after the last dive or CTD profile within which a
-haul-out must begin to set the suggested \code{end_date}}
+\item{min_stationary_days}{minimum length (days) of the final stationary run
+(rule 2)}
 
-\item{min_post}{minimum days of locations after the last dive or CTD profile
-needed for a suggestion}
+\item{sparse_mean}{centred 3-day mean number of locations per day below which
+a day counts as sparse (rule 3)}
 
-\item{keep_days}{days added to each suggested \code{end_date}}
+\item{very_sparse_daily}{a sparse final run must include a day with fewer
+locations than this (rule 3)}
 
-\item{plots}{logical; write one review plot per deployment}
+\item{final_haulout_days}{a haul-out beginning within this many days of the
+last location can set a candidate at its start (rule 5)}
+
+\item{min_final_haulout_hours}{minimum length (hours) of that haul-out
+(rule 5); shorter dry periods are not treated as a final haul-out}
+
+\item{keep_days}{days added to each suggested \code{end_date} from rules 2 and 3}
+
+\item{plots}{logical; write the review PDF}
 }
 \value{
 invisibly, a data frame with one row per deployment: \code{ref},
 \code{start_date} (empty), \code{end_date} (the suggestion, or empty), \code{rule},
-\code{candidate_end_date}, \code{last_dive}, \code{last_ctd}, \code{last_location},
-\code{days_after_last_dive_or_ctd}, \code{spread_km}, \code{drift_km}, \code{spread_location_classes},
-\code{haulout_cover}, \code{n_locations_removed}, \code{n_dives_after_end},
-\code{n_ctd_after_end}. The same table is written to \code{draft_file}.
+\code{anchor}, \code{anchor_type}, \code{last_dive}, \code{last_ctd}, \code{last_location},
+\code{days_after_anchor}, \code{stationary_end}, \code{sparse_end}, \code{final_haulout_start},
+\code{n_locations_removed}, \code{n_dives_removed}, \code{n_ctd_removed}. The same table is
+written to \code{draft_file}.
 }
 \description{
 Reads a campaign's SMRU tag data and deployment metadata, as
-\code{smru_qc()} does, but fits no SSM. For each deployment it finds the end of
-diving (the last dive or CTD profile) and tests whether the animal stayed in
-one place afterwards. When it did, the function suggests an \code{end_date} for
-truncating the track. Suggestions are written to a draft .csv file for
-review, with one review plot per deployment. After review, the file is
+\code{smru_qc()} does, but fits no SSM. For each deployment it suggests an
+\code{end_date} for truncating the track, writes the suggestions to a draft .csv
+file for review, and writes a review PDF with one page per deployment: the
+whole track beside a zoom on the end of the track. After review, the file is
 supplied to \code{smru_qc()} through the \code{trimIDs} entry of the config file.
-
-A suggested \code{end_date} never removes diving. It always keeps at least one
-location more than one SSM time step (\code{time.step} in the config file) after
-the last dive or CTD profile, so the SSM-predicted track covers every dive and
-CTD profile.
 
 The function runs only for delayed-mode QC (\code{QCmode = "dm"}). Near real-time
 QC is unsupervised, so no tracks are truncated there.
@@ -71,25 +78,31 @@ QC is unsupervised, so no tracks are truncated there.
 \details{
 The rules, applied to each deployment:
 \enumerate{
-\item No dive or CTD records, or fewer than \code{min_post} days of locations after
-the last dive or CTD profile: no suggestion.
-\item Two tests use the locations after the last dive or CTD profile: class
-1-3 locations if at least 3 exist, otherwise classes 0-3 and A, otherwise
-all classes. The spread is the 90th percentile of their distances from their
-median position (rounded up, so with few locations it is the largest
-distance). The drift is the distance between the median positions of the
-first and second halves of the locations, split by number in time order. The
-animal is stationary if the spread is at most \code{max_spread} km and the drift
-is at most \code{max_drift} km. The drift test separates a slowly travelling
-animal from a stationary one with noisy Argos locations. It is skipped when
-haul-out records cover at least half the period after the last dive or CTD
-profile, because an animal ashore may move a short distance along the coast.
-\item Stationary: the suggested \code{end_date} is the start of the first haul-out
-beginning within \code{haulout_window} days after the last dive or CTD profile,
-or otherwise the last dive or CTD profile. It is then moved later, if needed,
-to keep the first location at least one time step after the last dive or
-CTD profile, and moved later by \code{keep_days}.
-\item Not stationary: no \code{end_date}. The deployment is flagged for review, and
-the date rule 3 would give is reported as \code{candidate_end_date}.
+\item The anchor is the last CTD profile, or the last dive for a tag with no
+CTD profiles. A suggested \code{end_date} never removes a CTD profile (except
+under rule 5): it always keeps at least one location more than one SSM time
+step (\code{time.step} in the config file) after the anchor, so the
+SSM-predicted track covers every CTD profile. Dives after the last CTD
+profile are not protected; they are often records from a failing sensor.
+\item Stationary end: the final run of days whose daily median positions (all
+location classes except Z) after the anchor lie within
+\code{stationary_radius_km} of the run's median position, lasting at least
+\code{min_stationary_days}. This is a haul-out, or a likely haul-out with
+missing haul-out records. Candidate: 00:00 UTC on the run's first day.
+\item Sparse end: the final run of days whose centred 3-day mean number of
+locations is below \code{sparse_mean}, provided that run includes a day with
+fewer than \code{very_sparse_daily} locations. This is the location data
+petering out at the end of the track (battery, antenna or other tag
+failure). Candidate: 00:00 UTC on the run's first day.
+\item Rules 2 and 3 apply only when there are at least \code{min_post_days} of
+locations after the anchor. The suggested \code{end_date} is the earlier of
+their candidates, moved later if needed to satisfy rule 1, then moved later
+by \code{keep_days}. With neither candidate, the track is kept to its end.
+\item Final haul-out: a haul-out that begins within the last
+\code{final_haulout_days} of the track and lasts at least
+\code{min_final_haulout_hours} sets a candidate at its start, even if CTD
+profiles follow it. Haul-out records separated by less than 1 hour, with no
+dive ending in between, are merged into one haul-out first. The suggested
+\code{end_date} is the earliest candidate.
 }
 }

@@ -38,7 +38,8 @@ Imports:
     vctrs (>= 0.7.1),
     jsonlite (>= 2.0.0),
     testthat,
-    rnaturalearthdata
+    rnaturalearthdata,
+    grid
 Depends: 
     R (>= 4.5.0)
 SystemRequirements: GDAL (>= 3.8.5), GEOS (>= 3.13.0), PROJ (>= 9.5.1), pandoc (>=3.8.3)
