@@ -16,6 +16,7 @@ smru_suggest_trim(
   very_sparse_daily = 5,
   final_haulout_days = 2,
   min_final_haulout_hours = 6,
+  haulout_reversal_days = 5,
   keep_days = 0,
   plots = TRUE
 )
@@ -51,6 +52,10 @@ last location can set a candidate at its start (rule 5)}
 
 \item{min_final_haulout_hours}{minimum length (hours) of that haul-out
 (rule 5); shorter dry periods are not treated as a final haul-out}
+
+\item{haulout_reversal_days}{if the anchor follows the start of the final
+haul-out by no more than this many days, the haul-out candidate is replaced by
+the point just after the anchor (rule 5)}
 
 \item{keep_days}{days added to each suggested \code{end_date} from rules 2 and 3}
 
@@ -102,7 +107,11 @@ by \code{keep_days}. With neither candidate, the track is kept to its end.
 \code{final_haulout_days} of the track and lasts at least
 \code{min_final_haulout_hours} sets a candidate at its start, even if CTD
 profiles follow it. Haul-out records separated by less than 1 hour, with no
-dive ending in between, are merged into one haul-out first. The suggested
-\code{end_date} is the earliest candidate.
+dive ending in between, are merged into one haul-out first. If the anchor
+(the last CTD profile) comes after the start of that haul-out, and no more
+than \code{haulout_reversal_days} after it, the haul-out was not final: the
+candidate is replaced by the point just after the anchor (rule 1), so the
+last CTD profile is kept. The suggested \code{end_date} is the earliest
+candidate.
 }
 }
