@@ -35,8 +35,12 @@
 ##'   `final_haulout_days` of the track and lasts at least
 ##'   `min_final_haulout_hours` sets a candidate at its start, even if CTD
 ##'   profiles follow it. Haul-out records separated by less than 1 hour, with no
-##'   dive ending in between, are merged into one haul-out first. The suggested
-##'   `end_date` is the earliest candidate.
+##'   dive ending in between, are merged into one haul-out first. If the anchor
+##'   (the last CTD profile) comes after the start of that haul-out, and no more
+##'   than `haulout_reversal_days` after it, the haul-out was not final: the
+##'   candidate is replaced by the point just after the anchor (rule 1), so the
+##'   last CTD profile is kept. The suggested `end_date` is the earliest
+##'   candidate.
 ##'
 ##' @param wd the working directory, as in `smru_qc()`
 ##' @param config the JSON config file, as in `smru_qc()`. `QCmode` must be `"dm"`
@@ -58,6 +62,9 @@
 ##' last location can set a candidate at its start (rule 5)
 ##' @param min_final_haulout_hours minimum length (hours) of that haul-out
 ##' (rule 5); shorter dry periods are not treated as a final haul-out
+##' @param haulout_reversal_days if the anchor follows the start of the final
+##' haul-out by no more than this many days, the haul-out candidate is replaced by
+##' the point just after the anchor (rule 5)
 ##' @param keep_days days added to each suggested `end_date` from rules 2 and 3
 ##' @param plots logical; write the review PDF
 ##'
@@ -89,6 +96,7 @@ smru_suggest_trim <- function(wd,
                               very_sparse_daily = 5,
                               final_haulout_days = 2,
                               min_final_haulout_hours = 6,
+                              haulout_reversal_days = 5,
                               keep_days = 0,
                               plots = TRUE) {
 
@@ -226,6 +234,7 @@ smru_suggest_trim <- function(wd,
     stat_end <- na_time
     sparse_end <- na_time
     ho_start <- na_time
+    ho_reversed <- FALSE
 
     if (nrow(f) == 0) {
       r$rule <- "No locations; no suggestion"
@@ -234,6 +243,10 @@ smru_suggest_trim <- function(wd,
     } else {
       post_days <- as.numeric(difftime(last_fix, anchor, units = "days"))
       r$days_after_anchor <- round(post_days, 2)
+
+      ## rule 1: lower bound that keeps every CTD profile (or dive) located
+      need <- which(f$date >= anchor + as.numeric(conf$model$time.step) * 3600)
+      lower <- if (length(need)) f$date[need[1]] + 1 else NA
 
       ## rule 5: haul-out of at least min_final_haulout_hours beginning in the
       ##  last days of the track. Merge records separated by less than 1 hour
@@ -261,12 +274,15 @@ smru_suggest_trim <- function(wd,
         if (any(final)) {
           ho_start <- min(bouts$s[final])
           r$final_haulout_start <- fmt(ho_start)
+          ## CTD profiles (or dives) after the haul-out began: it was not final.
+          ##  Replace the candidate by the point just after the anchor
+          lag_days <- as.numeric(difftime(anchor, ho_start, units = "days"))
+          if (lag_days > 0 && lag_days <= haulout_reversal_days) {
+            ho_reversed <- TRUE
+            ho_start <- if (!is.na(lower)) .POSIXct(as.numeric(lower), tz = "UTC") else na_time
+          }
         }
       }
-
-      ## rule 1: lower bound that keeps every CTD profile (or dive) located
-      need <- which(f$date >= anchor + as.numeric(conf$model$time.step) * 3600)
-      lower <- if (length(need)) f$date[need[1]] + 1 else NA
 
       post <- f[f$date > anchor, ]
       if (nrow(post) > 0 && post_days >= min_post_days && !is.na(lower)) {
@@ -314,7 +330,10 @@ smru_suggest_trim <- function(wd,
         end <- .POSIXct(min(cands), tz = "UTC")
         which_end <- names(cands)[cands == min(cands)]
         r$end_date <- fmt(end)
-        r$rule <- if (identical(which_end, "haulout")) {
+        r$rule <- if (identical(which_end, "haulout") && ho_reversed) {
+          paste0("Haul-out began ", r$final_haulout_start, " but was followed by the ",
+                 anchor_type, "; trimmed just after the ", anchor_type)
+        } else if (identical(which_end, "haulout")) {
           paste0("Final haul-out of at least ", min_final_haulout_hours, " hours began ",
                  fmt(ho_start), ", within the last ", final_haulout_days, " days of the track")
         } else if (all(c("stationary", "sparse") %in% which_end)) {
