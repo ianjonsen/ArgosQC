@@ -14,7 +14,8 @@ smru_write_csv(
   test = TRUE,
   path = NULL,
   dropIDs = NULL,
-  suffix = "_nrt"
+  suffix = "_nrt",
+  conform = TRUE
 )
 }
 \arguments{
@@ -42,6 +43,12 @@ has defined variable standard against which output compliance is tested.}
 \item{dropIDs}{individual SMRU ids to be dropped}
 
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
+
+\item{conform}{logical; for \code{program = "imos"}, conform the diag, ctd, dive,
+haulout and summary tables to the standard AODN structure before writing:
+missing variables are added as NA, variables not in the standard structure
+are dropped, and variables are put in the standard order. Tables from
+current SMRU tags already have this structure and are unchanged. Default TRUE.}
 }
 \description{
 reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id
