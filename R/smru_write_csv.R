@@ -17,6 +17,11 @@
 ##' @param path path to write .csv files
 ##' @param dropIDs individual SMRU ids to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
+##' @param conform logical; for `program = "imos"`, conform the diag, ctd, dive,
+##' haulout and summary tables to the standard AODN structure before writing:
+##' missing variables are added as NA, variables not in the standard structure
+##' are dropped, and variables are put in the standard order. Tables from
+##' current SMRU tags already have this structure and are unchanged. Default TRUE.
 ##'
 ##' @importFrom dplyr filter rename mutate select group_by group_split
 ##' @importFrom stringr str_replace
@@ -34,7 +39,8 @@ smru_write_csv <- function(smru_ssm,
                         test = TRUE,
                         path = NULL,
                         dropIDs = NULL,
-                        suffix = "_nrt") {
+                        suffix = "_nrt",
+                        conform = TRUE) {
 
 
   stopifnot("A destination directory for .csv files must be provided" = !is.null(path))
@@ -104,6 +110,15 @@ smru_write_csv <- function(smru_ssm,
       mutate(qc_run_date = now)
   }
 
+
+  ## conform older SMRU tables to the standard AODN structure, before the
+  ##  IMOS field tests in the table writers
+  if (program == "imos" && conform) {
+    for (nm in intersect(c("diag", "ctd", "dive", "haulout", "ssummary"), names(smru_ssm))) {
+      smru_ssm[[nm]] <- smru_conform_table(smru_ssm[[nm]],
+                                           if (nm == "ssummary") "summary" else nm)
+    }
+  }
 
   out <- list(ssmoutputs = NULL,
               diag=NULL,
@@ -234,6 +249,13 @@ smru_write_csv <- function(smru_ssm,
   )
   out$metadata <- meta
 
+  ## final column order (the table writers add cid and may reorder columns)
+  if (program == "imos" && conform) {
+    for (nm in intersect(names(.smru_aodn_cols), names(out))) {
+      if (!is.null(out[[nm]])) out[[nm]] <- smru_conform_table(out[[nm]], nm, quiet = TRUE)
+    }
+  }
+
   out <- list_drop_empty(out)
   nms <- names(out)
 
@@ -337,8 +359,7 @@ smru_write_ctd <- function(smru_ssm,
   ctd <- smru_ssm$ctd <- smru_ssm$ctd |>
     filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
-    mutate(cid = str_extract(ref,
-                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
 
   ## check ctd schema compliance to AODN standard
   vars <- c("ref",
@@ -535,7 +556,7 @@ smru_write_diag <- function(smru_ssm,
   diag <- smru_ssm$diag |>
     filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
-    mutate(cid = str_extract(ref, regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
 
   ## check diag schema compliance to AODN standard
   vars <- c(
@@ -579,7 +600,7 @@ smru_write_diag <- function(smru_ssm,
     select(any_of(vars))
 
   diag <- diag |>
-    mutate(iq = ifelse(!is.integer(iq), as.integer(iq), iq))
+    mutate(iq = suppressWarnings(as.integer(iq)))
 
   ## return error if unexpected object mode or value
   tests <- with(
@@ -714,8 +735,7 @@ smru_write_dive <- function(smru_ssm,
 
   dive <- smru_ssm$dive |>
     filter(!ref %in% dropIDs) |>
-    mutate(cid = str_extract(ref,
-                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
 
   if(program != "atn") { # imos & any other program
 
@@ -723,7 +743,7 @@ smru_write_dive <- function(smru_ssm,
       dive <- dive |>
         mutate(tagging_id = NA,
                de_date_tag = NA) |>
-        select(1:56, tagging_id, de_date_tag, everything())
+        smru_place_after(c("tagging_id", "de_date_tag"), "dive")
     }
 
 
@@ -784,7 +804,7 @@ smru_write_gps <- function(smru_ssm,
   gps <- smru_ssm$gps |>
     filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
-    mutate(cid = str_extract(ref, regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
 
   ## check gps schema compliance to AODN standard
   vars <- c(
@@ -907,8 +927,7 @@ smru_write_haulout <- function(smru_ssm,
   haulout <- smru_ssm$haulout |>
     filter(!ref %in% dropIDs) |>
     filter(!is.na(ref)) |>
-    mutate(cid = str_extract(ref,
-                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
 
   ## check haulout schema compliance to AODN standard
   vars <- c("ref",
@@ -945,7 +964,7 @@ smru_write_haulout <- function(smru_ssm,
       mutate(tagging_id = NA,
              s_date_tag = NA,
              e_date_tag = NA) |>
-      select(1:12, tagging_id, s_date_tag, e_date_tag, everything())
+      smru_place_after(c("tagging_id", "s_date_tag", "e_date_tag"), "haulout")
   }
 
   if(any(!c("phosi_secs","wet_n","wet_min","wet_max","wet_mean","wet_sd","tagging_id","s_date_tag","e_date_tag") %in%
@@ -1059,20 +1078,7 @@ smru_write_meta <- function(meta,
   ## remove dive, ctd start/end dates columns, add 'state_country' for AODN (based on deployment location)
   if (program == "imos") { # only test if program is imos
 
-    meta <- meta |>
-      mutate(
-        state_country = case_when(
-          release_site == "Dumont d'Urville" ~ "French Antarctic Territory",
-          release_site == "Dumont D'Urville" ~ "French Antarctic Territory",
-          release_site == "Iles Kerguelen" ~ "French Overseas Territory",
-          release_site == "Scott Base" ~ "New Zealand Antarctic Territory",
-          release_site == "Campbell Island" ~ "New Zealand",
-          release_site == "Macquarie Island" ~ "Australia",
-          release_site == "Montague Island" ~ "Australia",
-          release_site == "Tiwi Islands" ~ "Australia",
-          release_site == "Casey" ~ "Australian Antarctic Territory",
-          release_site == "Davis" ~ "Australian Antarctic Territory"
-        )) |>
+    meta <- imos_standardise_meta(meta) |>
       mutate(state_country = ifelse(is.na(state_country), "Unknown", state_country))
 
     meta <- meta |>
@@ -1215,8 +1221,7 @@ smru_write_cruise <- function(smru_ssm,
 
   cruise <- smru_ssm$cruise |>
     filter(!ref %in% dropIDs) |>
-    mutate(cid = str_extract(ref,
-                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
 
   if(program != "atn") { # imos & any other program
     cruise <- cruise |>
@@ -1338,8 +1343,7 @@ smru_write_summary <- function(smru_ssm,
 
   ssummary <- smru_ssm$ssummary |>
     filter(!ref %in% dropIDs) |>
-    mutate(cid = str_extract(ref,
-                             regex("[a-z]{1,2}[0-9]{2,3}", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
 
   if(program != "atn") { # imos & any other program
     ## double check only device_id's in metadata are written
@@ -1352,7 +1356,7 @@ smru_write_summary <- function(smru_ssm,
         mutate(tagging_id = NA,
                s_date_tag = NA,
                e_date_tag = NA) |>
-        select(1:48, tagging_id, s_date_tag, e_date_tag, everything())
+        smru_place_after(c("tagging_id", "s_date_tag", "e_date_tag"), "summary")
 
     }
     ssummary <- ssummary |>

@@ -85,6 +85,7 @@ smru_build_meta_imos <- function(cid,
                                     estimated_mass = NA,
                                     actual_mass = NA) |>
                              mutate(state_country = meta.args$state_country) |>
+                             imos_standardise_meta() |>
                              select(sattag_program,
                                     device_id,
                                     ptt,

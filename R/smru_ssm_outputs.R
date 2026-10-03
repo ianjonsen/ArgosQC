@@ -31,7 +31,7 @@ smru_ssm_outputs <- function(fit,
                as_sf = FALSE) |>
     rename(ref = id) |>
     filter(!ref %in% dropIDs) |>
-    mutate(cid = str_extract(ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE)))
+    mutate(cid = smru_cid(ref))
   names(locs) <- to_snake_case(names(locs))
 
   if (all(!c("u", "v", "u_se", "v_se", "s", "s_se") %in% names(locs))) {
