@@ -2,14 +2,15 @@
 ##'
 ##' @description Accepts the draft truncation file written by
 ##' `smru_suggest_trim()` as it is: copies `<cid>_trimIDs_draft.csv` to
-##' `<cid>_trimIDs.csv` and sets `"trimIDs"` in the config file to that file. By
-##' default it also sets `"download"` to `false`, so the delayed-mode QC uses the
-##' local .mdb files that the suggestions were made from. Use it after reviewing
+##' `<cid>_trimIDs.csv` and sets `"trimIDs"` in the config file to that file.
+##' With `set_download_false = TRUE` it also sets `"download"` to `false`, so the
+##' delayed-mode QC uses the local .mdb files that the suggestions were made
+##' from. Use it after reviewing
 ##' the review PDF, when every suggestion is accepted unchanged. To change any
 ##' suggestion, edit the draft and save it as `<cid>_trimIDs.csv` instead.
 ##'
 ##' The config file is edited as text: only the `"trimIDs"` value (or a new
-##' `"trimIDs"` line after `"dropIDs"`) and the `"download"` value change, so its
+##' `"trimIDs"` line after `"dropIDs"`) and, optionally, the `"download"` value change, so its
 ##' layout is kept. The edited file is checked to parse, with the new values,
 ##' before anything is written.
 ##'
@@ -22,7 +23,7 @@
 ##' @param trim_file the accepted truncation file to write. Default:
 ##' `<cid>_trimIDs.csv` in `wd`
 ##' @param set_download_false logical; set `"download"` to `false` in the config
-##' file (default `TRUE`)
+##' file (default `FALSE`)
 ##' @param overwrite logical; replace an existing `trim_file` (default `FALSE`,
 ##' so a hand-edited file is not lost)
 ##'
@@ -38,7 +39,7 @@ accept_trim_dates <- function(wd,
                               config,
                               draft_file = NULL,
                               trim_file = NULL,
-                              set_download_false = TRUE,
+                              set_download_false = FALSE,
                               overwrite = FALSE) {
 
   if (!file.exists(wd)) stop("Working directory `wd` does not exist", call. = FALSE)
@@ -138,9 +139,6 @@ accept_trim_dates <- function(wd,
   message(sprintf("Accepted %d suggested end dates: %s written.", sum(!is.na(d$end_date)), trim_path))
   message("Set \"trimIDs\": \"", trim_file, "\"",
           if (set_download_false) " and \"download\": false" else "", " in ", config_path)
-  if (!set_download_false && isTRUE(as.logical(conf$harvest$download))) {
-    message("Note: \"download\" is true, so smru_qc() will download the .mdb again.")
-  }
 
   invisible(trim_path)
 }

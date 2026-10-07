@@ -12,7 +12,11 @@
 ##'
 ##' @details The rules, applied to each deployment:
 ##'   1. The anchor is the last CTD profile, or the last dive for a tag with no
-##'   CTD profiles. A suggested `end_date` never removes a CTD profile (except
+##'   CTD profiles. CTD profiles and dives dated after the end of the located
+##'   track (the last location, or the start of a final gap under rule 6) are
+##'   ignored: they cannot be located, and may be misdated records. Their number
+##'   is reported in `n_records_after_track_end`. A suggested `end_date` never
+##'   removes a CTD profile (except
 ##'   under rule 5): it always keeps at least one location more than one SSM time
 ##'   step (`time.step` in the config file) after the anchor, so the
 ##'   SSM-predicted track covers every CTD profile. Dives after the last CTD
@@ -41,6 +45,12 @@
 ##'   candidate is replaced by the point just after the anchor (rule 1), so the
 ##'   last CTD profile is kept. The suggested `end_date` is the earliest
 ##'   candidate.
+##'   6. Final gap: when the locations after the last gap of more than
+##'   `final_gap_days` span no more than `final_gap_max_days` and include no
+##'   CTD profile, the located track ends at the start of that gap. The rule is
+##'   repeated on the remaining track while it applies. CTD profiles and dives
+##'   inside or after the gap are ignored for the anchor (rule 1). Candidate: just
+##'   after the last location before the gap.
 ##'
 ##' @param wd the working directory, as in `smru_qc()`
 ##' @param config the JSON config file, as in `smru_qc()`. `QCmode` must be `"dm"`
@@ -65,13 +75,18 @@
 ##' @param haulout_reversal_days if the anchor follows the start of the final
 ##' haul-out by no more than this many days, the haul-out candidate is replaced by
 ##' the point just after the anchor (rule 5)
+##' @param final_gap_days gap between locations, in days, that can end the
+##'   located track (rule 6)
+##' @param final_gap_max_days the longest span of locations after a final gap,
+##'   in days, for rule 6 to apply
 ##' @param keep_days days added to each suggested `end_date` from rules 2 and 3
 ##' @param plots logical; write the review PDF
 ##'
 ##' @return invisibly, a data frame with one row per deployment: `ref`,
 ##' `start_date` (empty), `end_date` (the suggestion, or empty), `rule`,
 ##' `anchor`, `anchor_type`, `last_dive`, `last_ctd`, `last_location`,
-##' `days_after_anchor`, `stationary_end`, `sparse_end`, `final_haulout_start`,
+##' `n_records_after_track_end`, `days_after_anchor`, `stationary_end`,
+##' `sparse_end`, `final_haulout_start`, `final_gap_start`,
 ##' `n_locations_removed`, `n_dives_removed`, `n_ctd_removed`. The same table is
 ##' written to `draft_file`.
 ##'
@@ -97,6 +112,8 @@ smru_suggest_trim <- function(wd,
                               final_haulout_days = 2,
                               min_final_haulout_hours = 6,
                               haulout_reversal_days = 5,
+                              final_gap_days = 7,
+                              final_gap_max_days = 3,
                               keep_days = 0,
                               plots = TRUE) {
 
@@ -114,13 +131,12 @@ smru_suggest_trim <- function(wd,
   cid <- conf$harvest$cid
   ts_sec <- as.numeric(conf$model$time.step) * 3600
 
-  ## settings handled as in smru_qc()
+  ## settings handled as in smru_qc(); delayed-mode QC requires a metadata file
   if (is.na(conf$setup$meta.file)) {
-    conf$setup$meta.file <- NULL
-    meta.source <- "smru"
-  } else {
-    meta.source <- conf$setup$program
+    stop("Delayed-mode QC requires a deployment metadata file: set 'meta.file' in ",
+         config, ".", call. = FALSE)
   }
+  meta.source <- conf$setup$program
   if (is.null(conf$harvest$dropIDs) || all(is.na(conf$harvest$dropIDs))) {
     dropIDs <- c("")
   } else {
@@ -217,16 +233,52 @@ smru_suggest_trim <- function(wd,
 
     last_dive <- if (length(d_t)) max(d_t) else NA
     last_ctd <- if (length(c_t)) max(c_t) else NA
-    anchor <- if (length(c_t)) last_ctd else last_dive
-    anchor_type <- if (length(c_t)) "last CTD profile" else if (length(d_t)) "last dive" else NA_character_
     last_fix <- if (nrow(f)) max(f$date) else NA
+
+    ## rule 6: final gap. When the locations after the last gap of more than
+    ##  final_gap_days span no more than final_gap_max_days and include no CTD
+    ##  profile, the located track ends at the start of that gap. Repeated
+    ##  while the rule applies
+    track_end <- last_fix
+    gap_start <- .POSIXct(NA_real_, tz = "UTC")
+    gap_days <- NA_real_
+    if (nrow(f) > 1) {
+      ft <- f$date
+      repeat {
+        g <- which(diff(as.numeric(ft)) > final_gap_days * sec_day)
+        if (length(g) == 0) break
+        g <- max(g)
+        seg <- ft[(g + 1):length(ft)]
+        short <- as.numeric(difftime(max(seg), min(seg), units = "days")) <= final_gap_max_days
+        if (!short || any(c_t >= min(seg))) break
+        gap_start <- ft[g]
+        gap_days <- as.numeric(difftime(min(seg), ft[g], units = "days"))
+        ft <- ft[seq_len(g)]
+      }
+      track_end <- max(ft)
+    }
+
+    ## the anchor ignores CTD profiles and dives dated after the end of the
+    ##  located track: they cannot be located (or are misdated records)
+    if (!is.na(track_end)) {
+      n_after <- sum(c_t > track_end) + sum(d_t > track_end)
+      c_a <- c_t[c_t <= track_end]
+      d_a <- d_t[d_t <= track_end]
+    } else {
+      n_after <- 0L
+      c_a <- c_t
+      d_a <- d_t
+    }
+    anchor <- if (length(c_a)) max(c_a) else if (length(d_a)) max(d_a) else NA
+    anchor_type <- if (length(c_a)) "last CTD profile" else if (length(d_a)) "last dive" else NA_character_
 
     r <- list(ref = ref, start_date = NA_character_, end_date = NA_character_,
               rule = NA_character_, anchor = fmt(anchor), anchor_type = anchor_type,
               last_dive = fmt(last_dive), last_ctd = fmt(last_ctd),
-              last_location = fmt(last_fix), days_after_anchor = NA_real_,
+              last_location = fmt(last_fix), n_records_after_track_end = n_after,
+              days_after_anchor = NA_real_,
               stationary_end = NA_character_, sparse_end = NA_character_,
-              final_haulout_start = NA_character_,
+              final_haulout_start = NA_character_, final_gap_start = NA_character_,
               n_locations_removed = NA_integer_, n_dives_removed = NA_integer_,
               n_ctd_removed = NA_integer_)
     na_time <- .POSIXct(NA_real_, tz = "UTC")
@@ -235,6 +287,7 @@ smru_suggest_trim <- function(wd,
     sparse_end <- na_time
     ho_start <- na_time
     ho_reversed <- FALSE
+    gap_end <- na_time
 
     if (nrow(f) == 0) {
       r$rule <- "No locations; no suggestion"
@@ -245,8 +298,16 @@ smru_suggest_trim <- function(wd,
       r$days_after_anchor <- round(post_days, 2)
 
       ## rule 1: lower bound that keeps every CTD profile (or dive) located
-      need <- which(f$date >= anchor + as.numeric(conf$model$time.step) * 3600)
-      lower <- if (length(need)) f$date[need[1]] + 1 else NA
+      f_in <- f[f$date <= track_end, ]
+      need <- which(f_in$date >= anchor + as.numeric(conf$model$time.step) * 3600)
+      lower <- if (length(need)) f_in$date[need[1]] + 1 else
+        if (!is.na(gap_start)) track_end + 1 else NA
+
+      ## rule 6 candidate: just after the last location before the final gap
+      if (!is.na(gap_start)) {
+        gap_end <- track_end + 1
+        r$final_gap_start <- fmt(gap_start)
+      }
 
       ## rule 5: haul-out of at least min_final_haulout_hours beginning in the
       ##  last days of the track. Merge records separated by less than 1 hour
@@ -324,13 +385,17 @@ smru_suggest_trim <- function(wd,
       }
 
       cands <- c(stationary = as.numeric(stat_end), sparse = as.numeric(sparse_end),
-                 haulout = as.numeric(ho_start))
+                 haulout = as.numeric(ho_start), gap = as.numeric(gap_end))
       cands <- cands[!is.na(cands)]
       if (length(cands)) {
         end <- .POSIXct(min(cands), tz = "UTC")
         which_end <- names(cands)[cands == min(cands)]
         r$end_date <- fmt(end)
-        r$rule <- if (identical(which_end, "haulout") && ho_reversed) {
+        r$rule <- if ("gap" %in% which_end) {
+          sprintf(paste0("Locations resume for no more than %g days after a %.1f-day gap ",
+                         "beginning %s; trimmed at the start of the gap"),
+                  final_gap_max_days, gap_days, fmt(gap_start))
+        } else if (identical(which_end, "haulout") && ho_reversed) {
           paste0("Haul-out began ", r$final_haulout_start, " but was followed by the ",
                  anchor_type, "; trimmed just after the ", anchor_type)
         } else if (identical(which_end, "haulout")) {
@@ -355,11 +420,16 @@ smru_suggest_trim <- function(wd,
       }
     }
 
+    if (n_after > 0) {
+      r$rule <- paste0(r$rule, "; ", n_after,
+                       " CTD profile(s) or dive(s) after the end of the located track ignored")
+    }
+
     if (!is.na(end)) {
       r$n_locations_removed <- sum(f$date >= end)
       r$n_dives_removed <- sum(d_t >= end)
       r$n_ctd_removed <- sum(c_t >= end)
-      if (r$n_ctd_removed > 0 && !(!is.na(ho_start) && end == ho_start)) {
+      if (sum(c_a >= end) > 0 && !(!is.na(ho_start) && end == ho_start)) {
         stop("Internal error: suggested end_date for ", ref, " would remove CTD profiles.",
              call. = FALSE)
       }
@@ -367,7 +437,7 @@ smru_suggest_trim <- function(wd,
 
     rows[[k]] <- as.data.frame(r, stringsAsFactors = FALSE)
     plot_data[[k]] <- list(f = f, d_t = d_t, c_t = c_t, h = h, anchor = anchor,
-                           end = end, others = c(stat_end, sparse_end, ho_start), r = r)
+                           end = end, others = c(stat_end, sparse_end, ho_start, gap_end), r = r)
   }
 
   out <- do.call(rbind, rows)
@@ -487,7 +557,12 @@ trim_review_plot <- function(pd) {
                          aes(xmin = s_date, xmax = e_date, ymin = -Inf, ymax = Inf),
                          fill = "#f4a582", alpha = 0.35)
     }
-    p <- p + geom_point(data = p_pts, aes(x = date, y = value, colour = series), size = 0.6) +
+    ## all three panels are drawn even when a window has no data
+    p <- p + ggplot2::geom_blank(data = data.frame(date = from, value = NA_real_,
+                                                   panel = factor(panels, levels = panels)),
+                                 aes(x = date, y = value)) +
+      geom_point(data = p_pts, aes(x = date, y = value, colour = series), size = 0.6,
+                 na.rm = TRUE) +
       geom_line(data = p_cnts, aes(x = date, y = value, colour = series), linewidth = 0.4,
                 na.rm = TRUE)
     if (!is.na(pd$anchor)) p <- p + geom_vline(xintercept = pd$anchor, colour = "black")
@@ -511,10 +586,13 @@ trim_review_plot <- function(pd) {
 
   first_fix <- min(f$date)
   last_fix <- max(f$date)
+  ## a track whose locations all share one time still gets a one-day window
+  if (last_fix <= first_fix) last_fix <- first_fix + 86400
   whole <- draw(first_fix, last_fix, "Whole track", 20, "none")
 
   zoom_from <- if (!is.na(pd$anchor)) pd$anchor - 7 * 86400 else last_fix - 30 * 86400
   zoom_from <- max(zoom_from, first_fix)
+  if (zoom_from >= last_fix) zoom_from <- max(first_fix, last_fix - 7 * 86400)
   end_zoom <- draw(zoom_from, last_fix,
                    "End of track: from 7 days before the anchor", 12, "right")
 

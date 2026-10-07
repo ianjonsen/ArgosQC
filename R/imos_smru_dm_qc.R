@@ -12,9 +12,9 @@
 ##'
 ##' @details
 ##' Config file. If `config` exists, it is read and these settings are applied:
-##' `"QCmode": "dm"`; `"download": false`; `"diag.dir": "qc/diag"`; for Weddell
-##' seals, `"time.step": 6` and `"min.gap": 48`; the `meta` section derived as
-##' below; and any `meta.file`, `dropIDs`, `smru.usr`, `smru.pwd` and
+##' `"QCmode": "dm"`; `"diag.dir": "qc/diag"`; for Weddell seals,
+##' `"time.step": 6` and `"min.gap": 48`; the `meta` section derived as below;
+##' and any `meta.file`, `dropIDs`, `smru.usr`, `smru.pwd`, `download` and
 ##' `model.args` supplied. Every change is listed and must be confirmed before
 ##' the file is rewritten. If `config` does not exist, it is built from the
 ##' species defaults and the arguments.
@@ -50,8 +50,8 @@
 ##' @param config the config file name (relative to `wd`) or path. Default:
 ##'   `config_<cid>.json`
 ##' @param meta.file the IMOS metadata .csv file. If `NULL`, the file named in
-##'   an existing config file is used; if there is none, metadata are built
-##'   from the SMRU server and the `meta` section of the config file
+##'   an existing config file is used. Delayed-mode QC requires a metadata file:
+##'   the function stops if there is none, or if it has no deployments for `cid`
 ##' @param species the species scientific name. Required only if it cannot be
 ##'   read from `meta.file` or an existing config file
 ##' @param common_name the species common name. Default: from the species
@@ -61,13 +61,20 @@
 ##' @param state_country the country or territory of the release site.
 ##'   Default: from the release site lookup table
 ##' @param dropIDs a .csv file of deployments to exclude from the QC. Default:
-##'   the existing config value, or none
+##'   the existing config value, or an existing `<cid>_dropIDs.csv` in `wd`.
+##'   Every deployment of `cid` with no WMO ID in the metadata file is added to
+##'   it (the file `<cid>_dropIDs.csv` is created if needed), after confirmation
 ##' @param model.args a named list of `model` settings that replace the
 ##'   species defaults or the existing config values, e.g. `list(dist = 50)`
 ##' @param smru.usr,smru.pwd the SMRU data server login. Required for a new
 ##'   config file
 ##' @param p2mdbtools the path to the mdbtools binaries, used for a new config
 ##'   file
+##' @param download logical; download the campaign .mdb file from the SMRU
+##'   server before the QC, replacing the local copy. `NULL` (default) uses
+##'   `"download"` in the config file (`false` for a new config file). The .mdb
+##'   file is always downloaded if there is no local copy. It is downloaded once
+##'   per run, so the trim review and the QC use the same data
 ##' @param review logical; review the suggested track end dates interactively
 ##'   (`TRUE`), or use the `trimIDs` file set in the config file (`FALSE`)
 ##' @param upload logical; offer to upload the zip file to AODN. The upload
@@ -95,7 +102,7 @@
 ##' }
 ##'
 ##' @importFrom jsonlite read_json toJSON
-##' @importFrom readr read_csv cols col_character
+##' @importFrom readr read_csv write_csv cols col_character
 ##' @importFrom stringr str_extract regex
 ##' @importFrom utils menu packageVersion packageDescription unzip browseURL
 ##'
@@ -115,6 +122,7 @@ imos_smru_dm_qc <- function(cid,
                             smru.usr = NULL,
                             smru.pwd = NULL,
                             p2mdbtools = "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/",
+                            download = NULL,
                             review = TRUE,
                             upload = TRUE,
                             aodn.user = "",
@@ -171,6 +179,10 @@ imos_smru_dm_qc <- function(cid,
   ## metadata file
   mf <- meta.file
   if (is.null(mf) && !is.null(conf$setup$meta.file)) mf <- conf$setup$meta.file
+  if (is.null(mf)) {
+    stop("Delayed-mode QC requires a deployment metadata file: supply `meta.file`, ",
+         "or set \"meta.file\" in ", config_path, ".", call. = FALSE)
+  }
   meta_rows <- NULL
   if (!is.null(mf)) {
     mf_path <- resolve(mf)
@@ -185,8 +197,9 @@ imos_smru_dm_qc <- function(cid,
         stop("No deployments for ", cid, " in ", mf_path, call. = FALSE)
       }
     } else {
-      message("The metadata file has no SMRU_Ref, Species and Location columns; ",
-              "species and release site are not read from it.")
+      stop("The metadata file ", mf_path, " has no SMRU_Ref, Species and Location ",
+           "columns; delayed-mode QC requires an IMOS deployment metadata file.",
+           call. = FALSE)
     }
   }
 
@@ -236,7 +249,7 @@ imos_smru_dm_qc <- function(cid,
                    diag.dir = diag_dir,
                    output.dir = "qc/aodn",
                    return.R = TRUE),
-      harvest = list(download = FALSE,
+      harvest = list(download = isTRUE(download),
                      cid = cid,
                      smru.usr = smru.usr,
                      smru.pwd = smru.pwd,
@@ -251,7 +264,7 @@ imos_smru_dm_qc <- function(cid,
     new <- conf
     new$setup$diag.dir <- diag_dir
     if (!is.null(meta.file)) new$setup$meta.file <- meta.file
-    new$harvest$download <- FALSE
+    if (!is.null(download)) new$harvest$download <- isTRUE(download)
     if (!is.null(dropIDs)) new$harvest$dropIDs <- dropIDs
     if (!is.null(smru.usr)) new$harvest$smru.usr <- smru.usr
     if (!is.null(smru.pwd)) new$harvest$smru.pwd <- smru.pwd
@@ -272,7 +285,51 @@ imos_smru_dm_qc <- function(cid,
                    release_site = rs,
                    state_country = sc)
 
+  ## ---- deployments to drop: no WMO ID in the metadata ----
+  ## the dropIDs file is the one supplied, or the one named in the config, or
+  ##  an existing <cid>_dropIDs.csv in wd that the config does not name. Every
+  ##  deployment of cid with no WMO ID in the metadata is added to it
+  if (!"WMO" %in% names(meta_rows)) {
+    stop("The metadata file has no WMO column.", call. = FALSE)
+  }
+  drop_file <- new$harvest$dropIDs
+  if (is.null(drop_file) || all(is.na(drop_file))) {
+    drop_file <- if (file.exists(file.path(wd, paste0(cid, "_dropIDs.csv")))) {
+      paste0(cid, "_dropIDs.csv")
+    } else NULL
+  }
+  drop_existing <- character(0)
+  if (!is.null(drop_file)) {
+    dp <- resolve(drop_file)
+    if (!file.exists(dp)) stop("dropIDs file not found: ", dp, call. = FALSE)
+    dd <- read_csv(dp, col_types = cols(.default = col_character()), progress = FALSE)
+    if (!"ref" %in% names(dd)) stop(dp, " must have a 'ref' column.", call. = FALSE)
+    drop_existing <- unique(trimws(dd$ref[!is.na(dd$ref)]))
+  }
+  wmo <- trimws(meta_rows$WMO)
+  no_wmo <- unique(trimws(meta_rows$SMRU_Ref[is.na(wmo) | wmo == "" |
+                                               toupper(wmo) %in% c("NA", "N/A")]))
+  drop_added <- setdiff(no_wmo, drop_existing)
+  drop_ids <- c(drop_existing, drop_added)
+  drop_chg <- character(0)
+  if (length(drop_ids) > 0) {
+    if (is.null(drop_file)) drop_file <- paste0(cid, "_dropIDs.csv")
+    new$harvest$dropIDs <- drop_file
+    if (length(drop_added) > 0) {
+      drop_chg <- paste0("  ", drop_file, ": add ", drop_added, " (no WMO ID in the metadata)")
+    }
+  }
+  write_drops <- function() {
+    if (length(drop_added) > 0) {
+      write_csv(data.frame(ref = drop_ids), resolve(drop_file), na = "")
+      note("dropIDs file written: ", resolve(drop_file), "\n",
+           paste(drop_chg, collapse = "\n"))
+    }
+  }
+
   if (new_config) {
+    if (length(drop_chg) > 0) cat("\n", paste(drop_chg, collapse = "\n"), "\n\n", sep = "")
+    write_drops()
     dm_qc_write_config(new, config_path)
     note("Config file written: ", config_path)
   } else {
@@ -282,19 +339,23 @@ imos_smru_dm_qc <- function(cid,
     av <- unname(a[keys]); av[is.na(av)] <- "(absent)"
     bv <- unname(b[keys]); bv[is.na(bv)] <- "(absent)"
     changed <- av != bv
-    if (any(changed)) {
-      chg <- paste0("  ", keys[changed], ": ", av[changed], " -> ", bv[changed])
-      cat("\nChanges to ", config_path, ":\n", paste(chg, collapse = "\n"), "\n\n", sep = "")
+    if (any(changed) || length(drop_chg) > 0) {
+      chg <- c(if (any(changed)) paste0("  ", keys[changed], ": ", av[changed], " -> ",
+                                       bv[changed]),
+               drop_chg)
+      cat("\nChanges to ", config_path, " and the dropIDs file:\n",
+          paste(chg, collapse = "\n"), "\n\n", sep = "")
       if (!interactive()) {
         stop("The config file needs changes, which must be confirmed in an interactive session.",
              call. = FALSE)
       }
-      ans <- menu(c("Write these changes to the config file", "Stop"),
-                  title = "Update the config file?")
+      ans <- menu(c("Write these changes", "Stop"),
+                  title = "Update the config file and the dropIDs file?")
       if (ans != 1) {
         note("Stopped by the operator: config file changes declined")
         return(invisible(NULL))
       }
+      write_drops()
       dm_qc_write_config(new, config_path)
       note("Config file updated: ", config_path, "\n", paste(chg, collapse = "\n"))
     } else {
@@ -302,18 +363,28 @@ imos_smru_dm_qc <- function(cid,
     }
   }
 
-  ## ---- tag data: download the .mdb file only if it is missing ----
+  ## ---- tag data: download the .mdb file if asked to, or if it is missing ----
+  ##  the download goes to a temporary folder first, so a failed download leaves
+  ##  any local copy untouched
   mdb <- file.path(wd, new$setup$data.dir, paste0(cid, ".mdb"))
-  if (!file.exists(mdb)) {
-    note("Downloading ", cid, ".mdb from the SMRU server")
+  if (isTRUE(as.logical(new$harvest$download)) || !file.exists(mdb)) {
+    note("Downloading ", cid, ".mdb from the SMRU server",
+         if (file.exists(mdb)) " (replacing the local copy)" else "")
     dir.create(dirname(mdb), showWarnings = FALSE, recursive = TRUE)
-    download_data(dest = dirname(mdb),
+    tmp_dir <- tempfile("mdb_")
+    dir.create(tmp_dir)
+    on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
+    download_data(dest = tmp_dir,
                   source = "smru",
                   cid = cid,
                   user = new$harvest$smru.usr,
                   pwd = new$harvest$smru.pwd,
                   timeout = new$harvest$timeout)
-    if (!file.exists(mdb)) stop("Download failed: ", mdb, " not found.", call. = FALSE)
+    tmp_mdb <- file.path(tmp_dir, paste0(cid, ".mdb"))
+    if (!file.exists(tmp_mdb)) {
+      stop("Download failed: ", cid, ".mdb was not received from the SMRU server.", call. = FALSE)
+    }
+    if (!file.copy(tmp_mdb, mdb, overwrite = TRUE)) stop("Could not write ", mdb, call. = FALSE)
   }
   note("Tag data file: ", mdb, " (modified ", format(file.mtime(mdb), "%Y-%m-%d %H:%M:%S"), ")")
 
@@ -355,7 +426,8 @@ imos_smru_dm_qc <- function(cid,
       pick <- if (ans == 0) "stop" else names(choices)[ans]
 
       if (pick == "accept") {
-        accept_trim_dates(wd = wd, config = config_path, overwrite = TRUE)
+        accept_trim_dates(wd = wd, config = config_path, overwrite = TRUE,
+                          set_download_false = FALSE)
         decision <- paste0("Accepted all suggested end dates (", nrow(sug), " tracks truncated); ",
                            trim_file, " written")
 
@@ -366,7 +438,8 @@ imos_smru_dm_qc <- function(cid,
         ans2 <- readline("Press Enter when it is saved, or type 'back' to return to the menu: ")
         if (tolower(trimws(ans2)) == "back") next
         ok <- tryCatch({
-          accept_trim_dates(wd = wd, config = config_path, overwrite = TRUE)
+          accept_trim_dates(wd = wd, config = config_path, overwrite = TRUE,
+                          set_download_false = FALSE)
           TRUE
         }, error = function(e) {
           message("The edited draft could not be used: ", conditionMessage(e))
@@ -406,9 +479,22 @@ imos_smru_dm_qc <- function(cid,
     note("Track truncation decision: ", decision)
   }
 
+  ## ---- remove dropped deployments from the trimIDs file ----
+  cur <- read_json(config_path, simplifyVector = TRUE)
+  if (length(drop_ids) > 0 && !is.null(cur$harvest$trimIDs) && !all(is.na(cur$harvest$trimIDs))) {
+    tf <- resolve(cur$harvest$trimIDs)
+    tr <- read_csv(tf, col_types = cols(.default = col_character()), progress = FALSE)
+    gone <- trimws(tr$ref) %in% drop_ids
+    if (any(gone)) {
+      write_csv(tr[!gone, ], tf, na = "")
+      note("Removed dropped deployments from ", tf, ": ", paste(tr$ref[gone], collapse = ", "))
+    }
+  }
+
   ## ---- QC ----
   note("smru_qc() started")
-  qc <- tryCatch(smru_qc(wd = wd, config = config_path),
+  ## the .mdb file was downloaded above if required; the QC uses that copy
+  qc <- tryCatch(smru_qc(wd = wd, config = config_path, download = FALSE),
                  error = function(e) {
                    note("smru_qc() FAILED: ", conditionMessage(e))
                    stop(e)

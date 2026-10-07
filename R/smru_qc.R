@@ -17,8 +17,9 @@
 ##'   * `program` the national (or other) program of which the data is a part.
 ##'   Current options are: `imos`, `atn`, or `otn`.
 ##'   * `data.dir` the name of the data directory. Must reside within the `wd`.
-##'   * `meta.file` the metadata filename. Must reside within the `wd`. Can be NULL,
-##'   in which case, the `meta` config block (see below) must be present &
+##'   * `meta.file` the metadata filename. Must reside within the `wd`. Required
+##'   for delayed-mode QC (`QCmode = "dm"`). For near real-time QC only, it can be
+##'   NULL, in which case the `meta` config block (see below) must be present &
 ##'   tag-specific metadata are scraped from the SMRU data server.
 ##'   * `maps.dir` the directory path to write diagnostic maps of QC'd tracks.
 ##'   * `diag.dir` the directory path to write diagnostic time-series plots of
@@ -101,6 +102,8 @@
 ##'   * `species` the species scientific name (e.g., "Mirounga leonina")
 ##'   * `release_site` the location where tags were deployed (e.g., "Iles Kerguelen")
 ##'   * `state_country` the country/territory name (e.g., "French Overseas Territory")
+##' @param download optional logical; overrides `"download"` in the config file.
+##'   `NULL` (default) uses the config value
 ##'
 ##' @importFrom stringr str_split str_length
 ##' @importFrom jsonlite read_json
@@ -109,7 +112,8 @@
 ##' @export
 
 smru_qc <- function(wd,
-                    config) {
+                    config,
+                    download = NULL) {
 
   if(!file.exists(wd)) stop("Working directory `wd` does not exist")
   else setwd(wd)
@@ -118,6 +122,11 @@ smru_qc <- function(wd,
 
   ## define metadata source
   if(is.na(conf$setup$meta.file)) {
+    if (identical(as.character(conf$model$QCmode), "dm")) {
+      stop("Delayed-mode QC requires a deployment metadata file: set 'meta.file' in ",
+           config, ". Metadata are built from the SMRU server for near real-time QC only.",
+           call. = FALSE)
+    }
     conf$setup$meta.file <- NULL
     meta.source <- "smru"
   } else {
@@ -170,7 +179,8 @@ smru_qc <- function(wd,
 
 
   ## Conditionally download data from SMRU server
-  if(conf$harvest$download) {
+  if (!is.null(download)) conf$harvest$download <- isTRUE(download)
+  if(isTRUE(as.logical(conf$harvest$download))) {
     message("\nDownloading tag data from SMRU server...")
     #   system(paste0("rm ", file.path(conf$setup$datadir, "*.mdb")))
     ## download tag data from SMRU server
@@ -213,6 +223,16 @@ smru_qc <- function(wd,
       meta.args = conf$meta
     ) |>
       suppressMessages()
+
+  ## delayed-mode QC: report deployments in the tag data that are not in the
+  ##  metadata file; they are excluded from the QC
+  if (identical(as.character(conf$model$QCmode), "dm") && "diag" %in% names(smru)) {
+    no_meta <- setdiff(unique(as.character(smru$diag$ref)), c(meta$device_id, dropIDs))
+    if (length(no_meta) > 0) {
+      message("Deployments in the tag data but not in the metadata file (excluded from the QC): ",
+              paste(sort(no_meta), collapse = ", "))
+    }
+  }
 
   message("Preparing location data for QC...")
   ## Prepare location data

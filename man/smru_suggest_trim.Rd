@@ -17,6 +17,8 @@ smru_suggest_trim(
   final_haulout_days = 2,
   min_final_haulout_hours = 6,
   haulout_reversal_days = 5,
+  final_gap_days = 7,
+  final_gap_max_days = 3,
   keep_days = 0,
   plots = TRUE
 )
@@ -57,6 +59,12 @@ last location can set a candidate at its start (rule 5)}
 haul-out by no more than this many days, the haul-out candidate is replaced by
 the point just after the anchor (rule 5)}
 
+\item{final_gap_days}{gap between locations, in days, that can end the
+located track (rule 6)}
+
+\item{final_gap_max_days}{the longest span of locations after a final gap,
+in days, for rule 6 to apply}
+
 \item{keep_days}{days added to each suggested \code{end_date} from rules 2 and 3}
 
 \item{plots}{logical; write the review PDF}
@@ -65,7 +73,8 @@ the point just after the anchor (rule 5)}
 invisibly, a data frame with one row per deployment: \code{ref},
 \code{start_date} (empty), \code{end_date} (the suggestion, or empty), \code{rule},
 \code{anchor}, \code{anchor_type}, \code{last_dive}, \code{last_ctd}, \code{last_location},
-\code{days_after_anchor}, \code{stationary_end}, \code{sparse_end}, \code{final_haulout_start},
+\code{n_records_after_track_end}, \code{days_after_anchor}, \code{stationary_end},
+\code{sparse_end}, \code{final_haulout_start}, \code{final_gap_start},
 \code{n_locations_removed}, \code{n_dives_removed}, \code{n_ctd_removed}. The same table is
 written to \code{draft_file}.
 }
@@ -84,7 +93,11 @@ QC is unsupervised, so no tracks are truncated there.
 The rules, applied to each deployment:
 \enumerate{
 \item The anchor is the last CTD profile, or the last dive for a tag with no
-CTD profiles. A suggested \code{end_date} never removes a CTD profile (except
+CTD profiles. CTD profiles and dives dated after the end of the located
+track (the last location, or the start of a final gap under rule 6) are
+ignored: they cannot be located, and may be misdated records. Their number
+is reported in \code{n_records_after_track_end}. A suggested \code{end_date} never
+removes a CTD profile (except
 under rule 5): it always keeps at least one location more than one SSM time
 step (\code{time.step} in the config file) after the anchor, so the
 SSM-predicted track covers every CTD profile. Dives after the last CTD
@@ -113,5 +126,11 @@ than \code{haulout_reversal_days} after it, the haul-out was not final: the
 candidate is replaced by the point just after the anchor (rule 1), so the
 last CTD profile is kept. The suggested \code{end_date} is the earliest
 candidate.
+\item Final gap: when the locations after the last gap of more than
+\code{final_gap_days} span no more than \code{final_gap_max_days} and include no
+CTD profile, the located track ends at the start of that gap. The rule is
+repeated on the remaining track while it applies. CTD profiles and dives
+inside or after the gap are ignored for the anchor (rule 1). Candidate: just
+after the last location before the gap.
 }
 }

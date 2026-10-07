@@ -9,7 +9,7 @@ accept_trim_dates(
   config,
   draft_file = NULL,
   trim_file = NULL,
-  set_download_false = TRUE,
+  set_download_false = FALSE,
   overwrite = FALSE
 )
 }
@@ -25,7 +25,7 @@ accept_trim_dates(
 \verb{<cid>_trimIDs.csv} in \code{wd}}
 
 \item{set_download_false}{logical; set \code{"download"} to \code{false} in the config
-file (default \code{TRUE})}
+file (default \code{FALSE})}
 
 \item{overwrite}{logical; replace an existing \code{trim_file} (default \code{FALSE},
 so a hand-edited file is not lost)}
@@ -36,14 +36,15 @@ invisibly, the path of the accepted truncation file
 \description{
 Accepts the draft truncation file written by
 \code{smru_suggest_trim()} as it is: copies \verb{<cid>_trimIDs_draft.csv} to
-\verb{<cid>_trimIDs.csv} and sets \code{"trimIDs"} in the config file to that file. By
-default it also sets \code{"download"} to \code{false}, so the delayed-mode QC uses the
-local .mdb files that the suggestions were made from. Use it after reviewing
+\verb{<cid>_trimIDs.csv} and sets \code{"trimIDs"} in the config file to that file.
+With \code{set_download_false = TRUE} it also sets \code{"download"} to \code{false}, so the
+delayed-mode QC uses the local .mdb files that the suggestions were made
+from. Use it after reviewing
 the review PDF, when every suggestion is accepted unchanged. To change any
 suggestion, edit the draft and save it as \verb{<cid>_trimIDs.csv} instead.
 
 The config file is edited as text: only the \code{"trimIDs"} value (or a new
-\code{"trimIDs"} line after \code{"dropIDs"}) and the \code{"download"} value change, so its
+\code{"trimIDs"} line after \code{"dropIDs"}) and, optionally, the \code{"download"} value change, so its
 layout is kept. The edited file is checked to parse, with the new values,
 before anything is written.
 

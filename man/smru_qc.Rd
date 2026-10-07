@@ -4,7 +4,7 @@
 \alias{smru_qc}
 \title{SMRU SRDL QC workflow}
 \usage{
-smru_qc(wd, config)
+smru_qc(wd, config, download = NULL)
 }
 \arguments{
 \item{wd}{the path to the working directory that contains: 1) the data directory
@@ -21,8 +21,9 @@ directories:
 \item \code{program} the national (or other) program of which the data is a part.
 Current options are: \code{imos}, \code{atn}, or \code{otn}.
 \item \code{data.dir} the name of the data directory. Must reside within the \code{wd}.
-\item \code{meta.file} the metadata filename. Must reside within the \code{wd}. Can be NULL,
-in which case, the \code{meta} config block (see below) must be present &
+\item \code{meta.file} the metadata filename. Must reside within the \code{wd}. Required
+for delayed-mode QC (\code{QCmode = "dm"}). For near real-time QC only, it can be
+NULL, in which case the \code{meta} config block (see below) must be present &
 tag-specific metadata are scraped from the SMRU data server.
 \item \code{maps.dir} the directory path to write diagnostic maps of QC'd tracks.
 \item \code{diag.dir} the directory path to write diagnostic time-series plots of
@@ -112,6 +113,9 @@ This config block is only necessary when no metadata file is provided in the
 \item \code{state_country} the country/territory name (e.g., "French Overseas Territory")
 }
 }}
+
+\item{download}{optional logical; overrides \code{"download"} in the config file.
+\code{NULL} (default) uses the config value}
 }
 \description{
 Wrapper function that executes the complete SMRU QC workflow from data

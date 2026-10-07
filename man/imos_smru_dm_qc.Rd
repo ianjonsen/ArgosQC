@@ -18,6 +18,7 @@ imos_smru_dm_qc(
   smru.usr = NULL,
   smru.pwd = NULL,
   p2mdbtools = "/opt/homebrew/Cellar/mdbtools/1.0.1/bin/",
+  download = NULL,
   review = TRUE,
   upload = TRUE,
   aodn.user = "",
@@ -34,8 +35,8 @@ imos_smru_dm_qc(
 \verb{config_<cid>.json}}
 
 \item{meta.file}{the IMOS metadata .csv file. If \code{NULL}, the file named in
-an existing config file is used; if there is none, metadata are built
-from the SMRU server and the \code{meta} section of the config file}
+an existing config file is used. Delayed-mode QC requires a metadata file:
+the function stops if there is none, or if it has no deployments for \code{cid}}
 
 \item{species}{the species scientific name. Required only if it cannot be
 read from \code{meta.file} or an existing config file}
@@ -50,7 +51,9 @@ the existing config value}
 Default: from the release site lookup table}
 
 \item{dropIDs}{a .csv file of deployments to exclude from the QC. Default:
-the existing config value, or none}
+the existing config value, or an existing \verb{<cid>_dropIDs.csv} in \code{wd}.
+Every deployment of \code{cid} with no WMO ID in the metadata file is added to
+it (the file \verb{<cid>_dropIDs.csv} is created if needed), after confirmation}
 
 \item{model.args}{a named list of \code{model} settings that replace the
 species defaults or the existing config values, e.g. \code{list(dist = 50)}}
@@ -60,6 +63,12 @@ config file}
 
 \item{p2mdbtools}{the path to the mdbtools binaries, used for a new config
 file}
+
+\item{download}{logical; download the campaign .mdb file from the SMRU
+server before the QC, replacing the local copy. \code{NULL} (default) uses
+\code{"download"} in the config file (\code{false} for a new config file). The .mdb
+file is always downloaded if there is no local copy. It is downloaded once
+per run, so the trim review and the QC use the same data}
 
 \item{review}{logical; review the suggested track end dates interactively
 (\code{TRUE}), or use the \code{trimIDs} file set in the config file (\code{FALSE})}
@@ -94,9 +103,9 @@ PDF;
 }
 \details{
 Config file. If \code{config} exists, it is read and these settings are applied:
-\code{"QCmode": "dm"}; \code{"download": false}; \code{"diag.dir": "qc/diag"}; for Weddell
-seals, \code{"time.step": 6} and \code{"min.gap": 48}; the \code{meta} section derived as
-below; and any \code{meta.file}, \code{dropIDs}, \code{smru.usr}, \code{smru.pwd} and
+\code{"QCmode": "dm"}; \code{"diag.dir": "qc/diag"}; for Weddell seals,
+\code{"time.step": 6} and \code{"min.gap": 48}; the \code{meta} section derived as below;
+and any \code{meta.file}, \code{dropIDs}, \code{smru.usr}, \code{smru.pwd}, \code{download} and
 \code{model.args} supplied. Every change is listed and must be confirmed before
 the file is rewritten. If \code{config} does not exist, it is built from the
 species defaults and the arguments.
