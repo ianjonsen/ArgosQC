@@ -63,7 +63,9 @@
 ##' @param dropIDs a .csv file of deployments to exclude from the QC. Default:
 ##'   the existing config value, or an existing `<cid>_dropIDs.csv` in `wd`.
 ##'   Every deployment of `cid` with no WMO ID in the metadata file is added to
-##'   it (the file `<cid>_dropIDs.csv` is created if needed), after confirmation
+##'   it (the file `<cid>_dropIDs.csv` is created if needed), after
+##'   confirmation. The 2022 turtle campaigns (tu116, tu117 and tu120) are
+##'   exempt: they have no WMO IDs and are QC'd without them
 ##' @param model.args a named list of `model` settings that replace the
 ##'   species defaults or the existing config values, e.g. `list(dist = 50)`
 ##' @param smru.usr,smru.pwd the SMRU data server login. Required for a new
@@ -309,6 +311,12 @@ imos_smru_dm_qc <- function(cid,
   wmo <- trimws(meta_rows$WMO)
   no_wmo <- unique(trimws(meta_rows$SMRU_Ref[is.na(wmo) | wmo == "" |
                                                toupper(wmo) %in% c("NA", "N/A")]))
+  ## campaigns whose deployments are QC'd without WMO IDs (see .imos_wmo_exempt_cids)
+  if (cid %in% .imos_wmo_exempt_cids && length(no_wmo) > 0) {
+    note(length(no_wmo), " deployment(s) of ", cid, " have no WMO ID; ", cid,
+         " is exempt from the WMO ID requirement, so none are dropped")
+    no_wmo <- character(0)
+  }
   drop_added <- setdiff(no_wmo, drop_existing)
   drop_ids <- c(drop_existing, drop_added)
   drop_chg <- character(0)

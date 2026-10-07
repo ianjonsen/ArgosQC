@@ -146,3 +146,8 @@ imos_standardise_meta <- function(meta) {
 smru_cid <- function(ref) {
   stringr::str_extract(trimws(ref), stringr::regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE))
 }
+
+## campaigns that are delayed-mode QC'd without WMO IDs: the 2022 IMOS turtle
+##  campaigns had no WMO IDs. Every other campaign's deployments with no WMO ID
+##  are dropped by imos_smru_dm_qc()
+.imos_wmo_exempt_cids <- c("tu116", "tu117", "tu120")

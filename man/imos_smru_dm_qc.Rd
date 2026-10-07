@@ -53,7 +53,9 @@ Default: from the release site lookup table}
 \item{dropIDs}{a .csv file of deployments to exclude from the QC. Default:
 the existing config value, or an existing \verb{<cid>_dropIDs.csv} in \code{wd}.
 Every deployment of \code{cid} with no WMO ID in the metadata file is added to
-it (the file \verb{<cid>_dropIDs.csv} is created if needed), after confirmation}
+it (the file \verb{<cid>_dropIDs.csv} is created if needed), after
+confirmation. The 2022 turtle campaigns (tu116, tu117 and tu120) are
+exempt: they have no WMO IDs and are QC'd without them}
 
 \item{model.args}{a named list of \code{model} settings that replace the
 species defaults or the existing config values, e.g. \code{list(dist = 50)}}

@@ -201,8 +201,15 @@ smru_pull_tables <- function(cids,
   if (any(names(smru) %in% "gps")) {
     if (nrow(smru$gps) > 0) {
       smru$gps <- smru$gps |>
-        mutate(d_date = mdy_hms(d_date, tz = "UTC")) |>
-        mutate(submitted = mdy_hms(submitted, tz = "UTC"))
+        mutate(d_date = mdy_hms(d_date, tz = "UTC"))
+      ## older SMRU gps tables have no 'submitted' column: add it as NA, so
+      ##  the table has the standard structure
+      if ("submitted" %in% names(smru$gps)) {
+        smru$gps <- smru$gps |>
+          mutate(submitted = mdy_hms(submitted, tz = "UTC"))
+      } else {
+        smru$gps$submitted <- as.POSIXct(rep(NA_real_, nrow(smru$gps)), tz = "UTC")
+      }
       if("d_date_tag" %in% names(smru$gps)) {
         smru$gps <- smru$gps |>
           mutate(d_date_tag = case_when(
