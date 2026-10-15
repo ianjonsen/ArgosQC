@@ -83,14 +83,20 @@ smru_typed_na <- function(v, n) {
 }
 
 ## conform one SMRU output table to the standard AODN structure: add missing
-##  columns (all NA), drop columns that are not in the standard structure, and
-##  put the columns in the standard order, followed by the appended QC variables
+##  columns (all NA), give all-NA columns their standard class, drop columns
+##  that are not in the standard structure, and put the columns in the
+##  standard order, followed by the appended QC variables
 smru_conform_table <- function(df, table, quiet = FALSE) {
   std <- .smru_aodn_cols[[table]]
   if (is.null(std) || is.null(df)) return(df)
   miss <- setdiff(std, names(df))
   extra <- setdiff(names(df), c(std, .smru_aodn_qc_cols))
   for (v in miss) df[[v]] <- smru_typed_na(v, nrow(df))
+  ## columns that are entirely blank in the .mdb are read as logical NA:
+  ##  give them their standard class so the IMOS field tests pass
+  for (v in intersect(std, names(df))) {
+    if (is.logical(df[[v]]) && all(is.na(df[[v]]))) df[[v]] <- smru_typed_na(v, nrow(df))
+  }
   if (!quiet && (length(miss) > 0 || length(extra) > 0)) {
     message("Conforming the ", table, " table to the AODN structure: ",
             length(miss), " column(s) added as NA",
