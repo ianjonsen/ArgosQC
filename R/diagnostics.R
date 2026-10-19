@@ -1,6 +1,8 @@
 ##' @title run QC diagnostics for WC or SMRU tag workflows
 ##'
-##' @description produces a map of all QC'd tracks and generates various diagnostics to assess QC run
+##' @description produces a map of all QC'd tracks and generates various diagnostics to assess QC run.
+##' The map shows each SSM-estimated track in its own hue, with its Argos locations in a
+##' light tint of that hue; Argos locations removed by the prefilter are semi-transparent points in the track's dark shade
 ##'
 ##' @param fit the final aniMotum fit object from QC process
 ##' @param fit1 the initial aniMotum fit object from QC process
@@ -9,8 +11,8 @@
 ##' @param data the standardized WC Locations or SMRU diag file (prior to truncation by metadata CTD start and end dates)
 ##' @param ssm the ssm-annotated WC/SMRU tables
 ##' @param meta metadata
-##' @param lines add track lines to map (default = FALSE)
-##' @param obs add observed locations to map (default = FALSE)
+##' @param lines ignored; the map always shows track lines (kept for compatibility)
+##' @param obs ignored; the map always shows the Argos locations (kept for compatibility)
 ##' @param mpath path to write map file
 ##' @param dpath path to write all other diagnostic files
 ##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
@@ -51,126 +53,17 @@ diagnostics <-
     if(is.null(mpath)) stop("A valid file path for the map must be provided")
     if(is.null(dpath)) stop("A valid file path for the diagnostics must be provided")
 
-    my.aes <- aes_lst(conf = FALSE,
-                      line = ifelse(lines, TRUE, FALSE),
-                      obs = ifelse(obs, TRUE, FALSE))
-    my.aes$df$size[1] <- 1
-
-    if(obs) {
-      my.aes$df$size[4] <- 0.75
-      my.aes$df$col[4] <- "darkorange"
-      my.aes$df$alpha[4] <- 0.5
-    }
-
-
+    ## fitted locations for the coverage plots
     if (inherits(fit, "list")) {
-      n <- length(fit)
-
-      flocs <- lapply(1:n, function(i) {
-        locs <- grab_QC(fit[[i]], what = what, as_sf = TRUE)
-        end.locs <- locs |>
-          group_by(id) |>
-          summarise(geometry = geometry[n(), ])
-
-        flocs <- grab_QC(fit[[i]], what = "f")
-
-        suppressMessages(map_QC(
-          fit[[i]],
-          what = what,
-          by.id = FALSE,
-          cut = cut,
-          aes = my.aes
-        ) +
-          geom_sf(
-            data = end.locs,
-            size = 0.75,
-            colour = "firebrick",
-            inherit.aes = TRUE
-          ) +
-          coord_sf(xlim = st_bbox(locs)[c(1, 3)], ylim = st_bbox(locs)[c(2, 4)]) +
-          theme_minimal())
-
-        if(!is.null(cid)) {
-          ggsave(
-            file.path(mpath, paste0(
-              "map_", cid, "_", Sys.Date(), ".png"
-            )),
-            width = 8,
-            height = 10,
-            units = "in",
-            dpi = 300,
-            bg = "white"
-          )
-
-        } else {
-          ggsave(
-            file.path(mpath, paste0(
-              "map_", cid, "_", Sys.Date(), ".png"
-            )),
-            width = 8,
-            height = 10,
-            units = "in",
-            dpi = 300,
-            bg = "white"
-          )
-        }
-
-
-        return(flocs)
-      }) |>
+      flocs <- lapply(fit, grab_QC, what = "f") |>
         bind_rows()
-
-
-    } else if(inherits(fit, "ssm_df")) {
-      locs <- grab_QC(fit, what = what, as_sf = TRUE)
-      end.locs <- locs |>
-        group_by(id) |>
-        summarise(geometry = geometry[n(), ])
-
-     flocs <- grab_QC(fit, what = "f")
-     plocs <- grab_QC(fit, what = "p")
-
-      suppressMessages(map_QC(
-        fit,
-        what = what,
-        by.id = FALSE,
-        cut = cut,
-        aes = my.aes
-      ) +
-        geom_sf(
-          data = end.locs,
-          size = 0.75,
-          colour = "firebrick"
-        ) +
-        coord_sf(xlim = st_bbox(locs)[c(1, 3)],
-                 ylim = st_bbox(locs)[c(2, 4)]) +
-        theme_minimal())
-
-      if(!is.null(cid)) {
-      ggsave(
-        file.path(mpath, paste0(
-          "map_", cid, "_", Sys.Date(), ".png"
-        )),
-        width = 8,
-        height = 10,
-        units = "in",
-        dpi = 300,
-        bg = "white"
-      )
-      } else {
-        ggsave(
-          file.path(mpath, paste0(
-            "map_", Sys.Date(), ".png"
-          )),
-          width = 8,
-          height = 10,
-          units = "in",
-          dpi = 300,
-          bg = "white"
-        )
-      }
-
+    } else if (inherits(fit, "ssm_df")) {
+      flocs <- grab_QC(fit, what = "f")
     }
+
+    ## map of all QC'd tracks: SSM-estimated tracks, each with its Argos
+    ##  locations in a light tint of the track's hue (see qc_track_map())
+    qc_track_map(fit, what = what, cut = cut, mpath = mpath, cid = cid)
 
     ## generate separate lon & lat coverage plots by individual
     ##  obs + estimates (fitted)

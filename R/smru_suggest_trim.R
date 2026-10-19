@@ -51,6 +51,15 @@
 ##'   repeated on the remaining track while it applies. CTD profiles and dives
 ##'   inside or after the gap are ignored for the anchor (rule 1). Candidate: just
 ##'   after the last location before the gap.
+##'   7. Final outlier: an Argos location of any class, including Z, in the last
+##'   `final_outlier_days` of the track that lies more than `final_outlier_km`
+##'   from the median position of the other locations (all classes except Z) in
+##'   that window. A single gross error at the end of a track can pull the SSM
+##'   track far away, because the speed filter cannot test the last locations
+##'   well. Candidate: the time of the earliest such location, so it and any
+##'   later locations are removed. The candidate is used only if it keeps every
+##'   CTD profile (rule 1); otherwise the outlier is reported in `rule` for
+##'   review.
 ##'
 ##' @param wd the working directory, as in `smru_qc()`
 ##' @param config the JSON config file, as in `smru_qc()`. `QCmode` must be `"dm"`
@@ -79,6 +88,10 @@
 ##'   located track (rule 6)
 ##' @param final_gap_max_days the longest span of locations after a final gap,
 ##'   in days, for rule 6 to apply
+##' @param final_outlier_km distance (km) from the median end-of-track position
+##'   beyond which a location is a final outlier (rule 7)
+##' @param final_outlier_days length (days) of the end-of-track window searched
+##'   for final outliers (rule 7)
 ##' @param keep_days days added to each suggested `end_date` from rules 2 and 3
 ##' @param plots logical; write the review PDF
 ##'
@@ -86,7 +99,7 @@
 ##' `start_date` (empty), `end_date` (the suggestion, or empty), `rule`,
 ##' `anchor`, `anchor_type`, `last_dive`, `last_ctd`, `last_location`,
 ##' `n_records_after_track_end`, `days_after_anchor`, `stationary_end`,
-##' `sparse_end`, `final_haulout_start`, `final_gap_start`,
+##' `sparse_end`, `final_haulout_start`, `final_gap_start`, `final_outlier`,
 ##' `n_locations_removed`, `n_dives_removed`, `n_ctd_removed`. The same table is
 ##' written to `draft_file`.
 ##'
@@ -114,6 +127,8 @@ smru_suggest_trim <- function(wd,
                               haulout_reversal_days = 5,
                               final_gap_days = 7,
                               final_gap_max_days = 3,
+                              final_outlier_km = 500,
+                              final_outlier_days = 2,
                               keep_days = 0,
                               plots = TRUE) {
 
@@ -224,8 +239,9 @@ smru_suggest_trim <- function(wd,
 
   for (k in seq_along(refs)) {
     ref <- refs[k]
-    f <- obs[obs$ref == ref & obs$lc != "Z", ]
-    f <- f[order(f$date), ]
+    f_all <- obs[obs$ref == ref, ]
+    f_all <- f_all[order(f_all$date), ]
+    f <- f_all[f_all$lc != "Z", ]
     d_t <- sort(dives$t[dives$ref == ref])
     c_t <- sort(ctds$t[ctds$ref == ref])
     h <- ho[ho$ref == ref, ]
@@ -279,6 +295,7 @@ smru_suggest_trim <- function(wd,
               days_after_anchor = NA_real_,
               stationary_end = NA_character_, sparse_end = NA_character_,
               final_haulout_start = NA_character_, final_gap_start = NA_character_,
+              final_outlier = NA_character_,
               n_locations_removed = NA_integer_, n_dives_removed = NA_integer_,
               n_ctd_removed = NA_integer_)
     na_time <- .POSIXct(NA_real_, tz = "UTC")
@@ -288,6 +305,8 @@ smru_suggest_trim <- function(wd,
     ho_start <- na_time
     ho_reversed <- FALSE
     gap_end <- na_time
+    outlier_end <- na_time
+    outlier_note <- NA_character_
 
     if (nrow(f) == 0) {
       r$rule <- "No locations; no suggestion"
@@ -307,6 +326,30 @@ smru_suggest_trim <- function(wd,
       if (!is.na(gap_start)) {
         gap_end <- track_end + 1
         r$final_gap_start <- fmt(gap_start)
+      }
+
+      ## rule 7: final outlier. Any location (including class Z) in the last
+      ##  final_outlier_days of the track, more than final_outlier_km from the
+      ##  median position of the other (non-Z) locations in that window
+      w_from <- max(f_all$date) - final_outlier_days * sec_day
+      w_all <- f_all[f_all$date >= w_from, ]
+      w_ref <- f[f$date >= w_from, ]
+      if (nrow(w_ref) >= 3) {
+        d_out <- dist_km(median(w_ref$lat), median(w_ref$lon), w_all$lat, w_all$lon)
+        out_i <- which(d_out > final_outlier_km)
+        if (length(out_i)) {
+          o1 <- out_i[1]
+          t_out <- w_all$date[o1]
+          r$final_outlier <- fmt(t_out)
+          outlier_note <- sprintf("location class %s, %.0f km from the end of the track, at %s",
+                                  w_all$lc[o1], d_out[o1], fmt(t_out))
+          if (!is.na(lower) && t_out >= lower) {
+            outlier_end <- t_out
+          } else {
+            outlier_note <- paste0(outlier_note, " (not trimmed: trimming there would remove ",
+                                   "CTD profiles; review)")
+          }
+        }
       }
 
       ## rule 5: haul-out of at least min_final_haulout_hours beginning in the
@@ -385,13 +428,16 @@ smru_suggest_trim <- function(wd,
       }
 
       cands <- c(stationary = as.numeric(stat_end), sparse = as.numeric(sparse_end),
-                 haulout = as.numeric(ho_start), gap = as.numeric(gap_end))
+                 haulout = as.numeric(ho_start), gap = as.numeric(gap_end),
+                 outlier = as.numeric(outlier_end))
       cands <- cands[!is.na(cands)]
       if (length(cands)) {
         end <- .POSIXct(min(cands), tz = "UTC")
         which_end <- names(cands)[cands == min(cands)]
         r$end_date <- fmt(end)
-        r$rule <- if ("gap" %in% which_end) {
+        r$rule <- if ("outlier" %in% which_end) {
+          paste0("Outlying final location (", outlier_note, "); trimmed just before it")
+        } else if ("gap" %in% which_end) {
           sprintf(paste0("Locations resume for no more than %g days after a %.1f-day gap ",
                          "beginning %s; trimmed at the start of the gap"),
                   final_gap_max_days, gap_days, fmt(gap_start))
@@ -420,6 +466,10 @@ smru_suggest_trim <- function(wd,
       }
     }
 
+    if (!is.na(outlier_note) && (is.na(end) || is.na(outlier_end) || end != outlier_end)) {
+      r$rule <- paste0(r$rule, "; outlying final location: ", outlier_note)
+    }
+
     if (n_after > 0) {
       r$rule <- paste0(r$rule, "; ", n_after,
                        " CTD profile(s) or dive(s) after the end of the located track ignored")
@@ -437,7 +487,8 @@ smru_suggest_trim <- function(wd,
 
     rows[[k]] <- as.data.frame(r, stringsAsFactors = FALSE)
     plot_data[[k]] <- list(f = f, d_t = d_t, c_t = c_t, h = h, anchor = anchor,
-                           end = end, others = c(stat_end, sparse_end, ho_start, gap_end), r = r)
+                           end = end, others = c(stat_end, sparse_end, ho_start, gap_end,
+                                                 outlier_end), r = r)
   }
 
   out <- do.call(rbind, rows)

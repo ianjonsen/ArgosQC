@@ -94,6 +94,9 @@
 ##'   predicted locations (default is 72 h)
 ##'   * `QCmode` one of either `nrt` for Near Real-Time QC or `dm` for Delayed
 ##'   Mode QC.
+##'   * `inactive.days` optional; near real-time QC only. If no tag has
+##'   transmitted (Argos location or GPS fix) for more than this many days, the
+##'   QC stops with an error before any output is written (default is 7 days).
 ##'
 ##' * `meta` config block specifies species and deployment location information.
 ##' This config block is only necessary when no metadata file is provided in the
@@ -208,6 +211,18 @@ smru_qc <- function(wd,
   smru <- smru_pull_tables(cids = conf$harvest$cid,
                           path2mdb = conf$setup$data.dir,
                           p2mdbtools = conf$harvest$p2mdbtools)
+
+  ## near real-time QC: stop if no tag has transmitted for more than
+  ##  inactive.days (default 7)
+  if (!identical(as.character(conf$model$QCmode), "dm")) {
+    inactive.days <- conf$model$inactive.days
+    if (is.null(inactive.days) || all(is.na(inactive.days))) inactive.days <- 7
+    smru_check_active(smru,
+                      cid = conf$harvest$cid,
+                      config = config,
+                      dropIDs = dropIDs,
+                      inactive.days = as.numeric(inactive.days))
+  }
 
   if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
   else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from SMRU Portal...")
