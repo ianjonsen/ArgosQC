@@ -36,9 +36,9 @@ diagnostics(
 
 \item{meta}{metadata}
 
-\item{lines}{add track lines to map (default = FALSE)}
+\item{lines}{ignored; the map always shows track lines (kept for compatibility)}
 
-\item{obs}{add observed locations to map (default = FALSE)}
+\item{obs}{ignored; the map always shows the Argos locations (kept for compatibility)}
 
 \item{mpath}{path to write map file}
 
@@ -52,5 +52,7 @@ in latter case start end end of dive data are displayed rather than ctd data.}
 \item{cid}{SMRU campaign id (from config file). Ignored if WC data is used.}
 }
 \description{
-produces a map of all QC'd tracks and generates various diagnostics to assess QC run
+produces a map of all QC'd tracks and generates various diagnostics to assess QC run.
+The map shows each SSM-estimated track in its own hue, with its Argos locations in a
+light tint of that hue; Argos locations removed by the prefilter are semi-transparent points in the track's dark shade
 }

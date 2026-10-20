@@ -19,6 +19,8 @@ smru_suggest_trim(
   haulout_reversal_days = 5,
   final_gap_days = 7,
   final_gap_max_days = 3,
+  final_outlier_km = 500,
+  final_outlier_days = 2,
   keep_days = 0,
   plots = TRUE
 )
@@ -65,6 +67,12 @@ located track (rule 6)}
 \item{final_gap_max_days}{the longest span of locations after a final gap,
 in days, for rule 6 to apply}
 
+\item{final_outlier_km}{distance (km) from the median end-of-track position
+beyond which a location is a final outlier (rule 7)}
+
+\item{final_outlier_days}{length (days) of the end-of-track window searched
+for final outliers (rule 7)}
+
 \item{keep_days}{days added to each suggested \code{end_date} from rules 2 and 3}
 
 \item{plots}{logical; write the review PDF}
@@ -74,7 +82,7 @@ invisibly, a data frame with one row per deployment: \code{ref},
 \code{start_date} (empty), \code{end_date} (the suggestion, or empty), \code{rule},
 \code{anchor}, \code{anchor_type}, \code{last_dive}, \code{last_ctd}, \code{last_location},
 \code{n_records_after_track_end}, \code{days_after_anchor}, \code{stationary_end},
-\code{sparse_end}, \code{final_haulout_start}, \code{final_gap_start},
+\code{sparse_end}, \code{final_haulout_start}, \code{final_gap_start}, \code{final_outlier},
 \code{n_locations_removed}, \code{n_dives_removed}, \code{n_ctd_removed}. The same table is
 written to \code{draft_file}.
 }
@@ -132,5 +140,14 @@ CTD profile, the located track ends at the start of that gap. The rule is
 repeated on the remaining track while it applies. CTD profiles and dives
 inside or after the gap are ignored for the anchor (rule 1). Candidate: just
 after the last location before the gap.
+\item Final outlier: an Argos location of any class, including Z, in the last
+\code{final_outlier_days} of the track that lies more than \code{final_outlier_km}
+from the median position of the other locations (all classes except Z) in
+that window. A single gross error at the end of a track can pull the SSM
+track far away, because the speed filter cannot test the last locations
+well. Candidate: the time of the earliest such location, so it and any
+later locations are removed. The candidate is used only if it keeps every
+CTD profile (rule 1); otherwise the outlier is reported in \code{rule} for
+review.
 }
 }
