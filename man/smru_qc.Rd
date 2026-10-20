@@ -102,6 +102,9 @@ in a large data gap (default is FALSE).
 predicted locations (default is 72 h)
 \item \code{QCmode} one of either \code{nrt} for Near Real-Time QC or \code{dm} for Delayed
 Mode QC.
+\item \code{inactive.days} optional; near real-time QC only. If no tag has
+transmitted (Argos location or GPS fix) for more than this many days, the
+QC stops with an error before any output is written (default is 7 days).
 }
 \item \code{meta} config block specifies species and deployment location information.
 This config block is only necessary when no metadata file is provided in the
