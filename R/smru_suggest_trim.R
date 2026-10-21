@@ -196,8 +196,24 @@ smru_suggest_trim <- function(wd,
     suppressMessages()
 
   obs <- smru_clean_diag(smru, dropIDs = dropIDs)
-  obs <- obs[obs$ref %in% meta$device_id & !is.na(obs$date) &
-               !is.na(obs$lon) & !is.na(obs$lat), ]
+  obs <- obs[!is.na(obs$date) & !is.na(obs$lon) & !is.na(obs$lat), ]
+
+  ## stop with a clear message when no deployment in the metadata has Argos
+  ##  locations in the tag data
+  if (!any(obs$ref %in% meta$device_id)) {
+    in_meta <- setdiff(sort(unique(as.character(meta$device_id))), dropIDs)
+    in_data <- setdiff(sort(unique(as.character(obs$ref))), dropIDs)
+    show <- function(x) {
+      if (length(x) == 0) return("none")
+      paste0(paste(x, collapse = ", "), " (", length(x), ")")
+    }
+    stop("No deployment of ", paste(cid, collapse = ", "), " in the metadata has Argos ",
+         "locations in the tag data.\n  In the metadata, with no tag data: ", show(in_meta),
+         "\n  In the tag data, not in the metadata: ", show(setdiff(in_data, in_meta)),
+         call. = FALSE)
+  }
+
+  obs <- obs[obs$ref %in% meta$device_id, ]
   obs$lc <- as.character(obs$lc)
 
   get_times <- function(tab, var) {
