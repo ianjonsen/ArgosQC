@@ -1,6 +1,6 @@
 ##' @title reconfigure annotated SMRU tables, test for expected data schema for AODN
 ##'
-##' @description reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id
+##' @description reconfigure annotated tables - for near real-time QC (`suffix = "_nrt"`), subsample predicted locations to every ceiling(6 / time.step)-th prediction; for delayed-mode and historical QC, output predicted locations at the SSM time.step. Write to .csv and zip by campaign id
 ##'
 ##' @param smru_ssm SSM-appended SMRU table file - output of \code{append_ssm}
 ##' @param fit final \code{aniMotum} fit object

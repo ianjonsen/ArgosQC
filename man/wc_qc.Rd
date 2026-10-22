@@ -99,8 +99,8 @@ predicted locations (default is 72 h)
 \item \code{QCmode} one of either \code{nrt} for Near Real-Time QC or \code{dm} for Delayed
 Mode QC.
 \item \code{pred.int} the prediction interval (h) to use for sub-sampling predicted
-locations prior to interpolation of QC'd locations to tag data file event
-times.
+locations in near real-time QC. Ignored in delayed-mode QC, where
+predicted locations are output at the SSM \code{time.step}.
 }
 }}
 }

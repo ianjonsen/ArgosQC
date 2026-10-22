@@ -51,5 +51,5 @@ are dropped, and variables are put in the standard order. Tables from
 current SMRU tags already have this structure and are unchanged. Default TRUE.}
 }
 \description{
-reconfigure annotated tables - subsample predicted locations to 6-h interval, write to .csv and zip by campaign id
+reconfigure annotated tables - for near real-time QC (\code{suffix = "_nrt"}), subsample predicted locations to every ceiling(6 / time.step)-th prediction; for delayed-mode and historical QC, output predicted locations at the SSM time.step. Write to .csv and zip by campaign id
 }

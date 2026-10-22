@@ -126,14 +126,22 @@ smru_ssm_outputs <- function(fit,
   }) |>
     bind_rows()
 
-  ## sub-sample predicted locs to 6-h resolution
-  locs_out <- lapply(locs.lst, function(x) {
-    ts <- subset(fit, id == x$ref[1])$ssm[[1]]$ts
-    if (ts <= 6)
-      x[seq(1, nrow(x), by = ceiling(6 / ts)), ]
-    else
-      stop("time step is > 6 h, can't subsample to 6 h")
-  }) |> bind_rows()
+  if (suffix == "_nrt") {
+    ## Near real-time QC: unchanged operational behaviour. Sub-sample predicted
+    ##  locs to every ceiling(6 / ts)-th prediction (6 h only when ts divides 6;
+    ##  e.g. ts = 4 h gives 8 h)
+    locs_out <- lapply(locs.lst, function(x) {
+      ts <- subset(fit, id == x$ref[1])$ssm[[1]]$ts
+      if (ts <= 6)
+        x[seq(1, nrow(x), by = ceiling(6 / ts)), ]
+      else
+        stop("time step is > 6 h, can't subsample to 6 h")
+    }) |> bind_rows()
+  } else {
+    ## Delayed-mode & historical QC: output predicted locs at the SSM
+    ##  prediction interval (time.step), without sub-sampling
+    locs_out <- bind_rows(locs.lst)
+  }
 
   ## calc QC start and end dates for each deployment - to be appended to metadata
   qc_se <- locs_out |>

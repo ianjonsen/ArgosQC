@@ -34,8 +34,9 @@ wc_write_csv(
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 
 \item{pred.int}{prediction interval to use for sub-sampling predicted locations
-(default = 6 h)}
+in near real-time QC (default = 6 h). Ignored in delayed-mode and historical
+QC, where predicted locations are output at the SSM time.step}
 }
 \description{
-subsample SSM-predicted locations to 6-h intervals, write annotated files to .csv
+for near real-time QC (\code{suffix = "_nrt"}), subsample SSM-predicted locations to every ceiling(pred.int / time.step)-th prediction; for delayed-mode and historical QC, output predicted locations at the SSM time.step. Write annotated files to .csv
 }
