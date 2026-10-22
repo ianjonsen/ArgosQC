@@ -16,7 +16,8 @@ wc_ssm_outputs(fit, what, dropIDs, suffix, pred.int = 6)
 \item{suffix}{suffix to add to .csv files (_nrt, _dm, or _hist)}
 
 \item{pred.int}{prediction interval to use for sub-sampling predicted locations
-(default = 6 h)}
+in near real-time QC (default = 6 h). Ignored in delayed-mode and historical
+QC, where predicted locations are output at the SSM time.step}
 }
 \description{
 build ssmoutputs data.frame from SSM predicted/rerouted locations

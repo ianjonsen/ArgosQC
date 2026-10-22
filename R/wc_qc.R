@@ -87,8 +87,8 @@
 ##'   * `QCmode` one of either `nrt` for Near Real-Time QC or `dm` for Delayed
 ##'   Mode QC.
 ##'   * `pred.int` the prediction interval (h) to use for sub-sampling predicted
-##'   locations prior to interpolation of QC'd locations to tag data file event
-##'   times.
+##'   locations in near real-time QC. Ignored in delayed-mode QC, where
+##'   predicted locations are output at the SSM `time.step`.
 ##'
 ##'
 ##' @importFrom stringr str_split str_length

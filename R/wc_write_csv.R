@@ -1,6 +1,6 @@
 ##' @title write annotated WC tag datafiles & annotated metadata
 ##'
-##' @description subsample SSM-predicted locations to 6-h intervals, write annotated files to .csv
+##' @description for near real-time QC (`suffix = "_nrt"`), subsample SSM-predicted locations to every ceiling(pred.int / time.step)-th prediction; for delayed-mode and historical QC, output predicted locations at the SSM time.step. Write annotated files to .csv
 ##'
 ##' @param wc_ssm SSM-appended WC tag datafiles - output of \code{append_wc_ssm}
 ##' @param fit final SSM fit object
@@ -11,7 +11,8 @@
 ##' @param dropIDs individual WC DeploymentID's to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##' @param pred.int prediction interval to use for sub-sampling predicted locations
-##' (default = 6 h)
+##' in near real-time QC (default = 6 h). Ignored in delayed-mode and historical
+##' QC, where predicted locations are output at the SSM time.step
 ##'
 ##' @importFrom dplyr filter rename mutate select inner_join
 ##' @importFrom stringr str_replace

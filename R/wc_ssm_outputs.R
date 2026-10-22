@@ -7,7 +7,8 @@
 ##' @param dropIDs individual WC DeploymentIDs to be dropped
 ##' @param suffix suffix to add to .csv files (_nrt, _dm, or _hist)
 ##' @param pred.int prediction interval to use for sub-sampling predicted locations
-##' (default = 6 h)
+##' in near real-time QC (default = 6 h). Ignored in delayed-mode and historical
+##' QC, where predicted locations are output at the SSM time.step
 ##'
 ##' @importFrom dplyr filter rename mutate select any_of bind_rows group_by
 ##' @importFrom dplyr group_split
@@ -125,14 +126,22 @@ wc_ssm_outputs <- function(fit,
   }) |>
     bind_rows()
 
-  ## sub-sample predicted locs to 6-h resolution
-  locs_out <- lapply(locs.lst, function(x) {
-    ts <- subset(fit, id == x$DeploymentID[1])$ssm[[1]]$ts
-    if (ts <= pred.int)
-      x[seq(1, nrow(x), by = ceiling(pred.int / ts)), ]
-    else
-      stop(paste0("time step > ", pred.int, " h, can't subsample to ", pred.int, " h"))
-  }) |> bind_rows()
+  if (suffix == "_nrt") {
+    ## Near real-time QC: unchanged operational behaviour. Sub-sample predicted
+    ##  locs to every ceiling(pred.int / ts)-th prediction (pred.int h only when
+    ##  ts divides pred.int; e.g. pred.int = 6 h & ts = 4 h gives 8 h)
+    locs_out <- lapply(locs.lst, function(x) {
+      ts <- subset(fit, id == x$DeploymentID[1])$ssm[[1]]$ts
+      if (ts <= pred.int)
+        x[seq(1, nrow(x), by = ceiling(pred.int / ts)), ]
+      else
+        stop(paste0("time step > ", pred.int, " h, can't subsample to ", pred.int, " h"))
+    }) |> bind_rows()
+  } else {
+    ## Delayed-mode & historical QC: output predicted locs at the SSM
+    ##  prediction interval (time.step), without sub-sampling; pred.int is ignored
+    locs_out <- bind_rows(locs.lst)
+  }
 
   ## calc QC start and end dates for each deployment - to be appended to metadata
   qc_se <- locs_out |>
