@@ -593,6 +593,18 @@ imos_smru_dm_qc <- function(cid,
   weddell <- seal
   weddell$proj <- "+proj=stere +lat_0=-90 +lat_ts=-71 +lon_0=160 +k=1 +ellps=WGS84 +units=km +no_defs"
   weddell$min.gap <- 48
+  ## Australian sea lion and fur seals: shorter time step and gaps for short
+  ##  foraging trips. Fur seals: proj = NULL lets smru_prep_loc() choose an
+  ##  equidistant conic projection for each track from its latitude range.
+  ##  Australian sea lion: one Lambert conformal conic projection for the
+  ##  South Australian coast, so x and y are comparable across deployments
+  otariid <- seal
+  otariid["proj"] <- list(NULL)
+  otariid$time.step <- 2
+  otariid$min.gap <- 24
+  otariid$dist <- 10
+  sea_lion <- otariid
+  sea_lion$proj <- "+proj=lcc +lat_1=-33 +lat_2=-37 +lon_0=135 +units=km +ellps=WGS84 +no_defs"
   turtle <- list(model = "rw",
                  vmax = 2,
                  time.step = 3,
@@ -606,6 +618,9 @@ imos_smru_dm_qc <- function(cid,
                  min.gap = 72)
   list("Mirounga leonina" = seal,
        "Leptonychotes weddellii" = weddell,
+       "Neophoca cinerea" = sea_lion,
+       "Arctocephalus forsteri" = otariid,
+       "Arctocephalus pusillus" = otariid,
        "Lepidochelys olivacea" = turtle,
        "Natator depressus" = turtle,
        "Chelonia mydas" = turtle)
