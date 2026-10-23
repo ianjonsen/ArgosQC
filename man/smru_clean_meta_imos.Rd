@@ -4,7 +4,19 @@
 \alias{smru_clean_meta_imos}
 \title{clean metadata}
 \usage{
-smru_clean_meta_imos(cid, smru, dropIDs = NULL, file = NULL)
+smru_clean_meta_imos(
+  cid,
+  smru,
+  dropIDs = NULL,
+  file = NULL,
+  server = FALSE,
+  user = NULL,
+  pwd = NULL,
+  build.meta = FALSE,
+  meta.args = NULL,
+  path2mdb = NULL,
+  p2mdbtools = NULL
+)
 }
 \arguments{
 \item{cid}{SMRU campaign ids}
@@ -14,6 +26,21 @@ smru_clean_meta_imos(cid, smru, dropIDs = NULL, file = NULL)
 \item{dropIDs}{SMRU refs to be dropped}
 
 \item{file}{path to metadata .csv file}
+
+\item{server}{logical; delayed-mode QC. Check ptt, body, WMO ID and tag
+type against the SMRU data server (whose values are used where they differ)
+and, with \code{build.meta = TRUE}, build the metadata of deployments missing
+from the metadata file. See \code{smru_meta_dm()}}
+
+\item{user, pwd}{SMRU data server login (used when \code{server = TRUE})}
+
+\item{build.meta}{logical; build the metadata of deployments missing from
+the metadata file (used when \code{server = TRUE})}
+
+\item{meta.args}{the config file meta block (used when \code{build.meta = TRUE})}
+
+\item{path2mdb, p2mdbtools}{the .mdb folder and the mdbtools path (used when
+\code{build.meta = TRUE}, to read the .mdb deployments table)}
 }
 \description{
 restructures metadata, formats dates,

@@ -14,6 +14,7 @@ imos_smru_dm_qc(
   release_site = NULL,
   state_country = NULL,
   dropIDs = NULL,
+  build.meta = NULL,
   model.args = list(),
   smru.usr = NULL,
   smru.pwd = NULL,
@@ -36,7 +37,11 @@ imos_smru_dm_qc(
 
 \item{meta.file}{the IMOS metadata .csv file. If \code{NULL}, the file named in
 an existing config file is used. Delayed-mode QC requires a metadata file:
-the function stops if there is none, or if it has no deployments for \code{cid}}
+the function stops if there is none. It also stops if the file has no
+deployments for \code{cid}, unless \code{build.meta = TRUE}. Each deployment's ptt,
+body, WMO ID and tag type are checked against the SMRU data server, whose
+values are used where they differ; the QC stops if the server cannot be
+reached}
 
 \item{species}{the species scientific name. Required only if it cannot be
 read from \code{meta.file} or an existing config file}
@@ -52,10 +57,19 @@ Default: from the release site lookup table}
 
 \item{dropIDs}{a .csv file of deployments to exclude from the QC. Default:
 the existing config value, or an existing \verb{<cid>_dropIDs.csv} in \code{wd}.
-Every deployment of \code{cid} with no WMO ID in the metadata file is added to
-it (the file \verb{<cid>_dropIDs.csv} is created if needed), after
-confirmation. The 2022 turtle campaigns (tu116, tu117 and tu120) are
-exempt: they have no WMO IDs and are QC'd without them}
+Deployments are QC'd whether or not they have a WMO ID}
+
+\item{build.meta}{logical; QC deployments that are in the tag data but not
+in the metadata file, with metadata built from the SMRU data server (ptt,
+body, WMO ID, tag type), the Argos locations (release date and position,
+after any pre-deployment test transmissions), the .mdb deployments table
+\code{LOCATION} (release site, used if within 50 km of the estimated release
+position; otherwise a known site within 10 km of the daily median
+position on any of the first 7 days; otherwise the nearest known site
+within 50 km, or the config \code{meta} release site within 50 km) and the config \code{meta} block (species). The built
+metadata are listed for confirmation and recorded in
+\verb{qc/diag/<cid>_built_metadata.csv}. \code{NULL} (default) uses \code{"build.meta"}
+in the config setup block (\code{false} if absent)}
 
 \item{model.args}{a named list of \code{model} settings that replace the
 species defaults or the existing config values, e.g. \code{list(dist = 50)}}
@@ -117,7 +131,12 @@ precedence, from the arguments, from the IMOS metadata file (the \code{Species}
 and \code{Location} of the campaign's deployments) and from the existing config
 file. \code{common_name} comes from the argument or else from the species
 lookup table. \code{state_country} comes from the argument or else from the
-release site lookup table; the function stops if neither gives one.
+release site lookup table. With a metadata file, \code{release_site} lists every
+site of the campaign, most common first, joined by "; ", and
+\code{state_country} lists their states or countries the same way. These
+entries are a record only: the output metadata take the release site, state
+or country, and species of each deployment from the metadata file.
+\code{species} (the most common) still selects the model settings.
 
 Track truncation review (\code{review = TRUE}). The choices are:
 \enumerate{

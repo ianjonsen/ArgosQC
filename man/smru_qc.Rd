@@ -25,6 +25,14 @@ Current options are: \code{imos}, \code{atn}, or \code{otn}.
 for delayed-mode QC (\code{QCmode = "dm"}). For near real-time QC only, it can be
 NULL, in which case the \code{meta} config block (see below) must be present &
 tag-specific metadata are scraped from the SMRU data server.
+In delayed-mode QC with an IMOS metadata file, each deployment's ptt,
+body, WMO ID and tag type are checked against the SMRU data server, whose
+values are used where they differ; the QC stops if the server cannot be
+reached.
+\item \code{build.meta} optional; delayed-mode QC only (default \code{false}). If \code{true},
+deployments in the tag data but not in the metadata file are QC'd, with
+metadata built from the SMRU data server, the .mdb deployments table, the
+Argos locations and the \code{meta} config block. If \code{false}, they are excluded.
 \item \code{maps.dir} the directory path to write diagnostic maps of QC'd tracks.
 \item \code{diag.dir} the directory path to write diagnostic time-series plots of
 QC'd lon & lat.

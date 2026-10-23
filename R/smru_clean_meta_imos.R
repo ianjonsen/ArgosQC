@@ -10,6 +10,16 @@
 ##' @param smru SMRU table
 ##' @param dropIDs SMRU refs to be dropped
 ##' @param file path to metadata .csv file
+##' @param server logical; delayed-mode QC. Check ptt, body, WMO ID and tag
+##' type against the SMRU data server (whose values are used where they differ)
+##' and, with `build.meta = TRUE`, build the metadata of deployments missing
+##' from the metadata file. See `smru_meta_dm()`
+##' @param user,pwd SMRU data server login (used when `server = TRUE`)
+##' @param build.meta logical; build the metadata of deployments missing from
+##' the metadata file (used when `server = TRUE`)
+##' @param meta.args the config file meta block (used when `build.meta = TRUE`)
+##' @param path2mdb,p2mdbtools the .mdb folder and the mdbtools path (used when
+##' `build.meta = TRUE`, to read the .mdb deployments table)
 ##'
 ##' @importFrom dplyr select rename mutate filter %>% bind_rows
 ##' @importFrom readr read_csv
@@ -24,7 +34,14 @@
 smru_clean_meta_imos <- function(cid,
                        smru,
                        dropIDs = NULL,
-                       file = NULL) {
+                       file = NULL,
+                       server = FALSE,
+                       user = NULL,
+                       pwd = NULL,
+                       build.meta = FALSE,
+                       meta.args = NULL,
+                       path2mdb = NULL,
+                       p2mdbtools = NULL) {
 
   assert_that(!is.null(file))
   meta <- suppressWarnings(read_csv(file)) %>%
@@ -127,6 +144,19 @@ smru_clean_meta_imos <- function(cid,
          call. = FALSE)
   }
 
+  ## delayed-mode QC: SMRU server identifiers, and metadata built for
+  ##  deployments missing from the metadata file
+  built <- NULL
+  notes <- NULL
+  if (isTRUE(server)) {
+    meta <- smru_meta_dm(meta, cid = cid, smru = smru, dropIDs = dropIDs, file = file,
+                         user = user, pwd = pwd, build.meta = build.meta,
+                         meta.args = meta.args, path2mdb = path2mdb,
+                         p2mdbtools = p2mdbtools)
+    built <- attr(meta, "built")
+    notes <- attr(meta, "notes")
+  }
+
   ## append dive start and end dates for (alternate) track truncation
   ##  to be used as alternate on final, delayed-mode (manual) QC
   if ("dive" %in% names(smru)) {
@@ -163,6 +193,20 @@ smru_clean_meta_imos <- function(cid,
   }
 
 
+  ## built deployments: the track starts at the first location after any
+  ##  pre-deployment test transmissions, not at the first (test) dive or CTD
+  ##  profile
+  if (!is.null(built) && nrow(built) > 0) {
+    i <- match(built$device_id, meta$device_id)
+    st <- built$start_time
+    for (v in intersect(c("dive_start", "ctd_start"), names(meta))) {
+      x <- meta[[v]][i]
+      late <- !is.na(x) & !is.na(st) & x < st
+      x[late] <- st[late]
+      meta[[v]][i] <- x
+    }
+  }
+
   ## if absent, fill in missing release_longitude/latitude's with the
   ##   most recent lc = 3 | 2 Argos location (after or on release_date)0
   if(any(is.na(meta$release_longitude), is.na(meta$release_longitude))) {
@@ -185,5 +229,7 @@ smru_clean_meta_imos <- function(cid,
       select(-lon, -lat)
   }
 
+  attr(meta, "built") <- built
+  attr(meta, "notes") <- notes
   return(meta)
 }

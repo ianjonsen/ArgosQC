@@ -192,7 +192,11 @@ smru_suggest_trim <- function(wd,
                        pwd = conf$harvest$smru.pwd,
                        dropIDs = dropIDs,
                        file = conf$setup$meta.file,
-                       meta.args = conf$meta) |>
+                       meta.args = conf$meta,
+                       QCmode = "dm",
+                       build.meta = isTRUE(as.logical(conf$setup$build.meta)),
+                       path2mdb = conf$setup$data.dir,
+                       p2mdbtools = conf$harvest$p2mdbtools) |>
     suppressMessages()
 
   obs <- smru_clean_diag(smru, dropIDs = dropIDs)
