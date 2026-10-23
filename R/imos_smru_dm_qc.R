@@ -173,10 +173,11 @@ imos_smru_dm_qc <- function(cid,
   diag_dir <- "qc/diag"
   dir.create(file.path(wd, diag_dir), showWarnings = FALSE, recursive = TRUE)
   log_file <- file.path(wd, diag_dir, paste0(cid, "_dm_log.txt"))
-  note <- function(...) {
-    txt <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"), "  ", paste0(...))
+  ## log file (labelled text) and console (labelled, coloured; see qc_messages.R)
+  note <- function(..., type = "progress") {
+    txt <- paste0(format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"), "  ", qc_text(type, ...))
     cat(txt, "\n", file = log_file, append = TRUE, sep = "")
-    message(paste0(...))
+    qc_msg(type, ...)
   }
 
   versions <- c(dm_qc_pkg_info("ArgosQC"), dm_qc_pkg_info("aniMotum"))
@@ -222,7 +223,7 @@ imos_smru_dm_qc <- function(cid,
       }
       if (nrow(meta_rows) == 0) {
         note("No deployments for ", cid, " in the metadata file; their metadata will be built ",
-             "from the SMRU data server, the .mdb file and the config meta block")
+             "from the SMRU data server, the .mdb file and the config meta block", type = "built")
       }
     } else {
       stop("The metadata file ", mf_path, " has no SMRU_Ref, Species and Location ",
@@ -282,15 +283,15 @@ imos_smru_dm_qc <- function(cid,
         sc <- paste(unique(scs), collapse = "; ")
         if (length(unknown) > 0) {
           note("Release site(s) not in the site lookup table: ", paste(unknown, collapse = ", "),
-               ". Their state_country in the output metadata will be \"Unknown\".")
+               ". Their state_country in the output metadata will be \"Unknown\".", type = "review")
         }
       }
       if (length(sites) > 1) {
         note(length(sites), " release sites for ", cid, ": ",
-             paste0(sites, " [", tb, "]", collapse = ", "), ".")
+             paste0(sites, " [", tb, "]", collapse = ", "), ".", type = "sites")
       }
       note("Release site, state or country, and species are taken per deployment from the ",
-           "metadata file; the config meta section records them only.")
+           "metadata file; the config meta section records them only.", type = "sites")
     }
   }
   if (is.null(rs) && !is.null(conf$meta$release_site)) rs <- conf$meta$release_site
@@ -385,7 +386,7 @@ imos_smru_dm_qc <- function(cid,
     if (length(drop_chg) > 0) cat("\n", paste(drop_chg, collapse = "\n"), "\n\n", sep = "")
     write_drops()
     dm_qc_write_config(new, config_path)
-    note("Config file written: ", config_path)
+    note("Config file written: ", config_path, type = "done")
   } else {
     a <- dm_qc_flatten(conf)
     b <- dm_qc_flatten(new)
@@ -406,12 +407,12 @@ imos_smru_dm_qc <- function(cid,
       ans <- menu(c("Write these changes", "Stop"),
                   title = "Update the config file and the dropIDs file?")
       if (ans != 1) {
-        note("Stopped by the operator: config file changes declined")
+        note("Stopped by the operator: config file changes declined", type = "stop")
         return(invisible(NULL))
       }
       write_drops()
       dm_qc_write_config(new, config_path)
-      note("Config file updated: ", config_path, "\n", paste(chg, collapse = "\n"))
+      note("Config file updated: ", config_path, "\n", paste(chg, collapse = "\n"), type = "done")
     } else {
       note("Config file unchanged: ", config_path)
     }
@@ -442,20 +443,25 @@ imos_smru_dm_qc <- function(cid,
   }
   note("Tag data file: ", mdb, " (modified ", format(file.mtime(mdb), "%Y-%m-%d %H:%M:%S"), ")")
 
-  ## ---- metadata built for deployments missing from the metadata file ----
-  ##  the SMRU server identifiers are also checked here, so a server that cannot
-  ##  be reached stops the run before the track review
+  ## ---- deployment metadata: references, SMRU server values, built metadata ----
+  ##  checked here before the track review, so the log records every reference
+  ##  match, SMRU server value used and deployment excluded, and a server that
+  ##  cannot be reached stops the run early
+  note("Checking the deployment metadata against the tag data and the SMRU server")
+  mdb_dir <- file.path(wd, new$setup$data.dir)
+  smru_b <- suppressMessages(smru_pull_tables(cids = cid, path2mdb = mdb_dir,
+                                              p2mdbtools = new$harvest$p2mdbtools))
+  meta_b <- suppressMessages(
+    smru_clean_meta_imos(cid = cid, smru = smru_b, dropIDs = drop_ids, file = mf_path,
+                         server = TRUE, user = new$harvest$smru.usr,
+                         pwd = new$harvest$smru.pwd, build.meta = bm,
+                         meta.args = new$meta, path2mdb = mdb_dir,
+                         p2mdbtools = new$harvest$p2mdbtools))
+  nt <- attr(meta_b, "notes")
+  for (i in seq_along(nt)) note(nt[[i]], type = names(nt)[i])
+  note(nrow(meta_b), " deployment(s) of ", cid, " will be QC'd: ",
+       paste(sort(meta_b$device_id), collapse = ", "), type = "done")
   if (bm) {
-    mdb_dir <- file.path(wd, new$setup$data.dir)
-    smru_b <- smru_pull_tables(cids = cid, path2mdb = mdb_dir,
-                               p2mdbtools = new$harvest$p2mdbtools)
-    meta_b <- suppressMessages(
-      smru_clean_meta_imos(cid = cid, smru = smru_b, dropIDs = drop_ids, file = mf_path,
-                           server = TRUE, user = new$harvest$smru.usr,
-                           pwd = new$harvest$smru.pwd, build.meta = TRUE,
-                           meta.args = new$meta, path2mdb = mdb_dir,
-                           p2mdbtools = new$harvest$p2mdbtools))
-    for (n in attr(meta_b, "notes")) note(n)
     rv <- attr(meta_b, "built")
     if (!is.null(rv) && nrow(rv) > 0) {
       show <- data.frame(device_id = rv$device_id,
@@ -491,10 +497,10 @@ imos_smru_dm_qc <- function(cid,
       ans <- menu(c("Use this metadata", "Stop"),
                   title = paste0("Use the built metadata for ", cid, "?"))
       if (ans != 1) {
-        note("Stopped by the operator: built metadata declined (", rec, ")")
+        note("Stopped by the operator: built metadata declined (", rec, ")", type = "stop")
         return(invisible(NULL))
       }
-      note("Built metadata accepted for ", nrow(rv), " deployment(s); record: ", rec)
+      note("Built metadata accepted for ", nrow(rv), " deployment(s); record: ", rec, type = "built")
     }
   }
 
@@ -571,11 +577,11 @@ imos_smru_dm_qc <- function(cid,
         decision <- "No tracks truncated"
 
       } else {
-        note("Stopped by the operator at the track end date review")
+        note("Stopped by the operator at the track end date review", type = "stop")
         return(invisible(NULL))
       }
     }
-    note("Track truncation decision: ", decision)
+    note("Track truncation decision: ", decision, type = "done")
 
   } else {
     cur <- read_json(config_path, simplifyVector = TRUE)
@@ -586,7 +592,7 @@ imos_smru_dm_qc <- function(cid,
       if (!file.exists(tf)) stop("trimIDs file not found: ", tf, call. = FALSE)
       decision <- paste0("Recorded track truncation file used: ", cur$harvest$trimIDs)
     }
-    note("Track truncation decision: ", decision)
+    note("Track truncation decision: ", decision, type = "done")
   }
 
   ## ---- remove dropped deployments from the trimIDs file ----
@@ -597,7 +603,7 @@ imos_smru_dm_qc <- function(cid,
     gone <- trimws(tr$ref) %in% drop_ids
     if (any(gone)) {
       write_csv(tr[!gone, ], tf, na = "")
-      note("Removed dropped deployments from ", tf, ": ", paste(tr$ref[gone], collapse = ", "))
+      note("Removed dropped deployments from ", tf, ": ", paste(tr$ref[gone], collapse = ", "), type = "excluded")
     }
   }
 
@@ -606,11 +612,11 @@ imos_smru_dm_qc <- function(cid,
   ## the .mdb file was downloaded above if required; the QC uses that copy
   qc <- tryCatch(smru_qc(wd = wd, config = config_path, download = FALSE),
                  error = function(e) {
-                   note("smru_qc() FAILED: ", conditionMessage(e))
+                   note("smru_qc() FAILED: ", conditionMessage(e), type = "stop")
                    stop(e)
                  })
   setwd(wd)
-  note("smru_qc() completed")
+  note("smru_qc() completed", type = "done")
 
   ## ---- zip the output files ----
   fin <- read_json(config_path, simplifyVector = TRUE)
@@ -623,23 +629,23 @@ imos_smru_dm_qc <- function(cid,
          ignore.stdout = TRUE, ignore.stderr = TRUE)
   if (!file.exists(zip_file)) stop("Zip file not written: ", zip_file, call. = FALSE)
   zipped <- unzip(zip_file, list = TRUE)$Name
-  note("Zip file written: ", zip_file, "\n", paste0("  ", zipped, collapse = "\n"))
+  note("Zip file written: ", zip_file, "\n", paste0("  ", zipped, collapse = "\n"), type = "done")
 
   ## ---- upload to AODN ----
   uploaded <- FALSE
   if (upload) {
     if (!interactive()) {
-      note("Upload skipped: the upload must be confirmed in an interactive session")
+      note("Upload skipped: the upload must be confirmed in an interactive session", type = "stop")
     } else {
       ans <- menu(c(paste0("Upload ", basename(zip_file), " to AODN (", aodn.path, ")"),
                     "Do not upload"),
                   title = paste0("Upload the DM QC files for ", cid, "?"))
       if (ans != 1) {
-        note("Upload declined by the operator")
+        note("Upload declined by the operator", type = "stop")
       } else {
         if (!nzchar(aodn.user)) aodn.user <- trimws(readline("AODN sftp username: "))
         if (!nzchar(aodn.user)) {
-          note("Upload skipped: no AODN sftp username given")
+          note("Upload skipped: no AODN sftp username given", type = "stop")
         } else {
           host <- paste0(aodn.user, "@sftp.aodn.org.au")
           batch_file <- tempfile(fileext = ".sftp")
@@ -654,11 +660,11 @@ imos_smru_dm_qc <- function(cid,
           cat(response, sep = "\n")
           status <- attr(response, "status")
           if (!is.null(status)) {
-            note("AODN sftp upload FAILED (status ", status, ")")
+            note("AODN sftp upload FAILED (status ", status, ")", type = "stop")
             stop("AODN sftp upload FAILED for ", cid, " (status ", status, ")", call. = FALSE)
           }
           uploaded <- TRUE
-          note("Uploaded ", basename(zip_file), " to ", aodn.path)
+          note("Uploaded ", basename(zip_file), " to ", aodn.path, type = "done")
         }
       }
     }
@@ -666,7 +672,7 @@ imos_smru_dm_qc <- function(cid,
     note("Upload not requested (upload = FALSE)")
   }
 
-  note("imos_smru_dm_qc() completed for ", cid)
+  note("imos_smru_dm_qc() completed for ", cid, type = "done")
 
   invisible(list(config = config_path,
                  trimIDs = if (is.null(fin$harvest$trimIDs) || all(is.na(fin$harvest$trimIDs))) NULL

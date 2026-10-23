@@ -254,7 +254,7 @@ smru_qc <- function(wd,
   ## delayed-mode QC: report SMRU server values used in place of metadata file
   ##  values, metadata built for deployments missing from the metadata file,
   ##  and deployments excluded for lack of metadata
-  for (n in attr(meta, "notes")) message(n)
+  qc_msg_notes(attr(meta, "notes"))
 
   message("Preparing location data for QC...")
   ## Prepare location data
