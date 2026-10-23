@@ -30,6 +30,14 @@
 ##' @param wc.meta an R data.frame of Wildlife Computers tag deployment metadata
 ##' obtained via `download_data()`. Typically used only when no metadata filepath
 ##' is provided in the config file.
+##' @param QCmode `"nrt"` or `"dm"`. For IMOS metadata in delayed-mode QC, the
+##' tag identifiers are checked against the SMRU data server (see
+##' `smru_clean_meta_imos()`)
+##' @param build.meta logical; delayed-mode QC only. Build the metadata of
+##' deployments missing from the metadata file from the SMRU data server, the
+##' .mdb deployments table, the Argos locations and `meta.args`
+##' @param path2mdb,p2mdbtools the .mdb folder and the mdbtools path (used when
+##' `build.meta = TRUE`)
 ##'
 ##' @importFrom dplyr select rename mutate filter bind_rows starts_with
 ##' @importFrom lubridate mdy_hms round_date
@@ -49,7 +57,11 @@ get_metadata <- function(source = "smru",
                          file = NULL,
                          meta.args,
                          subset.ids = NULL,
-                         wc.meta = NULL) {
+                         wc.meta = NULL,
+                         QCmode = NULL,
+                         build.meta = FALSE,
+                         path2mdb = NULL,
+                         p2mdbtools = NULL) {
 
   if (is.null(tag_data))
     stop("a tag_data object must be supplied")
@@ -275,7 +287,14 @@ get_metadata <- function(source = "smru",
                        cid = cid,
                        smru = tag_data,
                        dropIDs = dropIDs,
-                       file = file
+                       file = file,
+                       server = identical(as.character(QCmode), "dm"),
+                       user = user,
+                       pwd = pwd,
+                       build.meta = isTRUE(as.logical(build.meta)),
+                       meta.args = meta.args,
+                       path2mdb = path2mdb,
+                       p2mdbtools = p2mdbtools
                      )
                    },
                    otn = {

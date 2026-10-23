@@ -24,7 +24,12 @@
 ##' and `Location` of the campaign's deployments) and from the existing config
 ##' file. `common_name` comes from the argument or else from the species
 ##' lookup table. `state_country` comes from the argument or else from the
-##' release site lookup table; the function stops if neither gives one.
+##' release site lookup table. With a metadata file, `release_site` lists every
+##' site of the campaign, most common first, joined by "; ", and
+##' `state_country` lists their states or countries the same way. These
+##' entries are a record only: the output metadata take the release site, state
+##' or country, and species of each deployment from the metadata file.
+##' `species` (the most common) still selects the model settings.
 ##'
 ##' Track truncation review (`review = TRUE`). The choices are:
 ##' 1) accept all suggested end dates ([accept_trim_dates()]);
@@ -51,7 +56,11 @@
 ##'   `config_<cid>.json`
 ##' @param meta.file the IMOS metadata .csv file. If `NULL`, the file named in
 ##'   an existing config file is used. Delayed-mode QC requires a metadata file:
-##'   the function stops if there is none, or if it has no deployments for `cid`
+##'   the function stops if there is none. It also stops if the file has no
+##'   deployments for `cid`, unless `build.meta = TRUE`. Each deployment's ptt,
+##'   body, WMO ID and tag type are checked against the SMRU data server, whose
+##'   values are used where they differ; the QC stops if the server cannot be
+##'   reached
 ##' @param species the species scientific name. Required only if it cannot be
 ##'   read from `meta.file` or an existing config file
 ##' @param common_name the species common name. Default: from the species
@@ -62,10 +71,18 @@
 ##'   Default: from the release site lookup table
 ##' @param dropIDs a .csv file of deployments to exclude from the QC. Default:
 ##'   the existing config value, or an existing `<cid>_dropIDs.csv` in `wd`.
-##'   Every deployment of `cid` with no WMO ID in the metadata file is added to
-##'   it (the file `<cid>_dropIDs.csv` is created if needed), after
-##'   confirmation. The 2022 turtle campaigns (tu116, tu117 and tu120) are
-##'   exempt: they have no WMO IDs and are QC'd without them
+##'   Deployments are QC'd whether or not they have a WMO ID
+##' @param build.meta logical; QC deployments that are in the tag data but not
+##'   in the metadata file, with metadata built from the SMRU data server (ptt,
+##'   body, WMO ID, tag type), the Argos locations (release date and position,
+##'   after any pre-deployment test transmissions), the .mdb deployments table
+##'   `LOCATION` (release site, used if within 50 km of the estimated release
+##'   position; otherwise a known site within 10 km of the daily median
+##'   position on any of the first 7 days; otherwise the nearest known site
+##'   within 50 km, or the config `meta` release site within 50 km) and the config `meta` block (species). The built
+##'   metadata are listed for confirmation and recorded in
+##'   `qc/diag/<cid>_built_metadata.csv`. `NULL` (default) uses `"build.meta"`
+##'   in the config setup block (`false` if absent)
 ##' @param model.args a named list of `model` settings that replace the
 ##'   species defaults or the existing config values, e.g. `list(dist = 50)`
 ##' @param smru.usr,smru.pwd the SMRU data server login. Required for a new
@@ -120,6 +137,7 @@ imos_smru_dm_qc <- function(cid,
                             release_site = NULL,
                             state_country = NULL,
                             dropIDs = NULL,
+                            build.meta = NULL,
                             model.args = list(),
                             smru.usr = NULL,
                             smru.pwd = NULL,
@@ -178,6 +196,9 @@ imos_smru_dm_qc <- function(cid,
     }
   }
 
+  ## build metadata for deployments missing from the metadata file?
+  bm <- if (!is.null(build.meta)) isTRUE(build.meta) else isTRUE(conf$setup$build.meta)
+
   ## metadata file
   mf <- meta.file
   if (is.null(mf) && !is.null(conf$setup$meta.file)) mf <- conf$setup$meta.file
@@ -195,8 +216,13 @@ imos_smru_dm_qc <- function(cid,
     if (all(c("SMRU_Ref", "Species", "Location") %in% names(md))) {
       prog <- str_extract(md$SMRU_Ref, regex("[a-z]+[0-9]+[a-z]?", ignore_case = TRUE))
       meta_rows <- md[!is.na(prog) & prog == cid, ]
+      if (nrow(meta_rows) == 0 && !bm) {
+        stop("No deployments for ", cid, " in ", mf_path, ". To QC a campaign that is not ",
+             "in the metadata file, use build.meta = TRUE.", call. = FALSE)
+      }
       if (nrow(meta_rows) == 0) {
-        stop("No deployments for ", cid, " in ", mf_path, call. = FALSE)
+        note("No deployments for ", cid, " in the metadata file; their metadata will be built ",
+             "from the SMRU data server, the .mdb file and the config meta block")
       }
     } else {
       stop("The metadata file ", mf_path, " has no SMRU_Ref, Species and Location ",
@@ -220,13 +246,57 @@ imos_smru_dm_qc <- function(cid,
   sp <- .imos_species$species[spi]
   cn <- if (is.null(common_name)) .imos_species$common_name[spi] else common_name
 
+  ## release site and state or country. With a metadata file, the output
+  ##  metadata take these per deployment from the file (smru_clean_meta_imos()),
+  ##  so the config's meta section only records them: every site, most common
+  ##  first, joined by "; "
   rs <- release_site
-  if (is.null(rs) && !is.null(meta_rows)) rs <- dm_qc_most_common(meta_rows$Location, "Location")
+  sc <- state_country
+  ## with build.meta, the config meta block holds single values: the fallback
+  ##  release site and the species of deployments built from the SMRU server
+  if (bm) {
+    if (is.null(rs) && !is.null(conf$meta$release_site) &&
+        !grepl(";", conf$meta$release_site, fixed = TRUE)) {
+      rs <- conf$meta$release_site
+    }
+    if (is.null(rs) && !is.null(meta_rows) && nrow(meta_rows) > 0) {
+      rs <- dm_qc_most_common(meta_rows$Location, "Location")
+    }
+    if (is.null(sc) && !is.null(conf$meta$state_country) &&
+        !grepl(";", conf$meta$state_country, fixed = TRUE) && !is.null(rs) &&
+        identical(imos_site(rs), imos_site(conf$meta$release_site))) {
+      sc <- conf$meta$state_country
+    }
+  }
+  if (!bm && is.null(rs) && !is.null(meta_rows) && nrow(meta_rows) > 0) {
+    loc <- trimws(gsub("[[:space:]]+", " ", meta_rows$Location))
+    loc <- loc[!is.na(loc) & loc != ""]
+    if (length(loc) > 0) {
+      tb <- sort(table(imos_site(loc)), decreasing = TRUE)
+      sites <- names(tb)
+      rs <- paste(sites, collapse = "; ")
+      if (is.null(sc)) {
+        scs <- imos_state_country(sites)
+        unknown <- sites[is.na(scs)]
+        scs[is.na(scs)] <- "Unknown"
+        sc <- paste(unique(scs), collapse = "; ")
+        if (length(unknown) > 0) {
+          note("Release site(s) not in the site lookup table: ", paste(unknown, collapse = ", "),
+               ". Their state_country in the output metadata will be \"Unknown\".")
+        }
+      }
+      if (length(sites) > 1) {
+        note(length(sites), " release sites for ", cid, ": ",
+             paste0(sites, " [", tb, "]", collapse = ", "), ".")
+      }
+      note("Release site, state or country, and species are taken per deployment from the ",
+           "metadata file; the config meta section records them only.")
+    }
+  }
   if (is.null(rs) && !is.null(conf$meta$release_site)) rs <- conf$meta$release_site
   if (is.null(rs)) stop("The release site is unknown: supply `release_site`.", call. = FALSE)
-  rs <- imos_site(rs)
+  if (!grepl(";", rs, fixed = TRUE)) rs <- imos_site(rs)
 
-  sc <- state_country
   if (is.null(sc)) {
     sc <- imos_state_country(rs)
     if (is.na(sc)) sc <- NULL
@@ -250,7 +320,8 @@ imos_smru_dm_qc <- function(cid,
                    maps.dir = "qc/maps",
                    diag.dir = diag_dir,
                    output.dir = "qc/aodn",
-                   return.R = TRUE),
+                   return.R = TRUE,
+                   build.meta = bm),
       harvest = list(download = isTRUE(download),
                      cid = cid,
                      smru.usr = smru.usr,
@@ -265,6 +336,7 @@ imos_smru_dm_qc <- function(cid,
   } else {
     new <- conf
     new$setup$diag.dir <- diag_dir
+    if (bm || !is.null(build.meta)) new$setup$build.meta <- bm
     if (!is.null(meta.file)) new$setup$meta.file <- meta.file
     if (!is.null(download)) new$harvest$download <- isTRUE(download)
     if (!is.null(dropIDs)) new$harvest$dropIDs <- dropIDs
@@ -287,53 +359,27 @@ imos_smru_dm_qc <- function(cid,
                    release_site = rs,
                    state_country = sc)
 
-  ## ---- deployments to drop: no WMO ID in the metadata ----
+  ## ---- deployments to drop ----
   ## the dropIDs file is the one supplied, or the one named in the config, or
-  ##  an existing <cid>_dropIDs.csv in wd that the config does not name. Every
-  ##  deployment of cid with no WMO ID in the metadata is added to it
-  if (!"WMO" %in% names(meta_rows)) {
-    stop("The metadata file has no WMO column.", call. = FALSE)
-  }
+  ##  an existing <cid>_dropIDs.csv in wd that the config does not name.
+  ##  Deployments are QC'd whether or not they have a WMO ID
   drop_file <- new$harvest$dropIDs
   if (is.null(drop_file) || all(is.na(drop_file))) {
     drop_file <- if (file.exists(file.path(wd, paste0(cid, "_dropIDs.csv")))) {
       paste0(cid, "_dropIDs.csv")
     } else NULL
   }
-  drop_existing <- character(0)
+  drop_ids <- character(0)
   if (!is.null(drop_file)) {
     dp <- resolve(drop_file)
     if (!file.exists(dp)) stop("dropIDs file not found: ", dp, call. = FALSE)
     dd <- read_csv(dp, col_types = cols(.default = col_character()), progress = FALSE)
     if (!"ref" %in% names(dd)) stop(dp, " must have a 'ref' column.", call. = FALSE)
-    drop_existing <- unique(trimws(dd$ref[!is.na(dd$ref)]))
-  }
-  wmo <- trimws(meta_rows$WMO)
-  no_wmo <- unique(trimws(meta_rows$SMRU_Ref[is.na(wmo) | wmo == "" |
-                                               toupper(wmo) %in% c("NA", "N/A")]))
-  ## campaigns whose deployments are QC'd without WMO IDs (see .imos_wmo_exempt_cids)
-  if (cid %in% .imos_wmo_exempt_cids && length(no_wmo) > 0) {
-    note(length(no_wmo), " deployment(s) of ", cid, " have no WMO ID; ", cid,
-         " is exempt from the WMO ID requirement, so none are dropped")
-    no_wmo <- character(0)
-  }
-  drop_added <- setdiff(no_wmo, drop_existing)
-  drop_ids <- c(drop_existing, drop_added)
-  drop_chg <- character(0)
-  if (length(drop_ids) > 0) {
-    if (is.null(drop_file)) drop_file <- paste0(cid, "_dropIDs.csv")
+    drop_ids <- unique(trimws(dd$ref[!is.na(dd$ref)]))
     new$harvest$dropIDs <- drop_file
-    if (length(drop_added) > 0) {
-      drop_chg <- paste0("  ", drop_file, ": add ", drop_added, " (no WMO ID in the metadata)")
-    }
   }
-  write_drops <- function() {
-    if (length(drop_added) > 0) {
-      write_csv(data.frame(ref = drop_ids), resolve(drop_file), na = "")
-      note("dropIDs file written: ", resolve(drop_file), "\n",
-           paste(drop_chg, collapse = "\n"))
-    }
-  }
+  drop_chg <- character(0)
+  write_drops <- function() invisible(NULL)
 
   if (new_config) {
     if (length(drop_chg) > 0) cat("\n", paste(drop_chg, collapse = "\n"), "\n\n", sep = "")
@@ -395,6 +441,62 @@ imos_smru_dm_qc <- function(cid,
     if (!file.copy(tmp_mdb, mdb, overwrite = TRUE)) stop("Could not write ", mdb, call. = FALSE)
   }
   note("Tag data file: ", mdb, " (modified ", format(file.mtime(mdb), "%Y-%m-%d %H:%M:%S"), ")")
+
+  ## ---- metadata built for deployments missing from the metadata file ----
+  ##  the SMRU server identifiers are also checked here, so a server that cannot
+  ##  be reached stops the run before the track review
+  if (bm) {
+    mdb_dir <- file.path(wd, new$setup$data.dir)
+    smru_b <- smru_pull_tables(cids = cid, path2mdb = mdb_dir,
+                               p2mdbtools = new$harvest$p2mdbtools)
+    meta_b <- suppressMessages(
+      smru_clean_meta_imos(cid = cid, smru = smru_b, dropIDs = drop_ids, file = mf_path,
+                           server = TRUE, user = new$harvest$smru.usr,
+                           pwd = new$harvest$smru.pwd, build.meta = TRUE,
+                           meta.args = new$meta, path2mdb = mdb_dir,
+                           p2mdbtools = new$harvest$p2mdbtools))
+    for (n in attr(meta_b, "notes")) note(n)
+    rv <- attr(meta_b, "built")
+    if (!is.null(rv) && nrow(rv) > 0) {
+      show <- data.frame(device_id = rv$device_id,
+                         start = format(rv$release_date, "%Y-%m-%d"),
+                         position = paste0(rv$est_lat, ", ", rv$est_lon),
+                         tests = rv$tests_dropped,
+                         mdb_LOCATION = rv$mdb_location,
+                         LOCATION_km = rv$location_km,
+                         nearest = paste0(rv$nearest_site, " (", rv$nearest_km, " km)"),
+                         release_site = ifelse(is.na(rv$release_site), "-", rv$release_site),
+                         source = rv$site_source,
+                         mdb_SPECIES = rv$mdb_species,
+                         species = rv$species)
+      cat("\nMetadata to be built for ", nrow(rv), " deployment(s) not in the metadata file.\n",
+          "Start and position: the first day of Argos locations after any pre-deployment ",
+          "test transmissions ('tests' dropped).\n",
+          "Release site, in order: the .mdb LOCATION if within 50 km of that position; ",
+          "a known site within 10 km of the daily\nmedian position on any of the first 7 days; ",
+          "the nearest known site within 50 km; the config meta site within 50 km.\n\n", sep = "")
+      print(show, row.names = FALSE, right = FALSE)
+      cat("\n")
+      if (any(is.na(rv$release_site))) {
+        cat("Deployments marked '-' have no known release site within 50 km. Add them to the ",
+            "metadata file, or add the site to the site lookup table, before uploading.\n\n",
+            sep = "")
+      }
+      rec <- file.path(wd, diag_dir, paste0(cid, "_built_metadata.csv"))
+      write_csv(rv, rec, na = "")
+      if (!interactive()) {
+        stop("Built metadata must be confirmed in an interactive session. Review ", rec, ".",
+             call. = FALSE)
+      }
+      ans <- menu(c("Use this metadata", "Stop"),
+                  title = paste0("Use the built metadata for ", cid, "?"))
+      if (ans != 1) {
+        note("Stopped by the operator: built metadata declined (", rec, ")")
+        return(invisible(NULL))
+      }
+      note("Built metadata accepted for ", nrow(rv), " deployment(s); record: ", rec)
+    }
+  }
 
   ## ---- track truncation ----
   trim_file <- paste0(cid, "_trimIDs.csv")

@@ -15,7 +15,11 @@ get_metadata(
   file = NULL,
   meta.args,
   subset.ids = NULL,
-  wc.meta = NULL
+  wc.meta = NULL,
+  QCmode = NULL,
+  build.meta = FALSE,
+  path2mdb = NULL,
+  p2mdbtools = NULL
 )
 }
 \arguments{
@@ -54,6 +58,17 @@ to be included in the QC. Ignored if \code{tag_mfr != "wc"}.}
 \item{wc.meta}{an R data.frame of Wildlife Computers tag deployment metadata
 obtained via \code{download_data()}. Typically used only when no metadata filepath
 is provided in the config file.}
+
+\item{QCmode}{\code{"nrt"} or \code{"dm"}. For IMOS metadata in delayed-mode QC, the
+tag identifiers are checked against the SMRU data server (see
+\code{smru_clean_meta_imos()})}
+
+\item{build.meta}{logical; delayed-mode QC only. Build the metadata of
+deployments missing from the metadata file from the SMRU data server, the
+.mdb deployments table, the Argos locations and \code{meta.args}}
+
+\item{path2mdb, p2mdbtools}{the .mdb folder and the mdbtools path (used when
+\code{build.meta = TRUE})}
 }
 \description{
 downloads, restructures & formats metadata, appends

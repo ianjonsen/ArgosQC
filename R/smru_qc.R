@@ -21,6 +21,14 @@
 ##'   for delayed-mode QC (`QCmode = "dm"`). For near real-time QC only, it can be
 ##'   NULL, in which case the `meta` config block (see below) must be present &
 ##'   tag-specific metadata are scraped from the SMRU data server.
+##'   In delayed-mode QC with an IMOS metadata file, each deployment's ptt,
+##'   body, WMO ID and tag type are checked against the SMRU data server, whose
+##'   values are used where they differ; the QC stops if the server cannot be
+##'   reached.
+##'   * `build.meta` optional; delayed-mode QC only (default `false`). If `true`,
+##'   deployments in the tag data but not in the metadata file are QC'd, with
+##'   metadata built from the SMRU data server, the .mdb deployments table, the
+##'   Argos locations and the `meta` config block. If `false`, they are excluded.
 ##'   * `maps.dir` the directory path to write diagnostic maps of QC'd tracks.
 ##'   * `diag.dir` the directory path to write diagnostic time-series plots of
 ##'   QC'd lon & lat.
@@ -235,19 +243,18 @@ smru_qc <- function(wd,
       pwd = conf$harvest$smru.pwd,
       dropIDs = dropIDs,
       file = conf$setup$meta.file,
-      meta.args = conf$meta
+      meta.args = conf$meta,
+      QCmode = conf$model$QCmode,
+      build.meta = isTRUE(as.logical(conf$setup$build.meta)),
+      path2mdb = conf$setup$data.dir,
+      p2mdbtools = conf$harvest$p2mdbtools
     ) |>
       suppressMessages()
 
-  ## delayed-mode QC: report deployments in the tag data that are not in the
-  ##  metadata file; they are excluded from the QC
-  if (identical(as.character(conf$model$QCmode), "dm") && "diag" %in% names(smru)) {
-    no_meta <- setdiff(unique(as.character(smru$diag$ref)), c(meta$device_id, dropIDs))
-    if (length(no_meta) > 0) {
-      message("Deployments in the tag data but not in the metadata file (excluded from the QC): ",
-              paste(sort(no_meta), collapse = ", "))
-    }
-  }
+  ## delayed-mode QC: report SMRU server values used in place of metadata file
+  ##  values, metadata built for deployments missing from the metadata file,
+  ##  and deployments excluded for lack of metadata
+  for (n in attr(meta, "notes")) message(n)
 
   message("Preparing location data for QC...")
   ## Prepare location data
