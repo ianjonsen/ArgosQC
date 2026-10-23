@@ -132,11 +132,10 @@ smru_clean_meta_imos <- function(cid,
   ## match metadata file references to the SMRU references in the tag data,
   ##  treating "-" and "_" as the same character. The SMRU spelling is used,
   ##  e.g. metadata file "ct123-616-rebat-14" becomes SMRU "ct123-616_rebat-14"
-  ref_key <- function(x) gsub("_", "-", as.character(x), fixed = TRUE)
-  tabs <- intersect(c("diag", "gps", "ctd", "dive", "haulout", "summary"), names(smru))
-  tag_refs <- unique(unlist(lapply(tabs, function(t) {
-    if (is.data.frame(smru[[t]]) && "ref" %in% names(smru[[t]])) as.character(smru[[t]]$ref)
-  })))
+  ##  (see qc_refs.R; Unicode dashes and stray spaces are also cleaned)
+  ref_key <- qc_ref_key
+  meta$device_id <- qc_clean_ref(meta$device_id)
+  tag_refs <- qc_tag_refs(smru)
   ref_notes <- character(0)
   for (i in which(!meta$device_id %in% tag_refs)) {
     hit <- tag_refs[ref_key(tag_refs) == ref_key(meta$device_id[i])]

@@ -376,7 +376,7 @@ imos_smru_dm_qc <- function(cid,
     if (!file.exists(dp)) stop("dropIDs file not found: ", dp, call. = FALSE)
     dd <- read_csv(dp, col_types = cols(.default = col_character()), progress = FALSE)
     if (!"ref" %in% names(dd)) stop(dp, " must have a 'ref' column.", call. = FALSE)
-    drop_ids <- unique(trimws(dd$ref[!is.na(dd$ref)]))
+    drop_ids <- unique(qc_clean_ref(dd$ref[!is.na(dd$ref)]))
     new$harvest$dropIDs <- drop_file
   }
   drop_chg <- character(0)
@@ -457,6 +457,18 @@ imos_smru_dm_qc <- function(cid,
                          pwd = new$harvest$smru.pwd, build.meta = bm,
                          meta.args = new$meta, path2mdb = mdb_dir,
                          p2mdbtools = new$harvest$p2mdbtools))
+  ## dropIDs: report each entry, in the SMRU spelling, and any not in the tag data
+  if (length(drop_ids) > 0) {
+    tag_refs <- qc_tag_refs(smru_b)
+    drop_smru <- qc_match_refs(drop_ids, tag_refs)
+    note("dropIDs (", drop_file, "): ", paste(drop_smru, collapse = ", "), type = "excluded")
+    not_found <- drop_ids[!drop_smru %in% tag_refs]
+    if (length(not_found) > 0) {
+      note("dropIDs entries not found in the tag data (check the spelling in ", drop_file, "): ",
+           paste(not_found, collapse = ", "), type = "review")
+    }
+    drop_ids <- drop_smru
+  }
   nt <- attr(meta_b, "notes")
   for (i in seq_along(nt)) note(nt[[i]], type = names(nt)[i])
   note(nrow(meta_b), " deployment(s) of ", cid, " will be QC'd: ",

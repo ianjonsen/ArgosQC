@@ -49,6 +49,8 @@ trim_locs <- function(locs_sf, file, QCmode) {
     stop("Track truncation file ", file, " must have an 'end_date' and/or 'start_date' column.",
          call. = FALSE)
   }
+  ## references in the SMRU spelling of the location data (see qc_refs.R)
+  trims$ref <- qc_match_refs(trims$ref, unique(as.character(locs_sf[[id_var]])))
   if (!"start_date" %in% names(trims)) trims$start_date <- NA_character_
   if (!"end_date" %in% names(trims)) trims$end_date <- NA_character_
 

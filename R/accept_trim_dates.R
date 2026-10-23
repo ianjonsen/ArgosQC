@@ -68,6 +68,7 @@ accept_trim_dates <- function(wd,
 
   ## check the draft as trim_locs() will read it
   d <- read_csv(draft_path, col_types = cols(.default = col_character()), progress = FALSE)
+  if ("ref" %in% names(d)) d$ref <- qc_clean_ref(d$ref)
   if (!"ref" %in% names(d) || !any(c("start_date", "end_date") %in% names(d))) {
     stop(draft_path, " must have a 'ref' column and an 'end_date' and/or 'start_date' column.",
          call. = FALSE)

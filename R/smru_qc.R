@@ -172,7 +172,7 @@ smru_qc <- function(wd,
   if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")
   } else {
-    dropIDs <- suppressMessages(readr::read_csv(conf$harvest$dropIDs)$ref)
+    dropIDs <- qc_clean_ref(suppressMessages(readr::read_csv(conf$harvest$dropIDs)$ref))
   }
 
   ## per-deployment track truncation (delayed-mode QC only)
@@ -219,6 +219,9 @@ smru_qc <- function(wd,
   smru <- smru_pull_tables(cids = conf$harvest$cid,
                           path2mdb = conf$setup$data.dir,
                           p2mdbtools = conf$harvest$p2mdbtools)
+
+  ## dropIDs in the SMRU spelling ("-" and "_" equivalent; see qc_refs.R)
+  dropIDs <- qc_match_refs(dropIDs, qc_tag_refs(smru))
 
   ## near real-time QC: stop if no tag has transmitted for more than
   ##  inactive.days (default 7)
