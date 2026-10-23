@@ -172,7 +172,7 @@ smru_qc <- function(wd,
   if(is.null(conf$harvest$dropIDs)) {
     dropIDs <- c("")
   } else {
-    dropIDs <- suppressMessages(readr::read_csv(conf$harvest$dropIDs)$ref)
+    dropIDs <- qc_clean_ref(suppressMessages(readr::read_csv(conf$harvest$dropIDs)$ref))
   }
 
   ## per-deployment track truncation (delayed-mode QC only)
@@ -220,6 +220,9 @@ smru_qc <- function(wd,
                           path2mdb = conf$setup$data.dir,
                           p2mdbtools = conf$harvest$p2mdbtools)
 
+  ## dropIDs in the SMRU spelling ("-" and "_" equivalent; see qc_refs.R)
+  dropIDs <- qc_match_refs(dropIDs, qc_tag_refs(smru))
+
   ## near real-time QC: stop if no tag has transmitted for more than
   ##  inactive.days (default 7)
   if (!identical(as.character(conf$model$QCmode), "dm")) {
@@ -254,7 +257,7 @@ smru_qc <- function(wd,
   ## delayed-mode QC: report SMRU server values used in place of metadata file
   ##  values, metadata built for deployments missing from the metadata file,
   ##  and deployments excluded for lack of metadata
-  for (n in attr(meta, "notes")) message(n)
+  qc_msg_notes(attr(meta, "notes"))
 
   message("Preparing location data for QC...")
   ## Prepare location data

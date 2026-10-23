@@ -155,7 +155,7 @@ smru_suggest_trim <- function(wd,
   if (is.null(conf$harvest$dropIDs) || all(is.na(conf$harvest$dropIDs))) {
     dropIDs <- c("")
   } else {
-    dropIDs <- suppressMessages(read_csv(conf$harvest$dropIDs)$ref)
+    dropIDs <- qc_clean_ref(suppressMessages(read_csv(conf$harvest$dropIDs)$ref))
   }
   if (any(!"p2mdbtools" %in% names(conf$harvest), is.na(conf$harvest$p2mdbtools))) {
     conf$harvest$p2mdbtools <- NULL
@@ -183,6 +183,7 @@ smru_suggest_trim <- function(wd,
   smru <- smru_pull_tables(cids = cid,
                            path2mdb = conf$setup$data.dir,
                            p2mdbtools = conf$harvest$p2mdbtools)
+  dropIDs <- qc_match_refs(dropIDs, qc_tag_refs(smru))
 
   message("Reading deployment metadata...")
   meta <- get_metadata(source = meta.source,

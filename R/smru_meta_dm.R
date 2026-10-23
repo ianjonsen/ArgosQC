@@ -216,7 +216,7 @@ smru_meta_dm <- function(meta,
 
   server <- smru_server_meta(cid, user, pwd)
   notes <- character(0)
-  note <- function(...) notes <<- c(notes, paste0(...))
+  note <- function(type, ...) notes <<- c(notes, stats::setNames(paste0(...), type))
 
   ## 1) the SMRU server is correct where it differs from the metadata file
   meta$ptt <- as.integer(meta$ptt)
@@ -229,20 +229,20 @@ smru_meta_dm <- function(meta,
     fv <- meta[[v]]
     diff <- !is.na(sv) & (is.na(fv) | as.character(fv) != as.character(sv))
     if (any(diff)) {
-      note("SMRU server value used for ", v, ": ",
+      note("server", "SMRU server value used for ", v, ": ",
               paste0(meta$device_id[diff], " (metadata file: ", fv[diff], "; SMRU server: ",
                      sv[diff], ")", collapse = "; "))
       meta[[v]][diff] <- sv[diff]
     }
     keep <- is.na(sv) & !is.na(fv) & !is.na(m)
     if (v == "device_wmo_ref" && any(keep)) {
-      note("No WMO ID on the SMRU server for ", paste(meta$device_id[keep], collapse = ", "),
+      note("server", "No WMO ID on the SMRU server for ", paste(meta$device_id[keep], collapse = ", "),
               "; the metadata file value is kept.")
     }
   }
   notfound <- meta$device_id[is.na(m)]
   if (length(notfound) > 0) {
-    note("In the metadata file but not on the SMRU server page: ",
+    note("review", "In the metadata file but not on the SMRU server page: ",
             paste(notfound, collapse = ", "))
   }
 
@@ -257,7 +257,7 @@ smru_meta_dm <- function(meta,
     return(meta)
   }
   if (!isTRUE(build.meta)) {
-    note("Deployments in the tag data but not in the metadata file (excluded from the QC; ",
+    note("excluded", "Deployments in the tag data but not in the metadata file (excluded from the QC; ",
             "set \"build.meta\": true in the config setup block to build their metadata): ",
             paste(sort(missing), collapse = ", "))
     attr(meta, "notes") <- notes
@@ -345,7 +345,7 @@ smru_meta_dm <- function(meta,
   } else review$release_date
 
   review$species <- sp
-  note("Metadata built for ", nrow(review), " deployment(s) not in the metadata file: ",
+  note("built", "Metadata built for ", nrow(review), " deployment(s) not in the metadata file: ",
           paste0(review$device_id, " (", ifelse(is.na(review$release_site), "site unknown",
                                                 review$release_site), ")", collapse = ", "))
   out <- dplyr::bind_rows(meta, built)

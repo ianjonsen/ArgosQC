@@ -1,7 +1,7 @@
 Package: ArgosQC
 Type: Package
 Title: Quality Control Process for the Integrated Marine Observing System's Argos Location Data
-Version: 0.10-1.9008
+Version: 0.10-1.9009
 Date: 2026-10-23
 Author: Ian Jonsen [aut, cre, cph]           
 Maintainer: Ian Jonsen <jonsen@stochastic-qc.org>
@@ -13,6 +13,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
 Imports: 
+    cli,
     furrr (>= 0.3.1),
     future (>= 1.69.0),
     dplyr (>= 1.1.4),

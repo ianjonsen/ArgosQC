@@ -127,8 +127,27 @@ smru_clean_meta_imos <- function(cid,
 
   ## subset to current campaigns & apply dropIDs
   meta <- meta %>%
-    filter(sattag_program %in% cid) %>%
-    filter(!device_id %in% dropIDs)
+    filter(sattag_program %in% cid)
+
+  ## match metadata file references to the SMRU references in the tag data,
+  ##  treating "-" and "_" as the same character. The SMRU spelling is used,
+  ##  e.g. metadata file "ct123-616-rebat-14" becomes SMRU "ct123-616_rebat-14"
+  ##  (see qc_refs.R; Unicode dashes and stray spaces are also cleaned)
+  ref_key <- qc_ref_key
+  meta$device_id <- qc_clean_ref(meta$device_id)
+  tag_refs <- qc_tag_refs(smru)
+  ref_notes <- character(0)
+  for (i in which(!meta$device_id %in% tag_refs)) {
+    hit <- tag_refs[ref_key(tag_refs) == ref_key(meta$device_id[i])]
+    if (length(hit) == 1) {
+      ref_notes <- c(ref_notes, stats::setNames(
+        paste0("metadata file ", meta$device_id[i], " matched to SMRU ", hit), "reference"))
+      meta$device_id[i] <- hit
+    }
+  }
+
+  meta <- meta %>%
+    filter(!ref_key(device_id) %in% ref_key(dropIDs))
 
   ## stop if any SMRU_Ref appears more than once in the metadata file, as
   ##  duplicated device_id's duplicate every location in the subsequent joins
@@ -156,6 +175,7 @@ smru_clean_meta_imos <- function(cid,
     built <- attr(meta, "built")
     notes <- attr(meta, "notes")
   }
+  notes <- c(ref_notes, notes)
 
   ## append dive start and end dates for (alternate) track truncation
   ##  to be used as alternate on final, delayed-mode (manual) QC
