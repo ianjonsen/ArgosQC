@@ -18,6 +18,7 @@ get_metadata(
   wc.meta = NULL,
   QCmode = NULL,
   build.meta = FALSE,
+  server.check = TRUE,
   path2mdb = NULL,
   p2mdbtools = NULL
 )
@@ -66,6 +67,11 @@ tag identifiers are checked against the SMRU data server (see
 \item{build.meta}{logical; delayed-mode QC only. Build the metadata of
 deployments missing from the metadata file from the SMRU data server, the
 .mdb deployments table, the Argos locations and \code{meta.args}}
+
+\item{server.check}{logical; delayed-mode QC of IMOS metadata only. Check
+ptt, body, WMO ID and tag type against the SMRU data server (default
+\code{TRUE}). \code{FALSE} takes them from the metadata file unchecked; \code{build.meta}
+must then be \code{FALSE}. Set by \code{"server.check"} in the config setup block}
 
 \item{path2mdb, p2mdbtools}{the .mdb folder and the mdbtools path (used when
 \code{build.meta = TRUE})}

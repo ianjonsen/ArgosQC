@@ -36,6 +36,10 @@
 ##' @param build.meta logical; delayed-mode QC only. Build the metadata of
 ##' deployments missing from the metadata file from the SMRU data server, the
 ##' .mdb deployments table, the Argos locations and `meta.args`
+##' @param server.check logical; delayed-mode QC of IMOS metadata only. Check
+##' ptt, body, WMO ID and tag type against the SMRU data server (default
+##' `TRUE`). `FALSE` takes them from the metadata file unchecked; `build.meta`
+##' must then be `FALSE`. Set by `"server.check"` in the config setup block
 ##' @param path2mdb,p2mdbtools the .mdb folder and the mdbtools path (used when
 ##' `build.meta = TRUE`)
 ##'
@@ -60,6 +64,7 @@ get_metadata <- function(source = "smru",
                          wc.meta = NULL,
                          QCmode = NULL,
                          build.meta = FALSE,
+                         server.check = TRUE,
                          path2mdb = NULL,
                          p2mdbtools = NULL) {
 
@@ -283,12 +288,17 @@ get_metadata <- function(source = "smru",
 
                    },
                    imos = {
+                     dm <- identical(as.character(QCmode), "dm")
+                     if (dm && !isTRUE(server.check) && isTRUE(as.logical(build.meta))) {
+                       stop("build.meta = TRUE needs the SMRU server check; set server.check ",
+                            "to true or build.meta to false in the config file.", call. = FALSE)
+                     }
                      smru_clean_meta_imos(
                        cid = cid,
                        smru = tag_data,
                        dropIDs = dropIDs,
                        file = file,
-                       server = identical(as.character(QCmode), "dm"),
+                       server = dm && isTRUE(server.check),
                        user = user,
                        pwd = pwd,
                        build.meta = isTRUE(as.logical(build.meta)),

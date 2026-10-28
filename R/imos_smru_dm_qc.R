@@ -60,7 +60,9 @@
 ##'   deployments for `cid`, unless `build.meta = TRUE`. Each deployment's ptt,
 ##'   body, WMO ID and tag type are checked against the SMRU data server, whose
 ##'   values are used where they differ; the QC stops if the server cannot be
-##'   reached
+##'   reached. Set `"server.check": false` in the config setup block to skip the
+##'   SMRU server check for one campaign: ptt, body, WMO ID and tag type are then
+##'   taken from the metadata file unchecked, and `build.meta` must be `false`
 ##' @param species the species scientific name. Required only if it cannot be
 ##'   read from `meta.file` or an existing config file
 ##' @param common_name the species common name. Default: from the species
@@ -447,13 +449,24 @@ imos_smru_dm_qc <- function(cid,
   ##  checked here before the track review, so the log records every reference
   ##  match, SMRU server value used and deployment excluded, and a server that
   ##  cannot be reached stops the run early
-  note("Checking the deployment metadata against the tag data and the SMRU server")
+  server_check <- !isFALSE(as.logical(new$setup$server.check))
+  if (!server_check && bm) {
+    stop("build.meta = TRUE needs the SMRU server check; set server.check to true ",
+         "or build.meta to false in the config file.", call. = FALSE)
+  }
+  if (server_check) {
+    note("Checking the deployment metadata against the tag data and the SMRU server")
+  } else {
+    note("SMRU server check switched off in the config file (server.check = false): ",
+         "ptt, body, WMO ID and tag type are taken from the metadata file unchecked",
+         type = "review")
+  }
   mdb_dir <- file.path(wd, new$setup$data.dir)
   smru_b <- suppressMessages(smru_pull_tables(cids = cid, path2mdb = mdb_dir,
                                               p2mdbtools = new$harvest$p2mdbtools))
   meta_b <- suppressMessages(
     smru_clean_meta_imos(cid = cid, smru = smru_b, dropIDs = drop_ids, file = mf_path,
-                         server = TRUE, user = new$harvest$smru.usr,
+                         server = server_check, user = new$harvest$smru.usr,
                          pwd = new$harvest$smru.pwd, build.meta = bm,
                          meta.args = new$meta, path2mdb = mdb_dir,
                          p2mdbtools = new$harvest$p2mdbtools))

@@ -41,7 +41,9 @@ the function stops if there is none. It also stops if the file has no
 deployments for \code{cid}, unless \code{build.meta = TRUE}. Each deployment's ptt,
 body, WMO ID and tag type are checked against the SMRU data server, whose
 values are used where they differ; the QC stops if the server cannot be
-reached}
+reached. Set \code{"server.check": false} in the config setup block to skip the
+SMRU server check for one campaign: ptt, body, WMO ID and tag type are then
+taken from the metadata file unchecked, and \code{build.meta} must be \code{false}}
 
 \item{species}{the species scientific name. Required only if it cannot be
 read from \code{meta.file} or an existing config file}
