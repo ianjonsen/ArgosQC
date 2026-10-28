@@ -249,6 +249,7 @@ smru_qc <- function(wd,
       meta.args = conf$meta,
       QCmode = conf$model$QCmode,
       build.meta = isTRUE(as.logical(conf$setup$build.meta)),
+      server.check = !isFALSE(as.logical(conf$setup$server.check)),
       path2mdb = conf$setup$data.dir,
       p2mdbtools = conf$harvest$p2mdbtools
     ) |>
