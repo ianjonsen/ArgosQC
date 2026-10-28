@@ -167,6 +167,14 @@ smru_pull_tables <- function(cids,
     if(min(smru$diag$d_date, na.rm=TRUE) < ISOdate(2006,01,01,tz="UTC")) {
       smru$diag <- smru$diag |>
         mutate(ref = str_replace_all(ref, "\\_", "-"))
+      ## the other tables' refs are changed in the same way before they are
+      ##  joined to the first location dates (first.dates, below); otherwise no
+      ##  ref matches and every tag gets the wrong start date
+      for (tb in intersect(c("haulout", "ctd", "dive", "summary", "cruise"), names(smru))) {
+        if (is.data.frame(smru[[tb]]) && "ref" %in% names(smru[[tb]])) {
+          smru[[tb]]$ref <- str_replace_all(smru[[tb]]$ref, "\\_", "-")
+        }
+      }
     }
 
     ## If locations remain at SMRU HQ then remove all those within 15km of HQ
@@ -243,6 +251,9 @@ smru_pull_tables <- function(cids,
     }
   }
 
+  ## first location date of each tag: dive, CTD, haul-out, summary and cruise
+  ##  records before it (pre-deployment) are dropped. Tags with no locations
+  ##  (md = NA) keep all their records
   first.dates <- smru$diag |> group_by(ref) |> summarise(md = min(d_date, na.rm = TRUE))
 
 
@@ -251,7 +262,7 @@ smru_pull_tables <- function(cids,
       mutate(s_date = mdy_hms(s_date, tz = "UTC")) |>
       mutate(e_date = mdy_hms(e_date, tz = "UTC"))  |>
       left_join(first.dates, by = "ref") |>
-      mutate(md = ifelse(is.na(md), s_date[1], md)) |>
+      mutate(md = ifelse(is.na(md), -Inf, md)) |>
       filter(s_date >= md & e_date >= md) |>
       select(-md)
 
@@ -280,7 +291,7 @@ smru_pull_tables <- function(cids,
     smru$ctd <- smru$ctd |>
       mutate(end_date = mdy_hms(end_date, tz = "UTC")) |>
       left_join(first.dates, by = "ref") |>
-      mutate(md = ifelse(is.na(md), end_date[1], md)) |>
+      mutate(md = ifelse(is.na(md), -Inf, md)) |>
       filter(end_date >= md) |>
       select(-md)
 
@@ -311,7 +322,7 @@ smru_pull_tables <- function(cids,
     smru$dive <- smru$dive |>
       mutate(de_date = mdy_hms(de_date, tz = "UTC"))|>
       left_join(first.dates, by = "ref") |>
-      mutate(md = ifelse(is.na(md), de_date[1], md)) |>
+      mutate(md = ifelse(is.na(md), -Inf, md)) |>
       filter(de_date >= md) |>
       select(-md)
 
@@ -327,7 +338,7 @@ smru_pull_tables <- function(cids,
       smru$dive <- smru$dive |>
         mutate(ds_date = mdy_hms(ds_date, tz = "UTC")) |>
         left_join(first.dates, by = "ref") |>
-        mutate(md = ifelse(is.na(md), ds_date[1], md)) |>
+        mutate(md = ifelse(is.na(md), -Inf, md)) |>
         filter(ds_date >= md) |>
         select(-md)
     }
@@ -349,7 +360,7 @@ smru_pull_tables <- function(cids,
         mutate(s_date = mdy_hms(s_date, tz = "UTC")) |>
         mutate(e_date = mdy_hms(e_date, tz = "UTC")) |>
         left_join(first.dates, by = "ref") |>
-        mutate(md = ifelse(is.na(md), s_date[1], md)) |>
+        mutate(md = ifelse(is.na(md), -Inf, md)) |>
         filter(s_date >= md & e_date >= md) |>
         select(-md)
 
@@ -389,7 +400,7 @@ smru_pull_tables <- function(cids,
         mutate(s_date = mdy_hms(s_date, tz = "UTC")) |>
         mutate(e_date = mdy_hms(e_date, tz = "UTC")) |>
         left_join(first.dates, by = "ref") |>
-        mutate(md = ifelse(is.na(md), s_date[1], md)) |>
+        mutate(md = ifelse(is.na(md), -Inf, md)) |>
         filter(s_date >= md & e_date >= md) |>
         select(-md)
 
