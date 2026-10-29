@@ -556,6 +556,7 @@ imos_smru_dm_qc <- function(cid,
     has_trim <- file.exists(file.path(wd, trim_file))
     choices <- c(accept = "Accept all suggested end dates",
                  edit = paste0("Edit the end dates in ", draft_file, ", then continue"),
+                 zoom = "Zoom in on part of a deployment's time series (trim_zoom())",
                  existing = paste0("Use the existing ", trim_file, " unchanged"),
                  none = "Truncate no tracks",
                  stop = "Stop without running the QC")
@@ -592,6 +593,22 @@ imos_smru_dm_qc <- function(cid,
           decision <- paste0("Edited end dates (", sum(!is.na(d$end_date)), " tracks truncated); ",
                              trim_file, " written")
         }
+
+      } else if (pick == "zoom") {
+        zrefs <- names(attr(trim, "plot_data"))
+        cat(paste0("  ", seq_along(zrefs), ": ", zrefs), sep = "\n")
+        zi <- suppressWarnings(as.integer(readline("Deployment number: ")))
+        if (is.na(zi) || zi < 1 || zi > length(zrefs)) {
+          cat("No deployment chosen.\n")
+          next
+        }
+        za <- readline("From (YYYY-MM-DD or YYYY-MM-DD HH:MM, UTC; Enter for the start of the track): ")
+        zb <- readline("To (YYYY-MM-DD or YYYY-MM-DD HH:MM, UTC; Enter for the end of the track): ")
+        tryCatch(trim_zoom(trim, zrefs[zi], from = za, to = zb,
+                           draft = file.path(wd, draft_file)),
+                 error = function(e) message("trim_zoom() failed: ", conditionMessage(e)))
+        cat("\nTo change dates, choose the edit option; the draft dates are drawn on the next zoom.\n")
+        next
 
       } else if (pick == "existing") {
         set_trimIDs(trim_file)

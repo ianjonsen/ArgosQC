@@ -84,7 +84,8 @@ invisibly, a data frame with one row per deployment: \code{ref},
 \code{n_records_after_track_end}, \code{days_after_anchor}, \code{stationary_end},
 \code{sparse_end}, \code{final_haulout_start}, \code{final_gap_start}, \code{final_outlier},
 \code{n_locations_removed}, \code{n_dives_removed}, \code{n_ctd_removed}. The same table is
-written to \code{draft_file}.
+written to \code{draft_file}. The review data are attached as attribute
+\code{plot_data}, for \code{\link[=trim_zoom]{trim_zoom()}}.
 }
 \description{
 Reads a campaign's SMRU tag data and deployment metadata, as

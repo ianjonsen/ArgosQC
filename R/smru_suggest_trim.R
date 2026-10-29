@@ -101,7 +101,8 @@
 ##' `n_records_after_track_end`, `days_after_anchor`, `stationary_end`,
 ##' `sparse_end`, `final_haulout_start`, `final_gap_start`, `final_outlier`,
 ##' `n_locations_removed`, `n_dives_removed`, `n_ctd_removed`. The same table is
-##' written to `draft_file`.
+##' written to `draft_file`. The review data are attached as attribute
+##' `plot_data`, for [trim_zoom()].
 ##'
 ##' @importFrom jsonlite read_json
 ##' @importFrom readr read_csv write_csv
@@ -508,7 +509,7 @@ smru_suggest_trim <- function(wd,
     }
 
     rows[[k]] <- as.data.frame(r, stringsAsFactors = FALSE)
-    plot_data[[k]] <- list(f = f, d_t = d_t, c_t = c_t, h = h, anchor = anchor,
+    plot_data[[k]] <- list(f = f, f_all = f_all, d_t = d_t, c_t = c_t, h = h, anchor = anchor,
                            end = end, others = c(stat_end, sparse_end, ho_start, gap_end,
                                                  outlier_end), r = r)
   }
@@ -516,6 +517,11 @@ smru_suggest_trim <- function(wd,
   out <- do.call(rbind, rows)
   out <- out[order(is.na(out$end_date), out$ref), ]
   rownames(out) <- NULL
+
+  ## review data for trim_zoom()
+  names(plot_data) <- refs
+  attr(out, "plot_data") <- plot_data
+  attr(out, "vmax") <- suppressWarnings(as.numeric(conf$model$vmax))
 
   if (is.null(draft_file)) draft_file <- paste0(paste(cid, collapse = "_"), "_trimIDs_draft.csv")
   write_csv(out, draft_file, na = "")
