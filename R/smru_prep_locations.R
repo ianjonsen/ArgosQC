@@ -108,6 +108,10 @@ smru_prep_loc <- function(smru,
   diag <- diag |>
     filter(!ref %in% dropIDs)
 
+  ## drop Argos placeholder locations at exactly 0, 0 (near real-time and
+  ##  delayed-mode QC; see qc_drop_null_island())
+  diag <- qc_drop_null_island(diag)
+
   ## truncate & convert to sf geometry steps
   if("device_id" %in% names(meta)) {
     if("dive_start" %in% names(meta)) {
