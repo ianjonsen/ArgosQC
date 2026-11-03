@@ -202,6 +202,13 @@ smru_suggest_trim <- function(wd,
                        p2mdbtools = conf$harvest$p2mdbtools) |>
     suppressMessages()
 
+  ## deployment start (T0): records before T0 are not part of the QC track
+  ##  (see smru_deployment_start())
+  ds <- smru_deployment_start(smru, meta,
+                              from_file = qc_meta_from_file(meta, meta.source))
+  smru <- ds$smru
+  meta <- ds$meta
+
   obs <- smru_clean_diag(smru, dropIDs = dropIDs)
   obs <- obs[!is.na(obs$date) & !is.na(obs$lon) & !is.na(obs$lat), ]
 

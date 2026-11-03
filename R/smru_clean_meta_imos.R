@@ -2,7 +2,8 @@
 ##'
 ##' @description restructures metadata, formats dates,
 ##' standardizes variable names, subsets to specified campaign ids, appends
-##' dive start and end datetimes (for QC), & fills in missing
+##' dive start and end datetimes (for QC), parses the release time (TDeploy,
+##' UTC) into `release_time`, & fills in missing
 ##' release_longitude/latitude's with the first best quality (lc 3,2, or 1)
 ##' Argos location after release_datetime
 ##'
@@ -97,6 +98,9 @@ smru_clean_meta_imos <- function(cid,
 
   meta <- meta %>%
     mutate(release_date = lubridate::ymd(paste(year, month, day, sep = "-"), tz = "UTC")) %>%
+    ## release date and time (TDeploy, UTC); NA where TDeploy is empty or not a
+    ##  recognised clock time. Used for the deployment start (smru_deployment_start())
+    mutate(release_time = release_date + qc_parse_clock(deploy_time)) %>%
     mutate(sattag_program = smru_cid(device_id)) %>%
     mutate(recovery_date = NA) %>%
     select(
@@ -113,6 +117,7 @@ smru_clean_meta_imos <- function(cid,
       release_site,
       state_country,
       release_date,
+      release_time,
       recovery_date,
       age_class,
       sex,
@@ -226,6 +231,10 @@ smru_clean_meta_imos <- function(cid,
       meta[[v]][i] <- x
     }
   }
+
+  ## release position given in the metadata file (not filled in below); a
+  ##  metadata deployment start is only used with a release position
+  meta$release_pos_file <- !is.na(meta$release_latitude) & !is.na(meta$release_longitude)
 
   ## if absent, fill in missing release_longitude/latitude's with the
   ##   most recent lc = 3 | 2 Argos location (after or on release_date)0

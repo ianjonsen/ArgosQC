@@ -1,19 +1,19 @@
 ##' @title clean, truncate & convert diag files to sf-tibbles
 ##'
-##' @description restructures diag files, formats dates & lc's; truncates start
-##' (and end for "nrt") of individual deployments using ctd dates; converts to
-##' sf geometry - all in preparation for SSM-filtering. Splits resulting truncated
-##' diag files by species.
+##' @description restructures diag files, formats dates & lc's; keeps the
+##' deployments in the metadata and starts each track at its deployment start
+##' (metadata column `deploy_start`, set by `smru_deployment_start()`); converts
+##' to sf geometry - all in preparation for SSM-filtering. Tracks are not
+##' truncated at the first or last CTD profile or dive record.
 ##'
 ##' @param smru list of SMRU tables
-##' @param meta metadata used to truncate start of diag data for each individual
+##' @param meta metadata; its `deploy_start` column (if present) sets the start
+##' of each track
 ##' @param dropIDs SMRU refs to be dropped (eg. tags were turned on but not deployed)
 ##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
 ##' which results in one of 4 possible projections applied automatically, based on
 ##' the centroid of the tracks. See `overview` vignette for details.
-##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
-##' in latter case diag is not right-truncated & date of first dive is used
-##' for the track start date
+##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm)
 ##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
 ##' @importFrom dplyr ungroup rename select
@@ -112,117 +112,24 @@ smru_prep_loc <- function(smru,
   ##  delayed-mode QC; see qc_drop_null_island())
   diag <- qc_drop_null_island(diag)
 
-  ## truncate & convert to sf geometry steps
-  if("device_id" %in% names(meta)) {
-    if("dive_start" %in% names(meta)) {
-      deploy_meta <- meta |>
-        dplyr::select(device_id, ctd_start, dive_start, ctd_end, dive_end)
-
-    } else {
-      deploy_meta <- meta |>
-        dplyr::select(device_id, ctd_start, ctd_end)
-    }
-
-
-    if(QCmode == "nrt" | QCmode == "test") {
-      ## left- and right-truncate tracks
-      diag <- diag |>
-        left_join(deploy_meta, by = c("ref" = "device_id")) |>
-        filter(date >= ctd_start & date <= ctd_end) |>
-        dplyr::select(-ctd_start, -ctd_end)
-
-    } else if(QCmode == "dm") {
-      if("dive_start" %in% names(meta)) {
-      ## only left-truncate tracks with date of first dive. A deployment with
-      ##  no dive records has dive_start = NA; use its first CTD profile date
-      ##  instead so the deployment is not silently dropped from the QC
-      refs_in_diag <- unique(diag$ref)
-      no_dive <- deploy_meta |>
-        filter(device_id %in% refs_in_diag, is.na(dive_start), !is.na(ctd_start)) |>
-        pull(device_id)
-      no_start <- deploy_meta |>
-        filter(device_id %in% refs_in_diag, is.na(dive_start), is.na(ctd_start)) |>
-        pull(device_id)
-      if(length(no_dive) > 0) {
-        message("No dive records; tracks left-truncated at first CTD profile instead: ",
-                paste(no_dive, collapse = ", "))
-      }
-      if(length(no_start) > 0) {
-        message("No dive or CTD records; deployments excluded from QC: ",
-                paste(no_start, collapse = ", "))
-      }
-
-      diag <- diag |>
-        left_join(deploy_meta, by = c("ref" = "device_id")) |>
-        filter(date >= dplyr::coalesce(dive_start, ctd_start)) |>
-        dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
-
-      } else {
-        diag <- diag |>
-          left_join(deploy_meta, by = c("ref" = "device_id")) |>
-          filter(date >= ctd_start) |>
-          dplyr::select(-ctd_start, -ctd_end)
-      }
-    }
-
-  } else if ("DeploymentID" %in% names(meta)) {
-    deploy_meta <- meta |>
-      dplyr::select(
-        DeploymentID,
-        DeploymentStartDateTime,
-        DeploymentStopDateTime,
-        ctd_start,
-        dive_start,
-        ctd_end,
-        dive_end
-      ) |>
-      mutate(
-        ctd_start = ifelse(
-          DeploymentStartDateTime > ctd_start,
-          DeploymentStartDateTime,
-          ctd_start
-        )
-      ) |>
-      mutate(ctd_start = as.POSIXct(ctd_start, origin = "1970-01-01", tz = "UTC")) |>
-      mutate(ctd_end = ifelse(
-        DeploymentStopDateTime < ctd_end,
-        DeploymentStopDateTime,
-        ctd_end
-      )) |>
-      mutate(ctd_end = as.POSIXct(ctd_end, origin = "1970-01-01", tz = "UTC")) |>
-      mutate(
-        dive_start = ifelse(
-          DeploymentStartDateTime > dive_start,
-          DeploymentStartDateTime,
-          dive_start
-        )
-      ) |>
-      mutate(dive_start = as.POSIXct(dive_start, origin = "1970-01-01", tz = "UTC")) |>
-      mutate(dive_end = ifelse(
-        DeploymentStopDateTime < dive_end,
-        DeploymentStopDateTime,
-        dive_end
-      )) |>
-      mutate(dive_end = as.POSIXct(dive_end, origin = "1970-01-01", tz = "UTC"))
-
-    if(QCmode == "nrt" | QCmode == "test") {
-      ## left- and right-truncate tracks
-      diag <- diag |>
-        left_join(deploy_meta, by = c("ref" = "DeploymentID")) |>
-        filter(date >= ctd_start & date <= ctd_end) |>
-        dplyr::select(-ctd_start, -ctd_end, -dive_end)
-
-    } else if(QCmode == "dm") {
-      ## only left-truncate tracks with date of first dive
-      diag <- diag |>
-        left_join(deploy_meta, by = c("ref" = "DeploymentID")) |>
-        filter(date >= dive_start) |>
-        dplyr::select(-ctd_start, -dive_start, -ctd_end, -dive_end)
-    }
-
-  } else {
-    stop("Unrecognized ID variable, please check source of metadata")
-
+  ## keep the deployments in the metadata and start each track at its
+  ##  deployment start (T0, metadata column deploy_start; see
+  ##  smru_deployment_start()). Tracks are not truncated at the first or last
+  ##  CTD profile or dive record, in near real-time or delayed-mode QC
+  ##  (delayed-mode track ends are set with trimIDs; see trim_locs())
+  id_col <- intersect(c("device_id", "DeploymentID"), names(meta))[1]
+  if (is.na(id_col)) stop("Unrecognized ID variable, please check source of metadata")
+  ids <- as.character(meta[[id_col]])
+  diag <- diag |>
+    filter(ref %in% ids)
+  if ("deploy_start" %in% names(meta)) {
+    T0 <- as.POSIXct(meta$deploy_start, tz = "UTC")[match(diag$ref, ids)]
+    diag <- diag[is.na(T0) | diag$date >= T0, ]
+  }
+  ## ATN: deployment stop date and time from the metadata, where given
+  if (id_col == "DeploymentID" && "DeploymentStopDateTime" %in% names(meta)) {
+    T1 <- as.POSIXct(meta$DeploymentStopDateTime, tz = "UTC")[match(diag$ref, ids)]
+    diag <- diag[is.na(T1) | diag$date <= T1, ]
   }
 
 

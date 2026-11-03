@@ -9,7 +9,7 @@ wc_prep_loc(wc, meta, dropIDs, crs = NULL, program = "atn", QCmode = "nrt")
 \arguments{
 \item{wc}{list of WC datafiles}
 
-\item{meta}{metadata used to truncate start of diag data for each individual}
+\item{meta}{metadata; its \code{QC_start_date} column sets the start of each track}
 
 \item{dropIDs}{WC DeploymentID's to be dropped (eg. tags were turned on but not deployed)}
 
@@ -19,13 +19,14 @@ the centroid of the tracks. See \code{overview} vignette for details.}
 
 \item{program}{specify the aniBOS program contributing data (currently: 'atn', 'irap')}
 
-\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
-in latter case wc is not right-truncated & date of first dive is used
-for the track start date.}
+\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm).
+In delayed-mode QC, tracks end at a manual QC end or, for ATN, the metadata
+deployment stop, where given.}
 }
 \description{
-restructures Locations files, formats dates & lc's; truncates start
-(and end for "nrt") of individual deployments using ctd dates; converts to
-sf geometry - all in preparation for SSM-filtering. Splits resulting truncated
-diag files by species.
+restructures Locations files, formats dates & lc's; keeps the
+deployments in the metadata and starts each track at its QC start (the
+deployment start, T0, or a later manual QC start; see
+\code{wc_deployment_start()}); converts to sf geometry - all in preparation for
+SSM-filtering. Tracks are not truncated at the first or last dive record.
 }

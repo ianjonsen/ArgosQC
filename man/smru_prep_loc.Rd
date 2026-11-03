@@ -9,7 +9,8 @@ smru_prep_loc(smru, meta, dropIDs = NULL, crs = NULL, QCmode = NULL)
 \arguments{
 \item{smru}{list of SMRU tables}
 
-\item{meta}{metadata used to truncate start of diag data for each individual}
+\item{meta}{metadata; its \code{deploy_start} column (if present) sets the start
+of each track}
 
 \item{dropIDs}{SMRU refs to be dropped (eg. tags were turned on but not deployed)}
 
@@ -17,13 +18,12 @@ smru_prep_loc(smru, meta, dropIDs = NULL, crs = NULL, QCmode = NULL)
 which results in one of 4 possible projections applied automatically, based on
 the centroid of the tracks. See \code{overview} vignette for details.}
 
-\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
-in latter case diag is not right-truncated & date of first dive is used
-for the track start date}
+\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm)}
 }
 \description{
-restructures diag files, formats dates & lc's; truncates start
-(and end for "nrt") of individual deployments using ctd dates; converts to
-sf geometry - all in preparation for SSM-filtering. Splits resulting truncated
-diag files by species.
+restructures diag files, formats dates & lc's; keeps the
+deployments in the metadata and starts each track at its deployment start
+(metadata column \code{deploy_start}, set by \code{smru_deployment_start()}); converts
+to sf geometry - all in preparation for SSM-filtering. Tracks are not
+truncated at the first or last CTD profile or dive record.
 }

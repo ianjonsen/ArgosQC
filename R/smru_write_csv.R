@@ -83,6 +83,7 @@ smru_write_csv <- function(smru_ssm,
 
     meta <- left_join(meta, ssm_out$qc_se, by = c("DeploymentID" = "ref")) |>
       select(-ctd_start, -ctd_end, -dive_start, -dive_end) |>
+      select(-dplyr::any_of(c("deploy_start", "release_time", "release_pos_file"))) |>
       rename(QCStartDateTime = qc_start_date, QCStopDateTime = qc_end_date) |>
       mutate(QCMethod = "ArgosQC",
              QCMethodVersion = as.character(packageVersion("ArgosQC"))) |>
@@ -100,6 +101,7 @@ smru_write_csv <- function(smru_ssm,
 
     meta <- left_join(meta, ssm_out$qc_se, by = c("device_id" = "ref")) |>
       select(-ctd_start, -ctd_end, -dive_start, -dive_end) |>
+      select(-dplyr::any_of(c("deploy_start", "release_time", "release_pos_file"))) |>
       mutate(qc_method = "ArgosQC",
              qc_method_version = as.character(packageVersion("ArgosQC"))) |>
       rename(qc_proj4string = proj4string)

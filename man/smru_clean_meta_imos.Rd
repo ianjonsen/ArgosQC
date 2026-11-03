@@ -45,7 +45,8 @@ the metadata file (used when \code{server = TRUE})}
 \description{
 restructures metadata, formats dates,
 standardizes variable names, subsets to specified campaign ids, appends
-dive start and end datetimes (for QC), & fills in missing
+dive start and end datetimes (for QC), parses the release time (TDeploy,
+UTC) into \code{release_time}, & fills in missing
 release_longitude/latitude's with the first best quality (lc 3,2, or 1)
 Argos location after release_datetime
 }

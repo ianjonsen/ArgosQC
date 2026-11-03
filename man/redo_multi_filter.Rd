@@ -17,6 +17,7 @@ redo_multi_filter(
   reroute = TRUE,
   dist = 500,
   barrier = NULL,
+  onland = NULL,
   verbose = TRUE,
   ...
 )
@@ -50,6 +51,10 @@ too much will make computation very slow.}
 
 \item{barrier}{add a custom POLYGON/MULTIPOLYGON shapefile to use as a land
 barrier. Default (NULL) reverts to the \code{aniMotum} default land barrier.}
+
+\item{onland}{on-land intervals (data frame with \code{id}, \code{start}, \code{end}),
+from haul-out and dive records; SSM-estimated locations within them are not
+re-routed off land (see \code{aniMotum::route_path()})}
 
 \item{verbose}{turn on/off furrr::future_map progress indicator}
 
