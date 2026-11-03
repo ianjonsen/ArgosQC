@@ -29,7 +29,7 @@ Imports:
     ggplot2 (>= 4.0.1),
     rnaturalearth (>= 1.2.0),
     snakecase,
-    aniMotum (>= 1.3-0.9003),
+    aniMotum (>= 1.3-0),
     XML (>= 3.99-0.20),
     httr2 (>= 1.2.2),
     openssl (>= 2.3.4),
