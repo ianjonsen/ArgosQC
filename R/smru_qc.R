@@ -100,7 +100,11 @@
 ##'   `ho.gap` h apart, with no dive record between them, form one on-land
 ##'   interval. SSM-estimated locations within on-land intervals, and locations
 ##'   on land at the start or end of a track, are not re-routed off land.
-##'   Ignored if `reroute = FALSE`.
+##'   Seals, sea lions and fur seals: every haul-out record is used. Turtles:
+##'   only haul-out records within 21 days of the deployment start and within
+##'   5 km of the deployment position (a return to the nesting beach). Other
+##'   species: none. The species is taken from the config `meta` block, or
+##'   from the deployment metadata. Ignored if `reroute = FALSE`.
 ##'   * `cut` logical; should predicted locations be dropped if they lie within
 ##'   in a large data gap (default is FALSE).
 ##'   * `min.gap` the minimum data gap duration (h) to be used for cutting
@@ -296,7 +300,10 @@ smru_qc <- function(wd,
   ##  locations within them are not re-routed off land (see qc_onland.R)
   ho.gap <- conf$model$ho.gap
   if (is.null(ho.gap) || all(is.na(ho.gap))) ho.gap <- 6
-  onland <- smru_onland(smru, ho.gap = as.numeric(ho.gap))
+  id_col <- intersect(c("device_id", "DeploymentID"), names(meta))[1]
+  onland <- smru_onland(smru, ho.gap = as.numeric(ho.gap),
+                        taxon = qc_meta_taxon(meta, id_col, conf$meta),
+                        starts = ds$starts)
 
   message("Fitting QC SSM - first pass...")
 
