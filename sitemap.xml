@@ -12,11 +12,13 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/authors.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/news/index.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/accept_trim_dates.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/approx_ssm.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/diagnostics.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/download_data.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/get_metadata.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/grab_QC.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/imos_smru_dm_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/index.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/map_QC.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/multi_filter.html</loc></url>
@@ -33,6 +35,7 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_pull_tables.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_qc.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_ssm_outputs.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_suggest_trim.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_truncate_ssm.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_write_cruise.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_write_csv.html</loc></url>
@@ -45,6 +48,8 @@
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_write_ssm.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/smru_write_summary.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/ssm_mark_gaps.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/trim_locs.html</loc></url>
+<url><loc>https://ianjonsen.github.io/ArgosQC/reference/trim_zoom.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_DSA.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_ECDHistosDSA.html</loc></url>
 <url><loc>https://ianjonsen.github.io/ArgosQC/reference/wc_append_Locations.html</loc></url>
