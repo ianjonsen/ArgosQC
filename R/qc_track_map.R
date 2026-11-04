@@ -33,9 +33,9 @@ qc_track_map_draw <- function(locs, obs, file, title = NULL) {
 
   ## one hue per deployment, stepped by the golden angle so neighbouring ids
   ##  differ; dark shade for the SSM track, light tint for its Argos locations
-  hues <- ((seq_len(n) - 1) * 137.508 + 15) %% 360
-  ssm_col <- stats::setNames(grDevices::hcl(hues, c = 85, l = 45), ids)
-  obs_col <- stats::setNames(grDevices::hcl(hues, c = 40, l = 80), ids)
+  hc <- qc_track_hues(ids)
+  ssm_col <- hc$dark
+  obs_col <- hc$light
 
   xy <- sf::st_coordinates(locs)
   ld <- data.frame(id = as.character(locs$id), date = locs$date, x = xy[, 1], y = xy[, 2])

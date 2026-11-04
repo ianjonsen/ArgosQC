@@ -273,6 +273,10 @@ smru_qc <- function(wd,
   ##  consistent with the data, otherwise calculated from the locations. Records
   ##  before T0 are removed from the tag data, so from the SSM input and every
   ##  output file (see smru_deployment_start())
+  ## all tag locations, before the deployment start is applied (shown in the
+  ##  coverage plots)
+  obs <- smru_clean_diag(smru, dropIDs = dropIDs)
+
   message("Finding deployment start times...")
   ds <- smru_deployment_start(smru, meta,
                               from_file = qc_meta_from_file(meta, meta.source))
@@ -360,8 +364,6 @@ smru_ssm <- smru_append_ssm(
 
 ## Generate SSM fit diagnostics & SSM-predicted track map
 message("Generating QC diagnostic plots...")
-obs <- smru_clean_diag(smru, dropIDs = dropIDs)
-
 diagnostics(
   fit = fit2,
   fit1 = fit1,

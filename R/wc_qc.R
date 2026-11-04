@@ -217,6 +217,10 @@ wc_qc <- function(wd,
   ##  consistent with the data, otherwise calculated from the locations. The QC
   ##  starts at T0 (or a later manual QC start) and records before it are
   ##  removed from every output file (see wc_deployment_start())
+  ## all tag locations, before the deployment start is applied (shown in the
+  ##  coverage plots)
+  locs_all <- wc$Locations
+
   message("Finding deployment start times...")
   ds <- wc_deployment_start(wc, meta, from_file = meta.source != "wc")
   wc <- ds$wc
@@ -310,7 +314,7 @@ wc_qc <- function(wd,
     fit1,
     what = what,
     cut = conf$model$cut,
-    data = wc$Locations,
+    data = locs_all,
     ssm = wc_ssm,
     meta = meta,
     lines = TRUE,

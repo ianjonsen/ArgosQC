@@ -24,7 +24,7 @@ diagnostics(
 \arguments{
 \item{fit}{the final aniMotum fit object from QC process}
 
-\item{fit1}{the initial aniMotum fit object from QC process}
+\item{fit1}{ignored (kept for compatibility)}
 
 \item{what}{the SSM-estimated or rerouted locations to be used}
 
@@ -32,9 +32,9 @@ diagnostics(
 
 \item{data}{the standardized WC Locations or SMRU diag file (prior to truncation by metadata CTD start and end dates)}
 
-\item{ssm}{the ssm-annotated WC/SMRU tables}
+\item{ssm}{ignored (kept for compatibility)}
 
-\item{meta}{metadata}
+\item{meta}{ignored (kept for compatibility)}
 
 \item{lines}{ignored; the map always shows track lines (kept for compatibility)}
 
@@ -44,15 +44,18 @@ diagnostics(
 
 \item{dpath}{path to write all other diagnostic files}
 
-\item{QCmode}{specify whether QC is near real-time (nrt) or delayed-mode (dm),
-in latter case start end end of dive data are displayed rather than ctd data.}
+\item{QCmode}{ignored (kept for compatibility)}
 
-\item{tag_mfr}{the tag manufacturer. Currently, only \code{smru} or \code{wc} are supported.}
+\item{tag_mfr}{ignored (kept for compatibility)}
 
 \item{cid}{SMRU campaign id (from config file). Ignored if WC data is used.}
 }
 \description{
-produces a map of all QC'd tracks and generates various diagnostics to assess QC run.
-The map shows each SSM-estimated track in its own hue, with its Argos locations in a
-light tint of that hue; Argos locations removed by the prefilter are semi-transparent points in the track's dark shade
+produces a map of all QC'd tracks and latitude and longitude
+coverage plots to assess the QC run. The map shows each SSM-estimated track
+in its own hue, with its Argos locations in a light tint of that hue; Argos
+locations removed by the prefilter are semi-transparent points in the
+track's dark shade. The coverage plots use the same hues, one panel per
+deployment, with the SSM-estimated latitude or longitude drawn as a dark
+line over the Argos locations, and the time outside the QC'd track shaded.
 }
