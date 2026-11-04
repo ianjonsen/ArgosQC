@@ -95,7 +95,9 @@ the GPS (if present) or Argos location file.</p>
 <span>  build.meta <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  server.check <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  path2mdb <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  p2mdbtools <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  p2mdbtools <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  prov.dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  prov.name <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -183,6 +185,20 @@ must then be <code>FALSE</code>. Set by <code>"server.check"</code> in the confi
 <dt id="arg-path-mdb-p-mdbtools">path2mdb, p2mdbtools<a class="anchor" aria-label="anchor" href="#arg-path-mdb-p-mdbtools"></a></dt>
 <dd><p>the .mdb folder and the mdbtools path (used when
 <code>build.meta = TRUE</code>)</p></dd>
+
+
+<dt id="arg-prov-dir">prov.dir<a class="anchor" aria-label="anchor" href="#arg-prov-dir"></a></dt>
+<dd><p>near real-time QC of SMRU tags without a metadata file: the
+folder of the provisional metadata files, <code>&lt;cid&gt;_metadata_provisional.csv</code>
+(see <code>smru_meta_provisional()</code>); or near real-time QC of Wildlife Computers
+tags without a metadata file: the folder of <code>&lt;prov.name&gt;_metadata_provisional.csv</code>
+(see <code>wc_meta_provisional()</code>). NULL (default) builds the metadata from the
+SMRU server or the Wildlife Computers Portal on every run</p></dd>
+
+
+<dt id="arg-prov-name">prov.name<a class="anchor" aria-label="anchor" href="#arg-prov-name"></a></dt>
+<dd><p>Wildlife Computers only: the provisional metadata file name
+stem (the config file name without "config_" and ".json")</p></dd>
 
 </dl></div>
 

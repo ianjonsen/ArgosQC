@@ -97,7 +97,16 @@ Current options are: <code>atn</code>, or <code>irap</code>.</p></li>
 <li><p><code>data.dir</code> the name of the data directory. Must reside within the <code>wd</code>.</p></li>
 <li><p><code>meta.file</code> the metadata filename. Must reside within the <code>wd</code>. Can be NULL,
 in which case, the <code>meta</code> config block (see below) must be present &amp;
-tag-specific metadata are scraped from the SMRU data server.</p></li>
+tag-specific metadata are taken from the Wildlife Computers Portal. In
+near real-time QC, the first run writes them, with each deployment start
+(T0), to <code>&lt;name&gt;_metadata_provisional.csv</code> in <code>wd</code> (<code>&lt;name&gt;</code> is the config
+file name without "config_" and ".json"), and later runs read that file:
+the Portal metadata are used only for new deployments, and for a weekly
+refresh of the Portal fields during the first 8 weeks after T0. T0
+(<code>t0_date</code>, <code>t0_latitude</code>, <code>t0_longitude</code>) is recalculated daily until the
+tag has transmitted for 7 days after it, then kept (<code>t0_status</code> "final").
+Hand edits to the file are kept; delete it to rebuild it. The <code>t0_</code> and
+<code>prov_</code> columns never reach the output files.</p></li>
 <li><p><code>maps.dir</code> the directory path to write diagnostic maps of QC'd tracks.</p></li>
 <li><p><code>diag.dir</code> the directory path to write diagnostic time-series plots of
 QC'd lon &amp; lat.</p></li>

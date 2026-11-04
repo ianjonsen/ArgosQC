@@ -104,7 +104,15 @@ Current options are: <code>imos</code>, <code>atn</code>, or <code>otn</code>.</
 <li><p><code>meta.file</code> the metadata filename. Must reside within the <code>wd</code>. Required
 for delayed-mode QC (<code>QCmode = "dm"</code>). For near real-time QC only, it can be
 NULL, in which case the <code>meta</code> config block (see below) must be present &amp;
-tag-specific metadata are scraped from the SMRU data server.
+tag-specific metadata are scraped from the SMRU data server. The first
+run on a campaign writes them, with each deployment start (T0), to
+<code>&lt;cid&gt;_metadata_provisional.csv</code> in <code>wd</code>, and later runs read that file:
+the SMRU server is used only for new deployments, and for a weekly refresh
+of ptt, body, WMO ID and tag type during the first 8 weeks after T0. T0 is
+recalculated daily until the tag has transmitted for 7 days after it, then
+kept (<code>t0_status</code> "final"). Hand edits to the file are kept; delete it to
+rebuild it from the SMRU server. Its first 19 columns are the AODN metadata
+columns; the <code>t0_</code> and <code>prov_</code> columns never reach the AODN files.
 In delayed-mode QC with an IMOS metadata file, each deployment's ptt,
 body, WMO ID and tag type are checked against the SMRU data server, whose
 values are used where they differ; the QC stops if the server cannot be
