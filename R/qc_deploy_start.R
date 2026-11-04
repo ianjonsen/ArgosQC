@@ -12,14 +12,16 @@
 ##  2) pre-deployment test bursts are dropped: leading segments of locations
 ##     (split at gaps of more than gap_days) that span less than test_days;
 ##  3) the deployment position is the median of the class 1-3 (or GPS)
-##     locations in the first full 24 h of the remaining locations;
+##     locations in the first full 24 h of the remaining locations, taken
+##     around the class 1-3 location with the most locations within site_km
+##     (so an outlying location cannot pull the position away from the site);
 ##  4) T0 is the first location within site_km of that position.
 ## With a metadata release date and time (IMOS: TDeploy, UTC), T0 is that time.
 ## The deployment position is the median of the class 1-3 (or GPS) locations in
-## the 12 h after T0, or the 24 h after T0 if there are none in 12 h, or of all
-## locations except class Z in the 24 h after T0 if there are still none
-## (metadata positions are often approximate, e.g. an island centroid), or the
-## metadata position if there are no locations in the 24 h after T0. The metadata time is rejected, and T0
+## the 12 h after T0, or the 24 h after T0 if there are none in 12 h (metadata
+## positions are often approximate, e.g. an island centroid), or the metadata
+## position if there are none in 24 h. Lower-quality locations are not used:
+## for an animal that leaves the site quickly they place the release at sea. The metadata time is rejected, and T0
 ## calculated, only if the data contradict it: no locations after it, or the
 ## deployment position more than meta_km (default 100 km) from the metadata
 ## release position.
@@ -68,6 +70,21 @@ qc_deployment_start <- function(locs,
   good <- function(lc) as.character(lc) %in% c("1", "2", "3", "G")
   dist_to <- function(d, lat, lon) dm_dist_km(d$lat, d$lon, lat, lon)
 
+  ## deployment position from the candidate locations `cand` (class 1-3 or GPS
+  ##  where available): the candidate with the most locations of `support`
+  ##  (any class except Z) within site_km, then the median of the candidates
+  ##  within site_km of it. A plain median fails when an outlying location is
+  ##  among few candidates (e.g. one class 1 location 1,000 km away and one at
+  ##  the release site gives a median halfway between them)
+  centre <- function(cand, support) {
+    if (nrow(support) == 0) support <- cand
+    n <- vapply(seq_len(nrow(cand)), function(k)
+      sum(dist_to(support, cand$lat[k], cand$lon[k]) <= site_km), numeric(1))
+    k <- which.max(n)
+    cl <- cand[dist_to(cand, cand$lat[k], cand$lon[k]) <= site_km, ]
+    c(lat = stats::median(cl$lat), lon = stats::median(cl$lon))
+  }
+
   calculate <- function(d) {
     d <- d[d$lc != "Z", ]
     if (nrow(d) == 0) return(NULL)
@@ -83,8 +100,9 @@ qc_deployment_start <- function(locs,
     w <- d[t < t[1] + 86400, ]
     g <- w[good(w$lc), ]
     if (nrow(g) == 0) g <- w
-    lat0 <- stats::median(g$lat)
-    lon0 <- stats::median(g$lon)
+    p0 <- centre(g, w)
+    lat0 <- unname(p0["lat"])
+    lon0 <- unname(p0["lon"])
     near <- d[dist_to(d, lat0, lon0) <= site_km, ]
     T0 <- if (nrow(near) > 0) near$date[1] else d$date[1]
     list(T0 = T0, lat0 = lat0, lon0 = lon0, n_tests = n_tests)
@@ -114,16 +132,14 @@ qc_deployment_start <- function(locs,
         if (nrow(nxt) == 0 && length(pos_hours) > 1) {
           nxt <- g[g$date >= T0m & g$date < T0m + pos_hours[2] * 3600, ]
         }
-        ## no class 1-3 (or GPS) location: any class except Z
-        if (nrow(nxt) == 0) {
-          nxt <- d[d$lc != "Z" & d$date >= T0m & d$date < T0m + max(pos_hours) * 3600, ]
-        }
         if (nrow(d[d$date >= T0m, ]) == 0) {
           note <- "there are no locations after the metadata release date and time"
         } else {
           if (nrow(nxt) > 0) {
-            lat0 <- stats::median(nxt$lat)
-            lon0 <- stats::median(nxt$lon)
+            p0 <- centre(nxt, d[d$lc != "Z" & d$date >= T0m &
+                                  d$date < T0m + max(pos_hours) * 3600, ])
+            lat0 <- unname(p0["lat"])
+            lon0 <- unname(p0["lon"])
             how <- "metadata release date and time; position from the locations"
             from_data <- TRUE
           } else if (has_pos) {
