@@ -31,7 +31,8 @@
 	"centroids":true,
 	"cut":false,
 	"min.gap":72,
-	"QCmode":"nrt"
+	"QCmode":"nrt",
+	"inactive.days":3650
 	},
 "meta":
 	{

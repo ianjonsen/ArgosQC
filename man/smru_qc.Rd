@@ -24,7 +24,15 @@ Current options are: \code{imos}, \code{atn}, or \code{otn}.
 \item \code{meta.file} the metadata filename. Must reside within the \code{wd}. Required
 for delayed-mode QC (\code{QCmode = "dm"}). For near real-time QC only, it can be
 NULL, in which case the \code{meta} config block (see below) must be present &
-tag-specific metadata are scraped from the SMRU data server.
+tag-specific metadata are scraped from the SMRU data server. The first
+run on a campaign writes them, with each deployment start (T0), to
+\verb{<cid>_metadata_provisional.csv} in \code{wd}, and later runs read that file:
+the SMRU server is used only for new deployments, and for a weekly refresh
+of ptt, body, WMO ID and tag type during the first 8 weeks after T0. T0 is
+recalculated daily until the tag has transmitted for 7 days after it, then
+kept (\code{t0_status} "final"). Hand edits to the file are kept; delete it to
+rebuild it from the SMRU server. Its first 19 columns are the AODN metadata
+columns; the \code{t0_} and \code{prov_} columns never reach the AODN files.
 In delayed-mode QC with an IMOS metadata file, each deployment's ptt,
 body, WMO ID and tag type are checked against the SMRU data server, whose
 values are used where they differ; the QC stops if the server cannot be

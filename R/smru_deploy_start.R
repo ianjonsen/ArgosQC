@@ -11,9 +11,11 @@
 ##   metadata file (its release date, time and position are used if consistent
 ##   with the data); FALSE where it was built from the SMRU server or the data
 ##   (T0 is calculated)
+##  fixed: NULL, or deployment starts to use as given (ref, T0, lat0, lon0,
+##   source), e.g. final starts from the provisional metadata file
 ## Returns list(smru, meta, starts, notes); notes are named by message type
 smru_deployment_start <- function(smru, meta, from_file = NULL, site_km = 10,
-                                  meta_km = 100) {
+                                  meta_km = 100, fixed = NULL) {
 
   id_col <- intersect(c("device_id", "DeploymentID"), names(meta))[1]
   if (is.na(id_col)) stop("Unrecognised metadata ID variable", call. = FALSE)
@@ -67,8 +69,22 @@ smru_deployment_start <- function(smru, meta, from_file = NULL, site_km = 10,
   }
   ms <- ms[from_file, , drop = FALSE]
 
+  if (!is.null(fixed) && nrow(fixed) > 0) {
+    hq_dropped <- attr(locs, "dropped")
+    locs <- locs[!locs$ref %in% fixed$ref, ]
+    attr(locs, "dropped") <- hq_dropped
+    ms <- ms[!ms$ref %in% fixed$ref, , drop = FALSE]
+  }
   starts <- qc_deployment_start(locs, meta_start = if (nrow(ms) > 0) ms else NULL,
                                 site_km = site_km, meta_km = meta_km)
+  if (!is.null(fixed) && nrow(fixed) > 0) {
+    fx <- data.frame(ref = as.character(fixed$ref), T0 = as.POSIXct(fixed$T0, tz = "UTC"),
+                     lat0 = as.numeric(fixed$lat0), lon0 = as.numeric(fixed$lon0),
+                     source = as.character(fixed$source), pos_from_data = FALSE,
+                     n_tests = NA_integer_, note = NA_character_)
+    fx <- fx[fx$ref %in% ids, ]
+    starts <- rbind(starts, fx)
+  }
 
   ## remove records before T0 from every table
   n_removed <- list()

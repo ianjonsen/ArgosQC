@@ -52,7 +52,9 @@ Remotes:
   ianjonsen/aniMotum
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    testthat,
+    withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Config/testthat/parallel: false

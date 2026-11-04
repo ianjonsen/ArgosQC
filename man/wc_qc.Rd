@@ -23,7 +23,16 @@ Current options are: \code{atn}, or \code{irap}.
 \item \code{data.dir} the name of the data directory. Must reside within the \code{wd}.
 \item \code{meta.file} the metadata filename. Must reside within the \code{wd}. Can be NULL,
 in which case, the \code{meta} config block (see below) must be present &
-tag-specific metadata are scraped from the SMRU data server.
+tag-specific metadata are taken from the Wildlife Computers Portal. In
+near real-time QC, the first run writes them, with each deployment start
+(T0), to \verb{<name>_metadata_provisional.csv} in \code{wd} (\verb{<name>} is the config
+file name without "config_" and ".json"), and later runs read that file:
+the Portal metadata are used only for new deployments, and for a weekly
+refresh of the Portal fields during the first 8 weeks after T0. T0
+(\code{t0_date}, \code{t0_latitude}, \code{t0_longitude}) is recalculated daily until the
+tag has transmitted for 7 days after it, then kept (\code{t0_status} "final").
+Hand edits to the file are kept; delete it to rebuild it. The \code{t0_} and
+\code{prov_} columns never reach the output files.
 \item \code{maps.dir} the directory path to write diagnostic maps of QC'd tracks.
 \item \code{diag.dir} the directory path to write diagnostic time-series plots of
 QC'd lon & lat.

@@ -20,7 +20,9 @@ get_metadata(
   build.meta = FALSE,
   server.check = TRUE,
   path2mdb = NULL,
-  p2mdbtools = NULL
+  p2mdbtools = NULL,
+  prov.dir = NULL,
+  prov.name = NULL
 )
 }
 \arguments{
@@ -75,6 +77,16 @@ must then be \code{FALSE}. Set by \code{"server.check"} in the config setup bloc
 
 \item{path2mdb, p2mdbtools}{the .mdb folder and the mdbtools path (used when
 \code{build.meta = TRUE})}
+
+\item{prov.dir}{near real-time QC of SMRU tags without a metadata file: the
+folder of the provisional metadata files, \verb{<cid>_metadata_provisional.csv}
+(see \code{smru_meta_provisional()}); or near real-time QC of Wildlife Computers
+tags without a metadata file: the folder of \verb{<prov.name>_metadata_provisional.csv}
+(see \code{wc_meta_provisional()}). NULL (default) builds the metadata from the
+SMRU server or the Wildlife Computers Portal on every run}
+
+\item{prov.name}{Wildlife Computers only: the provisional metadata file name
+stem (the config file name without "config_" and ".json")}
 }
 \description{
 downloads, restructures & formats metadata, appends

@@ -20,7 +20,15 @@
 ##'   * `meta.file` the metadata filename. Must reside within the `wd`. Required
 ##'   for delayed-mode QC (`QCmode = "dm"`). For near real-time QC only, it can be
 ##'   NULL, in which case the `meta` config block (see below) must be present &
-##'   tag-specific metadata are scraped from the SMRU data server.
+##'   tag-specific metadata are scraped from the SMRU data server. The first
+##'   run on a campaign writes them, with each deployment start (T0), to
+##'   `<cid>_metadata_provisional.csv` in `wd`, and later runs read that file:
+##'   the SMRU server is used only for new deployments, and for a weekly refresh
+##'   of ptt, body, WMO ID and tag type during the first 8 weeks after T0. T0 is
+##'   recalculated daily until the tag has transmitted for 7 days after it, then
+##'   kept (`t0_status` "final"). Hand edits to the file are kept; delete it to
+##'   rebuild it from the SMRU server. Its first 19 columns are the AODN metadata
+##'   columns; the `t0_` and `prov_` columns never reach the AODN files.
 ##'   In delayed-mode QC with an IMOS metadata file, each deployment's ptt,
 ##'   body, WMO ID and tag type are checked against the SMRU data server, whose
 ##'   values are used where they differ; the QC stops if the server cannot be
@@ -245,7 +253,10 @@ smru_qc <- function(wd,
   }
 
   if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
-  else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from SMRU Portal...")
+  else if (any(file.exists(prov_file(wd, conf$harvest$cid)))) {
+    message("Reading provisional deployment metadata (", paste0(conf$harvest$cid,
+            "_metadata_provisional.csv", collapse = ", "), ")...")
+  } else message("Building deployment metadata from SMRU Portal...")
   ## Download or load metadata
   meta <- get_metadata(
       source = meta.source,
@@ -260,7 +271,8 @@ smru_qc <- function(wd,
       build.meta = isTRUE(as.logical(conf$setup$build.meta)),
       server.check = !isFALSE(as.logical(conf$setup$server.check)),
       path2mdb = conf$setup$data.dir,
-      p2mdbtools = conf$harvest$p2mdbtools
+      p2mdbtools = conf$harvest$p2mdbtools,
+      prov.dir = if (meta.source == "smru") wd else NULL
     ) |>
       suppressMessages()
 
@@ -278,11 +290,21 @@ smru_qc <- function(wd,
   obs <- smru_clean_diag(smru, dropIDs = dropIDs)
 
   message("Finding deployment start times...")
+  prov <- attr(meta, "prov")
   ds <- smru_deployment_start(smru, meta,
-                              from_file = qc_meta_from_file(meta, meta.source))
+                              from_file = qc_meta_from_file(meta, meta.source),
+                              fixed = prov_fixed_starts(prov))
+  qc_msg_notes(ds$notes)
+
+  ## near real-time QC without a metadata file: update and write the
+  ##  provisional metadata (deployment starts, final after 7 days of
+  ##  transmissions; see smru_meta_provisional())
+  if (!is.null(prov)) {
+    pu <- prov_update(prov, ds, smru, dir = wd)
+    qc_msg_notes(pu$notes)
+  }
   smru <- ds$smru
   meta <- ds$meta
-  qc_msg_notes(ds$notes)
 
   message("Preparing location data for QC...")
   ## Prepare location data

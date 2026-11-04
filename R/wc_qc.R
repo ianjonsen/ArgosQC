@@ -16,7 +16,16 @@
 ##'   * `data.dir` the name of the data directory. Must reside within the `wd`.
 ##'   * `meta.file` the metadata filename. Must reside within the `wd`. Can be NULL,
 ##'   in which case, the `meta` config block (see below) must be present &
-##'   tag-specific metadata are scraped from the SMRU data server.
+##'   tag-specific metadata are taken from the Wildlife Computers Portal. In
+##'   near real-time QC, the first run writes them, with each deployment start
+##'   (T0), to `<name>_metadata_provisional.csv` in `wd` (`<name>` is the config
+##'   file name without "config_" and ".json"), and later runs read that file:
+##'   the Portal metadata are used only for new deployments, and for a weekly
+##'   refresh of the Portal fields during the first 8 weeks after T0. T0
+##'   (`t0_date`, `t0_latitude`, `t0_longitude`) is recalculated daily until the
+##'   tag has transmitted for 7 days after it, then kept (`t0_status` "final").
+##'   Hand edits to the file are kept; delete it to rebuild it. The `t0_` and
+##'   `prov_` columns never reach the output files.
 ##'   * `maps.dir` the directory path to write diagnostic maps of QC'd tracks.
 ##'   * `diag.dir` the directory path to write diagnostic time-series plots of
 ##'   QC'd lon & lat.
@@ -202,7 +211,10 @@ wc_qc <- function(wd,
 
   ## get metadata
   if(!is.null(conf$setup$meta.file)) message("Pulling deployment metadata from file...")
-  else if(is.null(conf$setup$meta.file)) message("Building deployment metadata from WC Portal...")
+  else if (file.exists(wc_prov_file(wd, wc_prov_name(config)))) {
+    message("Reading provisional deployment metadata (",
+            basename(wc_prov_file(wd, wc_prov_name(config))), ")...")
+  } else message("Building deployment metadata from WC Portal...")
   meta <- get_metadata(source = meta.source,
                        tag_data = wc,
                        tag_mfr = "wc",
@@ -210,8 +222,11 @@ wc_qc <- function(wd,
                        file = file.path(wd, conf$setup$meta.file),
                        subset.ids = conf$harvest$tag.list,
                        wc.meta = wc.meta,
-                       meta.args = conf$meta
+                       meta.args = conf$meta,
+                       prov.dir = if (meta.source == "wc") wd else NULL,
+                       prov.name = wc_prov_name(config)
   )
+  qc_msg_notes(attr(meta, "notes"))
 
   ## deployment start (T0) of each deployment: from the metadata file where
   ##  consistent with the data, otherwise calculated from the locations. The QC
@@ -222,10 +237,20 @@ wc_qc <- function(wd,
   locs_all <- wc$Locations
 
   message("Finding deployment start times...")
-  ds <- wc_deployment_start(wc, meta, from_file = meta.source != "wc")
+  prov <- attr(meta, "prov")
+  ds <- wc_deployment_start(wc, meta, from_file = meta.source != "wc",
+                            fixed = wc_prov_fixed_starts(prov))
+  qc_msg_notes(ds$notes)
+
+  ## near real-time QC without a metadata file: update and write the
+  ##  provisional metadata (deployment starts, final after 7 days of
+  ##  transmissions; see wc_meta_provisional())
+  if (!is.null(prov)) {
+    pu <- wc_prov_update(prov, ds, locs_all, dir = wd, name = wc_prov_name(config))
+    qc_msg_notes(pu$notes)
+  }
   wc <- ds$wc
   meta <- ds$meta
-  qc_msg_notes(ds$notes)
 
   ## on-land intervals from the haul-out and dive records: SSM-estimated
   ##  locations within them are not re-routed off land (see qc_onland.R)

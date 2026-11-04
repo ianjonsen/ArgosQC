@@ -13,8 +13,11 @@
 ##   IRAP: their deployment date, time and position are used if consistent with
 ##   the data); FALSE where they were built from the Wildlife Computers Portal
 ##   (T0 is calculated)
+##  fixed: NULL, or deployment starts to use as given (ref, T0, lat0, lon0,
+##   source), e.g. final starts from the provisional metadata file
 ## Returns list(wc, meta, starts, notes); notes are named by message type
-wc_deployment_start <- function(wc, meta, from_file = TRUE, site_km = 10, meta_km = 100) {
+wc_deployment_start <- function(wc, meta, from_file = TRUE, site_km = 10, meta_km = 100,
+                                fixed = NULL) {
 
   ids <- as.character(meta$DeploymentID)
 
@@ -62,8 +65,19 @@ wc_deployment_start <- function(wc, meta, from_file = TRUE, site_km = 10, meta_k
   if (length(from_file) == 1) from_file <- rep(from_file, length(ids))
   ms <- ms[from_file, , drop = FALSE]
 
+  if (!is.null(fixed) && nrow(fixed) > 0) {
+    locs <- locs[!locs$ref %in% fixed$ref, ]
+    ms <- ms[!ms$ref %in% fixed$ref, , drop = FALSE]
+  }
   starts <- qc_deployment_start(locs, meta_start = if (nrow(ms) > 0) ms else NULL,
                                 site_km = site_km, meta_km = meta_km)
+  if (!is.null(fixed) && nrow(fixed) > 0) {
+    fx <- data.frame(ref = as.character(fixed$ref), T0 = as.POSIXct(fixed$T0, tz = "UTC"),
+                     lat0 = as.numeric(fixed$lat0), lon0 = as.numeric(fixed$lon0),
+                     source = as.character(fixed$source), pos_from_data = FALSE,
+                     n_tests = NA_integer_, note = NA_character_)
+    starts <- rbind(starts, fx[fx$ref %in% ids, ])
+  }
 
   ## QC start = T0, or a later manual QC start
   i <- match(ids, starts$ref)

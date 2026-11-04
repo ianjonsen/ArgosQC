@@ -40,6 +40,14 @@
 ##' ptt, body, WMO ID and tag type against the SMRU data server (default
 ##' `TRUE`). `FALSE` takes them from the metadata file unchecked; `build.meta`
 ##' must then be `FALSE`. Set by `"server.check"` in the config setup block
+##' @param prov.dir near real-time QC of SMRU tags without a metadata file: the
+##' folder of the provisional metadata files, `<cid>_metadata_provisional.csv`
+##' (see `smru_meta_provisional()`); or near real-time QC of Wildlife Computers
+##' tags without a metadata file: the folder of `<prov.name>_metadata_provisional.csv`
+##' (see `wc_meta_provisional()`). NULL (default) builds the metadata from the
+##' SMRU server or the Wildlife Computers Portal on every run
+##' @param prov.name Wildlife Computers only: the provisional metadata file name
+##' stem (the config file name without "config_" and ".json")
 ##' @param path2mdb,p2mdbtools the .mdb folder and the mdbtools path (used when
 ##' `build.meta = TRUE`)
 ##'
@@ -66,7 +74,9 @@ get_metadata <- function(source = "smru",
                          build.meta = FALSE,
                          server.check = TRUE,
                          path2mdb = NULL,
-                         p2mdbtools = NULL) {
+                         p2mdbtools = NULL,
+                         prov.dir = NULL,
+                         prov.name = NULL) {
 
   if (is.null(tag_data))
     stop("a tag_data object must be supplied")
@@ -107,13 +117,28 @@ get_metadata <- function(source = "smru",
                                         )
                      },
                    wc = {
-                    wc_build_meta_generic(ids = ids,
+                    ## near real-time QC keeps the metadata built from the
+                    ##  Portal in a provisional metadata file (see
+                    ##  wc_meta_provisional())
+                    if (!is.null(prov.dir)) {
+                      wc_meta_provisional(name = prov.name,
+                                          dir = prov.dir,
+                                          ids = ids,
                                           dropIDs = dropIDs,
                                           meta.args = meta.args,
                                           wc.meta = wc.meta,
                                           tag_data = tag_data)
+                    } else {
+                      wc_build_meta_generic(ids = ids,
+                                            dropIDs = dropIDs,
+                                            meta.args = meta.args,
+                                            wc.meta = wc.meta,
+                                            tag_data = tag_data)
+                    }
                    }
                    )
+    prov <- attr(meta, "prov")
+    notes <- attr(meta, "notes")
 
     ## QC start and end dates. The QC start is the deployment start (T0), set
     ##  by wc_deployment_start() (not the first dive record); a QC_start_datetime
@@ -134,6 +159,8 @@ get_metadata <- function(source = "smru",
     for (v in intersect(c("deploy_longitude", "deploy_latitude"), names(meta))) {
       meta[[v]] <- suppressWarnings(as.double(meta[[v]]))
     }
+    attr(meta, "prov") <- prov
+    attr(meta, "notes") <- notes
 
   } else if (tag_mfr == "smru") {
     ## append dive start and end dates for (alternate) track truncation
@@ -181,13 +208,27 @@ get_metadata <- function(source = "smru",
 
                    },
                    smru = {
-                     ## download SMRU metadata & generate QC metadata for IMOS-AODN
-                     meta <- smru_build_meta_imos(cid = cid,
-                                                  user = user,
-                                                  pwd = pwd,
-                                                  dropIDs = dropIDs,
-                                                  meta.args = meta.args,
-                                                  tag_data = tag_data)
+                     ## download SMRU metadata & generate QC metadata for IMOS-AODN;
+                     ##  near real-time QC keeps them in a provisional metadata
+                     ##  file per campaign (see smru_meta_provisional())
+                     if (!is.null(prov.dir)) {
+                       meta <- smru_meta_provisional(cid = cid,
+                                                     dir = prov.dir,
+                                                     user = user,
+                                                     pwd = pwd,
+                                                     dropIDs = dropIDs,
+                                                     meta.args = meta.args,
+                                                     tag_data = tag_data)
+                     } else {
+                       meta <- smru_build_meta_imos(cid = cid,
+                                                    user = user,
+                                                    pwd = pwd,
+                                                    dropIDs = dropIDs,
+                                                    meta.args = meta.args,
+                                                    tag_data = tag_data)
+                     }
+                     prov <- attr(meta, "prov")
+                     notes <- attr(meta, "notes")
 
                      if ("dive" %in% names(tag_data)) {
                        meta <- meta |>
@@ -197,6 +238,8 @@ get_metadata <- function(source = "smru",
                        meta <- meta |>
                          left_join(ctd_se, by = c("device_id" = "ref"))
                      }
+                     attr(meta, "prov") <- prov
+                     attr(meta, "notes") <- notes
                      meta
 
                    },
