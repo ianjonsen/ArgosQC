@@ -20,6 +20,9 @@
 ##' @param barrier add a custom POLYGON/MULTIPOLYGON shapefile to use as a land
 ##' barrier. Default (NULL) reverts to the `aniMotum` default land barrier.
 ##' @param verbose turn on/off furrr::future_map progress indicator
+##' @param onland on-land intervals (data frame with `id`, `start`, `end`),
+##' from haul-out and dive records; SSM-estimated locations within them are not
+##' re-routed off land (see `aniMotum::route_path()`)
 ##' @param ... additional arguments to `aniMotum::route_path`
 ##'
 ##' @importFrom dplyr filter %>% bind_rows slice ungroup left_join select mutate
@@ -45,8 +48,23 @@ redo_multi_filter <-
            reroute = TRUE,
            dist = 500,
            barrier = NULL,
+           onland = NULL,
            verbose = TRUE,
            ...) {
+
+  ## re-routing: locations within on-land intervals (onland) stay on land.
+  ##  Needs an aniMotum version whose route_path() has the `onland` argument
+  rp <- function(f) {
+    args <- list(f, what = "predicted", map_scale = 10, dist = dist, barrier = barrier, ...)
+    if ("onland" %in% names(formals(aniMotum::route_path))) {
+      args$onland <- onland
+    } else if (!is.null(onland) && nrow(onland) > 0) {
+      warning("The installed aniMotum route_path() has no `onland` argument; ",
+              "haul-out locations are re-routed off land. Update aniMotum.",
+              call. = FALSE)
+    }
+    do.call(aniMotum::route_path, args)
+  }
 
   oc <- which(sapply(fit$ssm, inherits, "try-error"))
   sprintf("%d optimiser crashes", length(oc))
@@ -134,24 +152,14 @@ redo_multi_filter <-
     sprintf("%d convergence failures remain", sum(!fit_fail$converged))
 
     if(reroute) {
-      fit.s <- fit.s |>
-        aniMotum::route_path(what = "predicted",
-                             map_scale = 10,
-                             dist = dist,
-                             barrier = barrier,
-                             ...)
+      fit.s <- rp(fit.s)
     }
 
     return(fit.s)
   } else {
 
     if(reroute) {
-      fit <- fit |>
-        aniMotum::route_path(what = "predicted",
-                             map_scale = 10,
-                             dist = dist,
-                             barrier = barrier,
-                             ...)
+      fit <- rp(fit)
     }
 
     return(fit)

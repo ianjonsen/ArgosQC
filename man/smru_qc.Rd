@@ -104,6 +104,15 @@ coastline. Ignored if \code{reroute = FALSE}.
 \item \code{centroids} whether centroids are to be included in the visibility graph
 mesh used by the rerouting algorithm. See \code{?pathroutr::prt_visgraph} for
 details. Ignored if \code{reroute = FALSE}.
+\item \code{ho.gap} optional; hours (default 6). Haul-out records less than
+\code{ho.gap} h apart, with no dive record between them, form one on-land
+interval. SSM-estimated locations within on-land intervals, and locations
+on land at the start or end of a track, are not re-routed off land.
+Seals, sea lions and fur seals: every haul-out record is used. Turtles:
+only haul-out records within 21 days of the deployment start and within
+5 km of the deployment position (a return to the nesting beach). Other
+species: none. The species is taken from the config \code{meta} block, or
+from the deployment metadata. Ignored if \code{reroute = FALSE}.
 \item \code{cut} logical; should predicted locations be dropped if they lie within
 in a large data gap (default is FALSE).
 \item \code{min.gap} the minimum data gap duration (h) to be used for cutting

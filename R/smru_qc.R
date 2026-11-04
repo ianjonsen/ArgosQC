@@ -96,6 +96,15 @@
 ##'   * `centroids` whether centroids are to be included in the visibility graph
 ##'   mesh used by the rerouting algorithm. See `?pathroutr::prt_visgraph` for
 ##'   details. Ignored if `reroute = FALSE`.
+##'   * `ho.gap` optional; hours (default 6). Haul-out records less than
+##'   `ho.gap` h apart, with no dive record between them, form one on-land
+##'   interval. SSM-estimated locations within on-land intervals, and locations
+##'   on land at the start or end of a track, are not re-routed off land.
+##'   Seals, sea lions and fur seals: every haul-out record is used. Turtles:
+##'   only haul-out records within 21 days of the deployment start and within
+##'   5 km of the deployment position (a return to the nesting beach). Other
+##'   species: none. The species is taken from the config `meta` block, or
+##'   from the deployment metadata. Ignored if `reroute = FALSE`.
 ##'   * `cut` logical; should predicted locations be dropped if they lie within
 ##'   in a large data gap (default is FALSE).
 ##'   * `min.gap` the minimum data gap duration (h) to be used for cutting
@@ -260,6 +269,21 @@ smru_qc <- function(wd,
   ##  and deployments excluded for lack of metadata
   qc_msg_notes(attr(meta, "notes"))
 
+  ## deployment start (T0) of each deployment: from the metadata file where
+  ##  consistent with the data, otherwise calculated from the locations. Records
+  ##  before T0 are removed from the tag data, so from the SSM input and every
+  ##  output file (see smru_deployment_start())
+  ## all tag locations, before the deployment start is applied (shown in the
+  ##  coverage plots)
+  obs <- smru_clean_diag(smru, dropIDs = dropIDs)
+
+  message("Finding deployment start times...")
+  ds <- smru_deployment_start(smru, meta,
+                              from_file = qc_meta_from_file(meta, meta.source))
+  smru <- ds$smru
+  meta <- ds$meta
+  qc_msg_notes(ds$notes)
+
   message("Preparing location data for QC...")
   ## Prepare location data
   locs_sf <- smru_prep_loc(
@@ -275,6 +299,15 @@ smru_qc <- function(wd,
     message("Truncating tracks listed in ", conf$harvest$trimIDs, "...")
     locs_sf <- trim_locs(locs_sf, file = conf$harvest$trimIDs, QCmode = conf$model$QCmode)
   }
+
+  ## on-land intervals from the haul-out and dive records: SSM-estimated
+  ##  locations within them are not re-routed off land (see qc_onland.R)
+  ho.gap <- conf$model$ho.gap
+  if (is.null(ho.gap) || all(is.na(ho.gap))) ho.gap <- 6
+  id_col <- intersect(c("device_id", "DeploymentID"), names(meta))[1]
+  onland <- smru_onland(smru, ho.gap = as.numeric(ho.gap),
+                        taxon = qc_meta_taxon(meta, id_col, conf$meta),
+                        starts = ds$starts)
 
   message("Fitting QC SSM - first pass...")
 
@@ -302,6 +335,7 @@ smru_qc <- function(wd,
     reroute = conf$model$reroute,
     dist = conf$model$dist,
     barrier = conf$model$barrier,
+    onland = onland,
     buffer = conf$model$buffer,
     centroids = conf$model$centroids
   ) |> suppressWarnings()
@@ -330,8 +364,6 @@ smru_ssm <- smru_append_ssm(
 
 ## Generate SSM fit diagnostics & SSM-predicted track map
 message("Generating QC diagnostic plots...")
-obs <- smru_clean_diag(smru, dropIDs = dropIDs)
-
 diagnostics(
   fit = fit2,
   fit1 = fit1,

@@ -1,20 +1,21 @@
 ##' @title clean, truncate & convert WC Locations files to sf-tibbles
 ##'
-##' @description restructures Locations files, formats dates & lc's; truncates start
-##' (and end for "nrt") of individual deployments using ctd dates; converts to
-##' sf geometry - all in preparation for SSM-filtering. Splits resulting truncated
-##' diag files by species.
+##' @description restructures Locations files, formats dates & lc's; keeps the
+##' deployments in the metadata and starts each track at its QC start (the
+##' deployment start, T0, or a later manual QC start; see
+##' `wc_deployment_start()`); converts to sf geometry - all in preparation for
+##' SSM-filtering. Tracks are not truncated at the first or last dive record.
 ##'
 ##' @param wc list of WC datafiles
-##' @param meta metadata used to truncate start of diag data for each individual
+##' @param meta metadata; its `QC_start_date` column sets the start of each track
 ##' @param dropIDs WC DeploymentID's to be dropped (eg. tags were turned on but not deployed)
 ##' @param crs a proj4string to re-project diag locations from longlat. Default is NULL
 ##' which results in one of 4 possible projections applied automatically, based on
 ##' the centroid of the tracks. See `overview` vignette for details.
 ##' @param program specify the aniBOS program contributing data (currently: 'atn', 'irap')
-##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
-##' in latter case wc is not right-truncated & date of first dive is used
-##' for the track start date.
+##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm).
+##' In delayed-mode QC, tracks end at a manual QC end or, for ATN, the metadata
+##' deployment stop, where given.
 ##'
 ##' @importFrom dplyr select left_join mutate filter group_by everything do
 ##' @importFrom dplyr ungroup rename select n lag first
@@ -83,88 +84,31 @@ wc_prep_loc <- function(wc,
       eor = as.numeric(eor)
     )
 
-  if (program == "atn") {
-    locs <- locs |>
-      filter(!DeploymentID %in% dropIDs)
-
-    ## truncate by dive_start/dive_end datetimes & convert to sf geometry steps
-    deploy_meta <- meta |>
-      dplyr::select(
-        DeploymentID,
-        DeploymentStartDateTime,
-        DeploymentStopDateTime,
-        dive_start,
-        dive_end
-      )
-
-    ## only truncate tracks depending on QCmode
-    locs <- locs |>
-      left_join(deploy_meta, by = "DeploymentID") |>
-      mutate(dt.meta = as.numeric(difftime(
-        as.Date(DeploymentStopDateTime),
-        as.Date(DeploymentStartDateTime),
-        units = "days"
-      )),
-      dt.dive = as.numeric(difftime(
-        as.Date(dive_end), as.Date(dive_start), units = "days"
-      )))
-
-    locs.lst <- split(locs, locs$DeploymentID)
-
-    locs <- lapply(locs.lst, function(x) {
-      switch(QCmode, nrt = {
-        if (x$dive_start[1] >= x$DeploymentStartDateTime[1]) {
-          x |> filter(date >= dive_start)
-        } else {
-          x |> filter(date >= DeploymentStartDateTime)
-        }
-      }, dm = {
-        if (x$dt.meta[1] > x$dt.dive[1] &
-            x$dt.dive[1] > x$dt.meta[1] * 0.5) {
-          x |> filter(date >= dive_start & date <= dive_end)
-        } else {
-          x |> filter(date >= DeploymentStartDateTime &
-                        date <= DeploymentStopDateTime)
-        }
-      })
-    }) |>
-      bind_rows() |>
-      dplyr::select(
-        -DeploymentStartDateTime,-DeploymentStopDateTime,-dive_start,-dive_end,-dt.meta,-dt.dive
-      )
-
-  } else if (program != "atn") {
-    locs <- locs |>
-      filter(!DeploymentID %in% dropIDs)
-
-    deploy_meta <- meta |>
-      dplyr::select(
-        DeploymentID, QC_start_date
-      )
-
+  ## keep the deployments in the metadata and start each track at its QC start:
+  ##  the deployment start (T0) or a later manual QC start (see
+  ##  wc_deployment_start()). Tracks are not truncated at the first or last
+  ##  dive record. Delayed-mode QC only: tracks end at a manual QC end
+  ##  (QC_end_datetime in the metadata file) or, for ATN, the metadata
+  ##  deployment stop (DeploymentStopDateTime), where given
   locs <- locs |>
-    left_join(deploy_meta,
-              by = "DeploymentID")
-
-    if (QCmode == "nrt") {
-       locs <- locs |>
-         filter(date >= QC_start_date & !is.na(lon)) |>
-         select(-QC_start_date)
-
-    } else {
-      locs <- locs |>
-        filter(date >= QC_start_date & !is.na(lon),
-               date <= QC_end_date & !is.na(lon)) |>
-        select(-QC_start_date, -QC_end_date)
+    filter(!DeploymentID %in% dropIDs,
+           DeploymentID %in% meta$DeploymentID,
+           !is.na(lon), !is.na(lat))
+  i <- match(locs$DeploymentID, meta$DeploymentID)
+  qs <- as.POSIXct(meta$QC_start_date, tz = "UTC")[i]
+  locs <- locs[is.na(qs) | locs$date >= qs, ]
+  if (identical(as.character(QCmode), "dm")) {
+    i <- match(locs$DeploymentID, meta$DeploymentID)
+    qe <- if ("QC_end_date" %in% names(meta)) as.POSIXct(meta$QC_end_date, tz = "UTC")[i] else
+      as.POSIXct(rep(NA_real_, nrow(locs)), tz = "UTC")
+    if ("DeploymentStopDateTime" %in% names(meta)) {
+      ds <- as.POSIXct(meta$DeploymentStopDateTime, tz = "UTC")[i]
+      qe[is.na(qe)] <- ds[is.na(qe)]
     }
-
+    locs <- locs[is.na(qe) | locs$date <= qe, ]
+  }
   locs <- locs |>
     select(DeploymentID, everything())
-
-  } else {
-    stop("AniBOS program currently not supported")
-
-  }
 
   ## apply simple distance - time filter on first 10 locations to remove potentially
   ##  spurious locations immediately after the first location, which is often

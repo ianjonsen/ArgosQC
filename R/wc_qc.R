@@ -80,6 +80,15 @@
 ##'   * `centroids` whether centroids are to be included in the visibility graph
 ##'   mesh used by the rerouting algorithm. See `?pathroutr::prt_visgraph` for
 ##'   details. Ignored if `reroute = FALSE`.
+##'   * `ho.gap` optional; hours (default 6). Haul-out records less than
+##'   `ho.gap` h apart, with no dive record between them, form one on-land
+##'   interval. SSM-estimated locations within on-land intervals, and locations
+##'   on land at the start or end of a track, are not re-routed off land.
+##'   Seals, sea lions and fur seals: every haul-out record is used. Turtles:
+##'   only haul-out records within 21 days of the deployment start and within
+##'   5 km of the deployment position (a return to the nesting beach). Other
+##'   species: none. The species is taken from the config `meta` block, or
+##'   from the deployment metadata. Ignored if `reroute = FALSE`.
 ##'   * `cut` logical; should predicted locations be dropped if they lie within
 ##'   in a large data gap (default is FALSE).
 ##'   * `min.gap` the minimum data gap duration (h) to be used for cutting
@@ -204,6 +213,28 @@ wc_qc <- function(wd,
                        meta.args = conf$meta
   )
 
+  ## deployment start (T0) of each deployment: from the metadata file where
+  ##  consistent with the data, otherwise calculated from the locations. The QC
+  ##  starts at T0 (or a later manual QC start) and records before it are
+  ##  removed from every output file (see wc_deployment_start())
+  ## all tag locations, before the deployment start is applied (shown in the
+  ##  coverage plots)
+  locs_all <- wc$Locations
+
+  message("Finding deployment start times...")
+  ds <- wc_deployment_start(wc, meta, from_file = meta.source != "wc")
+  wc <- ds$wc
+  meta <- ds$meta
+  qc_msg_notes(ds$notes)
+
+  ## on-land intervals from the haul-out and dive records: SSM-estimated
+  ##  locations within them are not re-routed off land (see qc_onland.R)
+  ho.gap <- conf$model$ho.gap
+  if (is.null(ho.gap) || all(is.na(ho.gap))) ho.gap <- 6
+  onland <- wc_onland(wc, ho.gap = as.numeric(ho.gap),
+                      taxon = qc_meta_taxon(meta, "DeploymentID", conf$meta),
+                      starts = ds$starts)
+
   ## prepare location data
   message("Preparing location data for QC...")
   locs_sf <- wc_prep_loc(
@@ -246,6 +277,7 @@ wc_qc <- function(wd,
     reroute = conf$model$reroute,
     dist = conf$model$dist,
     barrier = conf$model$barrier,
+    onland = onland,
     buffer = conf$model$buffer,
     centroids = conf$model$centroids
   ) |>
@@ -282,7 +314,7 @@ wc_qc <- function(wd,
     fit1,
     what = what,
     cut = conf$model$cut,
-    data = wc$Locations,
+    data = locs_all,
     ssm = wc_ssm,
     meta = meta,
     lines = TRUE,

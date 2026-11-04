@@ -574,5 +574,31 @@ wc_pull_data <- function(path2data,
 
   names(wc) <- datafiles
 
+  ## haul-out records (HaulOut.csv), read only to keep haul-out locations on
+  ##  land when re-routing (see wc_onland()). They are held in attribute
+  ##  "haulout", not in the list of tables, so they are not QC outputs
+  attr(wc, "haulout") <- wc_read_haulout(ndirs)
+
   return(wc)
+}
+
+
+## read the HaulOut.csv files of the tag datasets in dirs (internal). Returns a
+##  data frame with DeploymentID and the HaulOut.csv columns, or NULL
+wc_read_haulout <- function(dirs) {
+  out <- lapply(dirs, function(d) {
+    f <- list.files(d, pattern = "HaulOut\\.csv$", ignore.case = TRUE,
+                    recursive = TRUE, full.names = TRUE)
+    if (length(f) == 0) return(NULL)
+    x <- tryCatch(suppressMessages(read_csv(f[1], show_col_types = FALSE,
+                                            col_types = cols(.default = "c"),
+                                            name_repair = "unique_quiet")),
+                  error = function(e) NULL)
+    if (is.null(x) || nrow(x) == 0) return(NULL)
+    x$DeploymentID <- str_split(basename(d), "\\_", simplify = TRUE)[, 1]
+    x[, c("DeploymentID", setdiff(names(x), "DeploymentID"))]
+  })
+  out <- out[!sapply(out, is.null)]
+  if (length(out) == 0) return(NULL)
+  dplyr::bind_rows(out)
 }

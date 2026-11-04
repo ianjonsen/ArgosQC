@@ -90,57 +90,7 @@ get_metadata <- function(source = "smru",
       ids <- NULL
     }
 
-    ## get diving start/end dates - to automatically determine when animal
-    ##  goes to sea
-    ## Based on tag datasets checked so far - these files are unreliable for
-    ##  determining when/if animal is at sea. Just rely on deploy/embark date in
-    ##  metadata
     tag_data <- vctrs::list_drop_empty(tag_data)
-    dive_st <- vector(mode = "list", length = 4)
-
-    if ("Histos" %in% names(tag_data)) {
-      dive_st[[1]] <- tag_data$Histos |>
-        group_by(DeploymentID) |>
-        summarise(
-          dive_start = min(Date, na.rm = TRUE)
-        )
-    }
-
-    if ("ECDHistos_SCOUT_TEMP_361A" %in% names(tag_data)) {
-      dive_st[[2]] <- tag_data$ECDHistos_SCOUT_TEMP_361A |>
-        group_by(DeploymentID) |>
-        summarise(
-          dive_start = min(Date, na.rm = TRUE)
-        )
-    }
-
-    if ("ECDHistos_SCOUT_DSA" %in% names(tag_data)) {
-      dive_st[[3]] <- tag_data$ECDHistos_SCOUT_DSA |>
-        group_by(DeploymentID) |>
-        summarise(
-          dive_start = min(Start, na.rm = TRUE)
-        )
-    }
-
-    if ("MinMaxDepth" %in% names(tag_data)) {
-      dive_st[[4]] <- tag_data$MinMaxDepth |>
-        group_by(DeploymentID) |>
-        summarise(
-          dive_start = min(Date, na.rm = TRUE)
-        )
-    }
-    names(dive_st) <- c("Histos",
-                        "ECDHistos_SCOUT_TEMP_361A",
-                        "ECDHistos_SCOUT_DSA",
-                        "MinMaxDepth")
-
-    dive_st <- list_drop_empty(dive_st)
-
-    dive_st <- dive_st |>
-      bind_rows() |>
-      group_by(DeploymentID) |>
-      summarise(dive_start = max(dive_start))
-
 
     ## read & clean metadata
     meta <- switch(source,
@@ -165,62 +115,25 @@ get_metadata <- function(source = "smru",
                    }
                    )
 
-    ## join metadata & dive start/end dates
-    meta <- meta |>
-      left_join(dive_st, by = "DeploymentID")
-
-    if("embark_date" %in% names(meta)) {
-      meta <- meta |>
-        mutate(QC_start_date = case_when(
-          dive_start > deploy_date ~ dive_start,
-          dive_start <= deploy_date ~ deploy_date,
-          (is.na(deploy_date) & dive_start <= embark_date) ~ embark_date,
-          (is.na(deploy_date) & dive_start > embark_date) ~ dive_start
-        ))
-
+    ## QC start and end dates. The QC start is the deployment start (T0), set
+    ##  by wc_deployment_start() (not the first dive record); a QC_start_datetime
+    ##  in the metadata file is a later, manual QC start. A QC_end_datetime in
+    ##  the metadata file is a manual QC end
+    meta$QC_start_date <- if ("QC_start_datetime" %in% names(meta)) {
+      as.POSIXct(meta$QC_start_datetime, tz = "UTC")
     } else {
-      meta <- meta |>
-        mutate(QC_start_date = case_when(
-          dive_start > deploy_date ~ dive_start,
-          dive_start <= deploy_date ~ deploy_date
-        ))
+      as.POSIXct(rep(NA_real_, nrow(meta)), tz = "UTC")
     }
-
+    meta$QC_end_date <- if ("QC_end_datetime" %in% names(meta)) {
+      as.POSIXct(meta$QC_end_datetime, tz = "UTC")
+    } else {
+      as.POSIXct(rep(NA_real_, nrow(meta)), tz = "UTC")
+    }
     meta <- meta |>
-      mutate(deploy_longitude = as.double(deploy_longitude)) |>
-      mutate(deploy_latitude = as.double(deploy_latitude)) |>
-      mutate(QC_end_date = NA)
-
-    ## revise QC start date (based on dive_start) if QC_start_datetime variable exists in metadata
-    if ("QC_start_datetime" %in% names(meta)) {
-      meta <- meta |>
-        mutate(
-          QC_start_date = ifelse(
-            !is.na(QC_start_datetime) & QC_start_date < QC_start_datetime,
-            QC_start_datetime,
-            QC_start_date
-          )
-        ) |>
-        mutate(QC_start_date = as.POSIXct(QC_start_date, origin = "1970-01-01", tz = "UTC")) |>
-        select(-QC_start_datetime)
+      select(-dplyr::any_of(c("QC_start_datetime", "QC_end_datetime")))
+    for (v in intersect(c("deploy_longitude", "deploy_latitude"), names(meta))) {
+      meta[[v]] <- suppressWarnings(as.double(meta[[v]]))
     }
-
-    ## revise QC end date if QC_end_datetime variable exists in metadata
-    if ("QC_end_datetime" %in% names(meta)) {
-      meta <- meta |>
-        mutate(
-          QC_end_date = ifelse(
-            !is.na(QC_end_datetime),
-            QC_end_datetime,
-            QC_end_date
-          )
-        ) |>
-        mutate(QC_end_date = as.POSIXct(QC_end_date, origin = "1970-01-01", tz = "UTC")) |>
-        select(-QC_end_datetime)
-    }
-
-    meta <- meta |>
-      select(-dive_start)
 
   } else if (tag_mfr == "smru") {
     ## append dive start and end dates for (alternate) track truncation

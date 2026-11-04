@@ -1,23 +1,26 @@
 ##' @title run QC diagnostics for WC or SMRU tag workflows
 ##'
-##' @description produces a map of all QC'd tracks and generates various diagnostics to assess QC run.
-##' The map shows each SSM-estimated track in its own hue, with its Argos locations in a
-##' light tint of that hue; Argos locations removed by the prefilter are semi-transparent points in the track's dark shade
+##' @description produces a map of all QC'd tracks and latitude and longitude
+##' coverage plots to assess the QC run. The map shows each SSM-estimated track
+##' in its own hue, with its Argos locations in a light tint of that hue; Argos
+##' locations removed by the prefilter are semi-transparent points in the
+##' track's dark shade. The coverage plots use the same hues, one panel per
+##' deployment, with the SSM-estimated latitude or longitude drawn as a dark
+##' line over the Argos locations, and the time outside the QC'd track shaded.
 ##'
 ##' @param fit the final aniMotum fit object from QC process
-##' @param fit1 the initial aniMotum fit object from QC process
+##' @param fit1 ignored (kept for compatibility)
 ##' @param what the SSM-estimated or rerouted locations to be used
 ##' @param cut logical; should predicted locations be dropped if keep = FALSE - ie. in a large data gap
 ##' @param data the standardized WC Locations or SMRU diag file (prior to truncation by metadata CTD start and end dates)
-##' @param ssm the ssm-annotated WC/SMRU tables
-##' @param meta metadata
+##' @param ssm ignored (kept for compatibility)
+##' @param meta ignored (kept for compatibility)
 ##' @param lines ignored; the map always shows track lines (kept for compatibility)
 ##' @param obs ignored; the map always shows the Argos locations (kept for compatibility)
 ##' @param mpath path to write map file
 ##' @param dpath path to write all other diagnostic files
-##' @param QCmode specify whether QC is near real-time (nrt) or delayed-mode (dm),
-##' in latter case start end end of dive data are displayed rather than ctd data.
-##' @param tag_mfr the tag manufacturer. Currently, only `smru` or `wc` are supported.
+##' @param QCmode ignored (kept for compatibility)
+##' @param tag_mfr ignored (kept for compatibility)
 ##' @param cid SMRU campaign id (from config file). Ignored if WC data is used.
 ##'
 ##'
@@ -53,315 +56,15 @@ diagnostics <-
     if(is.null(mpath)) stop("A valid file path for the map must be provided")
     if(is.null(dpath)) stop("A valid file path for the diagnostics must be provided")
 
-    ## fitted locations for the coverage plots
-    if (inherits(fit, "list")) {
-      flocs <- lapply(fit, grab_QC, what = "f") |>
-        bind_rows()
-    } else if (inherits(fit, "ssm_df")) {
-      flocs <- grab_QC(fit, what = "f")
-    }
-
     ## map of all QC'd tracks: SSM-estimated tracks, each with its Argos
     ##  locations in a light tint of the track's hue (see qc_track_map())
     qc_track_map(fit, what = what, cut = cut, mpath = mpath, cid = cid)
 
-    ## generate separate lon & lat coverage plots by individual
-    ##  obs + estimates (fitted)
+    ## latitude and longitude coverage plots, in the map's style: each
+    ##  deployment in its own hue, the SSM-estimated track over its Argos
+    ##  locations (see qc_coverage_plot())
+    qc_coverage_plot(fit, what = what, cut = cut, data = data, dpath = dpath, cid = cid)
 
-    if("DeploymentID" %in% names(meta)) {
-      meta <- meta |>
-        rename(device_id = DeploymentID)
-    }
-
-    if("DeploymentID" %in% names(data)) {
-      olocs <- data |>
-        rename(device_id = DeploymentID,
-               lat = Latitude,
-               lon = Longitude,
-               date = Date)
-
-    } else {
-      olocs <- data |>
-        rename(device_id = ref)
-    }
-
-    flocs <- flocs |>
-      rename(device_id = id)
-    # plocs <- plocs |>
-    #   rename(device_id = id)
-
-    dd <-
-      olocs |>
-      group_by(device_id) |>
-      summarise(start_date = min(date), end_date = max(date))
-
-    meta <- left_join(meta, dd, by = "device_id")
-
-    ## Latitude coverage plots
-    p.lat <- suppressWarnings(ggplot(olocs) +
-      geom_point(aes(date, lat), col = "dodgerblue", size = 1.5) +
-        # geom_point(data = plocs,
-        #            aes(date, lat),
-        #            size = 0.75,
-        #            col = "darkorange3") +
-        geom_point(data = flocs,
-                   aes(date, lat),
-                   size = 0.75,
-                   col = 'firebrick',
-                  alpha = 0.7) +
-      facet_wrap(vars(device_id),
-                 scales = "free",
-                 ncol = 6)
-    )
-
-    if(tag_mfr == "smru") {
-      if(QCmode == "nrt" | QCmode == "test") {
-        p.lat <- suppressWarnings(p.lat + geom_rect(
-          data = meta |> filter(!is.na(start_date),
-                                !is.na(ctd_start)),
-          aes(
-            xmin = start_date,
-            xmax = ctd_start,
-            ymin = -Inf,
-            ymax = Inf
-          ),
-          alpha = 0.5,
-          fill = grey(0.1),
-          colour = NA
-        ) +
-          geom_rect(
-            data = meta |> filter(!is.na(end_date),
-                                  !is.na(ctd_end)),
-            aes(
-              xmin = ctd_end,
-              xmax = end_date,
-              ymin = -Inf,
-              ymax = Inf
-            ),
-            alpha = 0.5,
-            fill = grey(0.1),
-            colour = NA
-          ))
-
-      } else if(QCmode == "dm") {
-        if("dive_start" %in% names(meta)) {
-          d <- meta |> filter(!is.na(start_date),
-                              !is.na(dive_start),
-                              !is.na(end_date),
-                              !is.na(dive_end))
-
-          p.lat <- suppressWarnings(p.lat + geom_rect(
-            data = d,
-            aes(
-              xmin = start_date,
-              xmax = dive_start,
-              ymin = -Inf,
-              ymax = Inf
-            ),
-            alpha = 0.5,
-            fill = grey(0.1),
-            colour = NA
-          ) +
-            geom_rect(
-              data = d,
-              aes(
-                xmin = dive_end,
-                xmax = end_date,
-                ymin = -Inf,
-                ymax = Inf
-              ),
-              alpha = 0.5,
-              fill = grey(0.1),
-              colour = NA
-            ))
-
-        }
-      }
-    } else if(tag_mfr == "wc") {
-      p.lat <- suppressWarnings(p.lat + geom_rect(
-        data = meta |> filter(!is.na(start_date),
-                              !is.na(QC_start_date)),
-        aes(
-          xmin = start_date,
-          xmax = QC_start_date,
-          ymin = -Inf,
-          ymax = Inf
-        ),
-        alpha = 0.5,
-        fill = grey(0.1),
-        colour = NA
-      ) +
-        geom_rect(
-          data = meta |> filter(!is.na(end_date),
-                                !is.na(QC_end_date)),
-          aes(
-            xmin = QC_end_date,
-            xmax = end_date,
-            ymin = -Inf,
-            ymax = Inf
-          ),
-          alpha = 0.5,
-          fill = grey(0.1),
-          colour = NA
-        ))
-
-    }
-
-    p.lat <- p.lat + ylim(min(flocs$lat), max(flocs$lat))
-
-    if(!is.null(cid)) {
-      suppressWarnings(ggsave(
-        file.path(dpath,
-                  paste0("lat_coverage_", cid, ".jpg")),
-        plot = p.lat,
-        width = 15,
-        height = 20,
-        units = "in",
-        dpi = 200
-      ))
-
-    } else {
-      suppressWarnings(ggsave(
-        file.path(dpath,
-                  paste0("lat_coverage_", ".jpg")),
-        plot = p.lat,
-        width = 15,
-        height = 20,
-        units = "in",
-        dpi = 200
-      ))
-    }
-
-
-
-    ## Longitude coverage plots
-    p.lon <- suppressWarnings(ggplot(olocs) +
-      geom_point(aes(date, lon), col = "dodgerblue", size = 1.5) +
-        # geom_point(data = plocs,
-        #            aes(date, lon),
-        #            size = 0.75,
-        #            col = "orange") +
-        geom_point(data = flocs,
-                 aes(date, lon),
-                 size = 0.75,
-                 col = 'firebrick') +
-        facet_wrap(vars(device_id),
-          scales = "free",
-          ncol = 6
-        ))
-
-    if(tag_mfr == "smru") {
-      if(QCmode == "nrt" | QCmode == "test") {
-        p.lon <- suppressWarnings(p.lon + geom_rect(
-          data = meta |> filter(!is.na(start_date),
-                                !is.na(ctd_start)),
-          aes(
-            xmin = start_date,
-            xmax = ctd_start,
-            ymin = -Inf,
-            ymax = Inf
-          ),
-          alpha = 0.5,
-          fill = grey(0.1),
-          colour = NA
-        ) +
-          geom_rect(
-            data = meta |> filter(!is.na(end_date),
-                                  !is.na(ctd_end)),
-            aes(
-              xmin = ctd_end,
-              xmax = end_date,
-              ymin = -Inf,
-              ymax = Inf
-            ),
-            alpha = 0.5,
-            fill = grey(0.1),
-            colour = NA
-          ))
-
-      } else if(QCmode == "dm") {
-        if("dive_start" %in% names(meta)) {
-          d <- meta |> filter(!is.na(start_date),
-                              !is.na(dive_start),
-                              !is.na(end_date),
-                              !is.na(dive_end))
-
-        p.lon <- suppressWarnings(p.lon + geom_rect(
-          data = d,
-          aes(
-            xmin = start_date,
-            xmax = dive_start,
-            ymin = -Inf,
-            ymax = Inf
-          ),
-          alpha = 0.5,
-          fill = grey(0.1),
-          colour = NA
-        ) +
-          geom_rect(
-            data = d,
-            aes(
-              xmin = dive_end,
-              xmax = end_date,
-              ymin = -Inf,
-              ymax = Inf
-            ),
-            alpha = 0.5,
-            fill = grey(0.1),
-            colour = NA
-          ))
-        }
-      }
-    } else if(tag_mfr == "wc") {
-      p.lon <- suppressWarnings(p.lon + geom_rect(
-        data = meta |> filter(!is.na(start_date),
-                              !is.na(QC_start_date)),
-        aes(
-          xmin = start_date,
-          xmax = QC_start_date,
-          ymin = -Inf,
-          ymax = Inf
-        ),
-        alpha = 0.5,
-        fill = grey(0.1),
-        colour = NA
-      ) +
-        geom_rect(
-          data = meta |> filter(!is.na(end_date),
-                                !is.na(QC_end_date)),
-          aes(
-            xmin = QC_end_date,
-            xmax = end_date,
-            ymin = -Inf,
-            ymax = Inf
-          ),
-          alpha = 0.5,
-          fill = grey(0.1),
-          colour = NA
-        ))
-
-    }
-
-    p.lon <- p.lon + ylim(min(flocs$lon), max(flocs$lon))
-
-    if (!is.null(cid)) {
-      suppressWarnings(ggsave(
-        file.path(dpath, paste0("lon_coverage_", cid, ".jpg")),
-        plot = p.lon,
-        width = 15,
-        height = 20,
-        units = "in",
-        dpi = 150
-      ))
-    } else {
-      suppressWarnings(ggsave(
-        file.path(dpath, paste0("lon_coverage_", ".jpg")),
-        plot = p.lon,
-        width = 15,
-        height = 20,
-        units = "in",
-        dpi = 150
-      ))
-    }
+    invisible(NULL)
   }
 
