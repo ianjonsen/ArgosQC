@@ -104,6 +104,10 @@
 ##'   predicted locations (default is 72 h)
 ##'   * `QCmode` one of either `nrt` for Near Real-Time QC or `dm` for Delayed
 ##'   Mode QC.
+##'   * `fix.psi` optional; `true` or `false`. Fixes (or estimates) the
+##'   `aniMotum` error ellipse scaling parameter `psi` in the first-pass SSM
+##'   fit for all tags. If absent, `psi` is fixed for tags with Kinéis
+##'   locations and estimated otherwise (see `qc_kineis_tags()`).
 ##'   * `pred.int` the prediction interval (h) to use for sub-sampling predicted
 ##'   locations in near real-time QC. Ignored in delayed-mode QC, where
 ##'   predicted locations are output at the SSM `time.step`.
@@ -281,10 +285,18 @@ wc_qc <- function(wd,
   ## FIT QC SSM in 2 passes
   ## First pass SSM-filter
   message("Fitting QC SSM - first pass...")
+  ## fix psi for tags with Kinéis locations (or as set by fix.psi in the
+  ##  config model block); see qc_fix_psi()
+  fix_psi <- qc_fix_psi(locs_sf$DeploymentID,
+                        kineis = qc_kineis_tags(wc$Locations, id = "DeploymentID", source = "wc"),
+                        fix.psi = conf$model$fix.psi)
+  if (any(fix_psi)) message("psi fixed for ", sum(fix_psi), " of ", length(fix_psi), " tags")
+
   fit1 <- multi_filter(locs_sf,
                        vmax = conf$model$vmax,
                        model = conf$model$model,
-                       ts = conf$model$time.step) |>
+                       ts = conf$model$time.step,
+                       fix.psi = fix_psi) |>
     suppressWarnings()
 
 

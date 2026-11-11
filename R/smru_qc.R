@@ -119,6 +119,10 @@
 ##'   predicted locations (default is 72 h)
 ##'   * `QCmode` one of either `nrt` for Near Real-Time QC or `dm` for Delayed
 ##'   Mode QC.
+##'   * `fix.psi` optional; `true` or `false`. Fixes (or estimates) the
+##'   `aniMotum` error ellipse scaling parameter `psi` in the first-pass SSM
+##'   fit for all tags. If absent, `psi` is fixed for tags with Kinéis
+##'   locations and estimated otherwise (see `qc_kineis_tags()`).
 ##'   * `inactive.days` optional; near real-time QC only. If no tag has
 ##'   transmitted (Argos location or GPS fix) for more than this many days, the
 ##'   QC stops with an error before any output is written (default is 7 days).
@@ -335,11 +339,19 @@ smru_qc <- function(wd,
 
   ## FIT QC SSM in 2 passes
   ## First pass SSM-filter
+  ## fix psi for tags with Kinéis locations (or as set by fix.psi in the
+  ##  config model block); see qc_fix_psi()
+  fix_psi <- qc_fix_psi(locs_sf$ref,
+                        kineis = qc_kineis_tags(smru$diag, id = "ref", source = "smru"),
+                        fix.psi = conf$model$fix.psi)
+  if (any(fix_psi)) message("psi fixed for ", sum(fix_psi), " of ", length(fix_psi), " tags")
+
   fit1 <- multi_filter(
     locs_sf,
     vmax = conf$model$vmax,
     model = conf$model$model,
-    ts = conf$model$time.step
+    ts = conf$model$time.step,
+    fix.psi = fix_psi
   ) |> suppressWarnings()
 
   if(conf$model$reroute) message("Fitting QC SSM - second pass & rerouting locations off land...")

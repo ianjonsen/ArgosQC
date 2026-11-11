@@ -116,6 +116,10 @@ in a large data gap (default is FALSE).
 predicted locations (default is 72 h)
 \item \code{QCmode} one of either \code{nrt} for Near Real-Time QC or \code{dm} for Delayed
 Mode QC.
+\item \code{fix.psi} optional; \code{true} or \code{false}. Fixes (or estimates) the
+\code{aniMotum} error ellipse scaling parameter \code{psi} in the first-pass SSM
+fit for all tags. If absent, \code{psi} is fixed for tags with Kinéis
+locations and estimated otherwise (see \code{qc_kineis_tags()}).
 \item \code{pred.int} the prediction interval (h) to use for sub-sampling predicted
 locations in near real-time QC. Ignored in delayed-mode QC, where
 predicted locations are output at the SSM \code{time.step}.

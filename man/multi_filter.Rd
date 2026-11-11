@@ -4,7 +4,14 @@
 \alias{multi_filter}
 \title{multi-filter}
 \usage{
-multi_filter(x, vmax = 4, model = "rw", ts = 6, verbose = FALSE)
+multi_filter(
+  x,
+  vmax = 4,
+  model = "rw",
+  ts = 6,
+  verbose = FALSE,
+  fix.psi = NULL
+)
 }
 \arguments{
 \item{x}{\code{sf}-projected diag file of locations to be filtered}
@@ -16,6 +23,11 @@ multi_filter(x, vmax = 4, model = "rw", ts = 6, verbose = FALSE)
 \item{ts}{\code{foieGrsa} time.step}
 
 \item{verbose}{turn on/off furrr::future_map progress indicator}
+
+\item{fix.psi}{optional logical vector, one element per track (row of
+\code{x}): \code{TRUE} fixes the \code{aniMotum} error ellipse scaling
+parameter \code{psi} at 1 for that track (see \code{qc_fix_psi()}).
+\code{NULL} (default) estimates \code{psi} for all tracks.}
 }
 \description{
 apply SSM filter to diag data across multiple processors
